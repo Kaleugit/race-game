@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Race Game</title>
+    <link rel="icon" href="data:,">
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; overflow: hidden; }
+      body {
+        background: #050208;
+      }
+      canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+      #hud {
+        position: fixed; top: 12px; left: 12px;
+        font-family: 'Courier New', monospace;
+        color: #fffbe0; text-shadow: 2px 2px 0 #000;
+        font-size: 14px; line-height: 1.4;
+        pointer-events: none;
+      }
+      #hud .v { color: #ffd86b; }
+      #hud .vbot { color: #ff8a3a; }
+      #help {
+        position: fixed; bottom: 12px; left: 12px;
+        font-family: 'Courier New', monospace;
+        color: #cfd6ff; text-shadow: 2px 2px 0 #000;
+        font-size: 12px; opacity: 0.85;
+      }
+      #crashfade {
+        position: fixed; inset: 0;
+        background: #050208;
+        opacity: 0;
+        pointer-events: none;
+      }
+      #crashprompt {
+        position: fixed; left: 50%; bottom: 64px;
+        transform: translateX(-50%);
+        display: none;
+        font-family: 'Courier New', monospace;
+        color: #fffbe0; text-shadow: 2px 2px 0 #000;
+        font-size: 14px; letter-spacing: 2px;
+        pointer-events: none;
+      }
+      #crashprompt.show { display: block; }
+      #crashtitle {
+        position: fixed; left: 50%; bottom: 110px;
+        transform: translateX(-50%);
+        display: none;
+        font-family: 'Courier New', monospace;
+        color: #fffbe0; text-shadow: 2px 2px 0 #000;
+        font-size: 32px; letter-spacing: 6px;
+        white-space: nowrap;
+        pointer-events: none;
+      }
+      #crashtitle.show { display: block; }
+      #btn-back-lobby {
+        position: fixed; top: 12px; right: 12px; z-index: 20;
+        font-family: 'Courier New', monospace;
+        background: rgba(0,0,0,0.4); color: #fffbe0;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 12px; font-size: 13px;
+        cursor: pointer; user-select: none;
+        text-shadow: 2px 2px 0 #000;
+        display: none;
+      }
+      #btn-back-lobby:hover { background: rgba(255,216,107,0.18); border-color: #ffd86b; }
+      #btn-restart {
+        position: fixed; top: 52px; right: 12px; z-index: 20;
+        font-family: 'Courier New', monospace;
+        background: rgba(0,0,0,0.4); color: #fffbe0;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 12px; font-size: 13px;
+        cursor: pointer; user-select: none;
+        text-shadow: 2px 2px 0 #000;
+        display: none;
+      }
+      #btn-restart:hover { background: rgba(255,216,107,0.18); border-color: #ffd86b; }
+      #mobiletoggle {
+        position: fixed; top: 92px; right: 12px;
+        font-family: 'Courier New', monospace;
+        background: rgba(0,0,0,0.4); color: #fffbe0;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 12px; font-size: 13px;
+        cursor: pointer; user-select: none;
+        text-shadow: 2px 2px 0 #000;
+      }
+      #touchpad {
+        position: fixed; inset: 0;
+        pointer-events: none;
+        display: none;
+      }
+      #touchpad.show { display: block; }
+      #touchpad .pad { position: absolute; bottom: 12px; display: flex; gap: 8px; pointer-events: none; }
+      #touchpad .pad-left { left: 12px; }
+      #touchpad .pad-right { right: 12px; align-items: flex-end; }
+      #touchpad .tbtn {
+        background: rgba(255,255,255,0.10);
+        border: 1px solid rgba(255,255,255,0.35);
+        color: rgba(255,251,224,0.6);
+        font-family: 'Courier New', monospace;
+        line-height: 1;
+        display: flex; align-items: center; justify-content: center;
+        user-select: none; -webkit-user-select: none; touch-action: none;
+        pointer-events: auto;
+      }
+      #touchpad .tbtn:active { background: rgba(255,255,255,0.28); color: rgba(255,251,224,0.95); }
+      #touchpad .tbtn-arrow {
+        width: 88px; height: 88px;
+        border-radius: 50%;
+        font-size: 44px;
+      }
+      #touchpad .tbtn-pedal {
+        width: 38px; height: 62px;
+        border-radius: 18px;
+        font-size: 20px;
+        letter-spacing: -1px;
+      }
+      #touchpad .tbtn-pedal.brake { color: rgba(255,160,140,0.7); border-color: rgba(255,160,140,0.5); }
+      #touchpad .tbtn-pedal.brake:active { color: rgba(255,180,160,1); }
+      #touchpad .tbtn-gasturbo {
+        width: 42px; height: 110px;
+        border-radius: 22px;
+        font-size: 18px;
+        letter-spacing: -1px;
+        flex-direction: column;
+        padding: 4px 0;
+        color: rgba(180,255,180,0.7);
+        border-color: rgba(180,255,180,0.5);
+        background: linear-gradient(to top, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.10) 50%, rgba(255,200,80,0.10) 50%, rgba(255,200,80,0.18) 100%);
+      }
+      #touchpad .tbtn-gasturbo .zone-turbo {
+        flex: 1; display: flex; align-items: center; justify-content: center;
+        font-size: 9px; color: rgba(255,200,80,0.75); letter-spacing: 0;
+      }
+      #touchpad .tbtn-gasturbo .zone-gas {
+        flex: 1; display: flex; align-items: center; justify-content: center;
+        font-size: 18px;
+      }
+      #touchpad .tbtn-gasturbo.gas-on { color: rgba(200,255,200,1); border-color: rgba(200,255,200,0.85); }
+      #touchpad .tbtn-gasturbo.turbo-on .zone-turbo { color: rgba(255,220,120,1); }
+      #touchpad .tbtn-gasturbo.turbo-on { background: linear-gradient(to top, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.18) 50%, rgba(255,200,80,0.30) 50%, rgba(255,200,80,0.45) 100%); }
+      #lobby {
+        position: fixed; inset: 0; z-index: 100;
+        background: url('/Lobby-1.png') center center / cover no-repeat, linear-gradient(135deg, #1a0a2e 0%, #2d1a4a 50%, #1a0a2e 100%);
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+      }
+      #lobby-canvas {
+        position: absolute; inset: 0;
+        width: 100%; height: 100%;
+        image-rendering: pixelated; image-rendering: crisp-edges;
+        pointer-events: auto;
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+      }
+      #lobby-canvas:active { cursor: grabbing; }
+      #lobby-ui {
+        position: absolute; top: 7vh; left: 0; right: 0; z-index: 1;
+        display: flex; flex-direction: column;
+        align-items: center; gap: 14px;
+      }
+      #lobby-title {
+        font-family: 'Courier New', monospace;
+        font-size: 42px; letter-spacing: 8px;
+        color: #ffd86b; text-shadow: 3px 3px 0 #000, 0 0 24px #ff7a4a;
+        user-select: none;
+      }
+      #lobby-play {
+        font-family: 'Courier New', monospace;
+        font-size: 22px; letter-spacing: 6px;
+        color: #fffbe0; background: rgba(0,0,0,0.55);
+        border: 2px solid #ffd86b;
+        padding: 14px 52px; cursor: pointer;
+        text-shadow: 2px 2px 0 #000;
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
+      }
+      #lobby-play:hover {
+        background: rgba(255,216,107,0.18);
+        border-color: #ff8a3a; color: #ffd86b;
+      }
+      #lobby-fullscreen-wrap {
+        position: absolute; top: 16px; right: 16px; z-index: 2;
+        display: flex; flex-direction: column; align-items: center; gap: 4px;
+      }
+      #lobby-fullscreen-arrow {
+        font-size: 36px; color: #ffd86b;
+        text-shadow: 1px 1px 0 #000, 0 0 10px #ff7a4a;
+        animation: bounce-arrow 0.7s ease-in-out infinite alternate;
+        line-height: 1;
+      }
+      @keyframes bounce-arrow {
+        from { transform: translateY(0);    opacity: 0.6; }
+        to   { transform: translateY(-6px); opacity: 1; }
+      }
+      #lobby-fullscreen {
+        font-family: 'Courier New', monospace;
+        font-size: 12px; letter-spacing: 3px;
+        color: #fffbe0; background: rgba(0,0,0,0.55);
+        border: 1px solid #ffd86b;
+        padding: 8px 16px; cursor: pointer;
+        text-shadow: 1px 1px 0 #000;
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
+        white-space: nowrap;
+      }
+      #lobby-mute {
+        position: absolute; bottom: 16px; left: 16px; z-index: 2;
+        font-size: 22px; background: rgba(0,0,0,0.5);
+        border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;
+        padding: 6px 10px; cursor: pointer; color: #fff;
+        transition: background 0.15s;
+      }
+      #lobby-mute:hover { background: rgba(255,255,255,0.1); }
+      #lobby-fullscreen:hover {
+        background: rgba(255,216,107,0.18);
+        border-color: #ff8a3a; color: #ffd86b;
+      }
+      #lobby-car-selector {
+        display: flex; align-items: center; gap: 18px;
+        position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+        z-index: 2; white-space: nowrap;
+      }
+      #lobby-car-selector .cs-arrow {
+        font-family: 'Courier New', monospace;
+        font-size: 22px; color: #fffbe0;
+        background: rgba(0,0,0,0.55);
+        border: 2px solid #ffd86b;
+        padding: 8px 18px; cursor: pointer;
+        text-shadow: 2px 2px 0 #000;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+        line-height: 1;
+      }
+      #lobby-car-selector .cs-arrow:hover {
+        background: rgba(255,216,107,0.18);
+        border-color: #ff8a3a; color: #ffd86b;
+      }
+      #lobby-car-name {
+        font-family: 'Courier New', monospace;
+        font-size: 18px; letter-spacing: 4px;
+        color: #ffd86b; text-shadow: 2px 2px 0 #000;
+        min-width: 180px; text-align: center;
+        user-select: none;
+      }
+      #countdown-overlay {
+        position: fixed; inset: 0; z-index: 50;
+        background: rgba(5,2,8,0.72);
+        display: none;
+        flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 28px;
+        pointer-events: none;
+      }
+      #countdown-overlay.show { display: flex; }
+      #countdown-vs {
+        font-family: 'Courier New', monospace;
+        font-size: 22px; letter-spacing: 6px;
+        color: #cfd6ff; text-shadow: 2px 2px 0 #000;
+      }
+      #countdown-num {
+        font-family: 'Courier New', monospace;
+        font-size: 96px; letter-spacing: 4px;
+        color: #ffd86b; text-shadow: 4px 4px 0 #000, 0 0 40px #ff7a4a;
+        line-height: 1;
+        min-width: 160px; text-align: center;
+      }
+      #end-overlay {
+        position: fixed; inset: 0; z-index: 60;
+        background: rgba(5,2,8,0.88);
+        display: none;
+        flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 18px;
+      }
+      #end-overlay.show { display: flex; }
+      #end-result {
+        font-family: 'Courier New', monospace;
+        font-size: 64px; letter-spacing: 10px;
+        text-shadow: 4px 4px 0 #000;
+        line-height: 1;
+      }
+      #end-result.vitoria { color: #44ff88; text-shadow: 4px 4px 0 #000, 0 0 32px #44ff88; }
+      #end-result.derrota { color: #ff4444; text-shadow: 4px 4px 0 #000, 0 0 32px #ff4444; }
+      #end-times {
+        font-family: 'Courier New', monospace;
+        font-size: 20px; letter-spacing: 3px;
+        color: #fffbe0; text-shadow: 2px 2px 0 #000;
+        line-height: 2;
+        text-align: center;
+      }
+      #end-times .t-label { color: #cfd6ff; }
+      #end-times .t-val { color: #ffd86b; }
+      #end-times .t-best-new { color: #44ff88; }
+      #end-play-again {
+        margin-top: 14px;
+        font-family: 'Courier New', monospace;
+        font-size: 18px; letter-spacing: 5px;
+        color: #fffbe0; background: rgba(0,0,0,0.55);
+        border: 2px solid #ffd86b;
+        padding: 12px 44px; cursor: pointer;
+        text-shadow: 2px 2px 0 #000;
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
+      }
+      #end-play-again:hover {
+        background: rgba(255,216,107,0.18);
+        border-color: #ff8a3a; color: #ffd86b;
+      }
+      #end-lobby-btn {
+        font-family: 'Courier New', monospace;
+        font-size: 14px; letter-spacing: 4px;
+        color: #aab0cc; background: rgba(0,0,0,0.4);
+        border: 1px solid #4a5070;
+        padding: 8px 28px; cursor: pointer;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+      }
+      #end-lobby-btn:hover { background: rgba(100,110,160,0.2); border-color: #8890bb; color: #cfd6ff; }
+      #race-bar {
+        position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+        width: 60%; max-width: 600px;
+        display: none; align-items: center; gap: 8px;
+        z-index: 30; pointer-events: none;
+      }
+      #race-bar.show { display: flex; }
+      #race-bar-label-you, #race-bar-label-bot {
+        font-family: 'Courier New', monospace; font-size: 10px;
+        letter-spacing: 2px; white-space: nowrap;
+        text-shadow: 1px 1px 0 #000;
+      }
+      #race-bar-label-you { color: #ffd86b; }
+      #race-bar-label-bot { color: #ff4444; }
+      #race-bar-track {
+        position: relative; flex: 1; height: 3px;
+        background: rgba(255,255,255,0.25);
+      }
+      #race-bar-player, #race-bar-bot {
+        position: absolute; top: 50%; width: 12px; height: 12px;
+        border-radius: 50%; transform: translate(-50%, -50%);
+        left: 0%;
+      }
+      #race-bar-player { background: #ffd86b; box-shadow: 0 0 6px #ffd86b; z-index: 2; }
+      #race-bar-bot    { background: #ff4444; box-shadow: 0 0 6px #ff4444; z-index: 1; }
+      #race-bar-finish {
+        position: absolute; top: -5px; right: 0; width: 2px; height: 13px;
+        background: rgba(255,255,255,0.5);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="lobby">
+      <canvas id="lobby-canvas"></canvas>
+      <div id="lobby-ui">
+        <div id="lobby-title">RACE GAME</div>
+        <button id="lobby-play">JOGAR</button>
+      </div>
+      <div id="lobby-car-selector">
+        <span id="lobby-car-name">BANDEIRANTE</span>
+      </div>
+      <div id="lobby-fullscreen-wrap">
+        <button id="lobby-fullscreen">&#128241; TELA CHEIA</button>
+        <div id="lobby-fullscreen-arrow">&#8593;</div>
+      </div>
+      <button id="lobby-mute" title="Mute/Unmute">&#128266;</button>
+    </div>
+    <div id="race-bar">
+      <span id="race-bar-label-you">VOCÊ</span>
+      <div id="race-bar-track">
+        <div id="race-bar-bot"></div>
+        <div id="race-bar-player"></div>
+        <div id="race-bar-finish"></div>
+      </div>
+      <span id="race-bar-label-bot">BOT</span>
+    </div>
+    <div id="countdown-overlay">
+      <div id="countdown-vs">vs. BOT</div>
+      <div id="countdown-num">3</div>
+    </div>
+    <div id="end-overlay">
+      <div id="end-result">VITÓRIA</div>
+      <div id="end-times">
+        <span class="t-label">VOCÊ</span> <span class="t-val" id="end-player-time">0.0s</span><br/>
+        <span class="t-label">BOT&nbsp;</span> <span class="t-val" id="end-bot-time">—</span><br/>
+        <span class="t-label">MELHOR</span> <span class="t-val" id="end-best-time">—</span>
+      </div>
+      <button id="end-play-again">JOGAR DE NOVO</button>
+      <button id="end-lobby-btn">&#8592; LOBBY</button>
+    </div>
+    <div id="hud">
+      VEL <span class="v" id="speed">0</span> km/h<br />
+      DIST <span class="v" id="dist">0</span> m<br />
+      TURBO <span class="v" id="turbobar">[████████████]</span><br />
+      BOT <span class="vbot" id="bot-dist">0</span> m<br />
+      <span id="hud-debug" style="display:none">SUSP <span class="v" id="suspstate">ON</span><br />TURBO INF <span class="v" id="infturbo">OFF</span><br /></span>
+      <span id="hud-pos" style="display:none">POS <span class="v" id="pos">0</span></span>
+    </div>
+    <div id="help">
+      &uarr; acelera &nbsp; &darr; freia &nbsp; &larr;&rarr; inclina &nbsp; ESPA&Ccedil;O turbo
+    </div>
+    <div id="crashfade"></div>
+    <div id="crashtitle">BATEU!</div>
+    <div id="crashprompt">aguarde 2s ou clique em REINICIAR</div>
+    <button id="btn-back-lobby" onclick="location.reload()" title="Voltar ao lobby">&#8592; LOBBY</button>
+    <button id="btn-restart" title="Reiniciar corrida">&#8635; REINICIAR</button>
+    <button id="mobiletoggle">TOUCH</button>
+    <div id="touchpad">
+      <div class="pad pad-left">
+        <button class="tbtn tbtn-arrow" data-key="left">&larr;</button>
+        <button class="tbtn tbtn-arrow" data-key="right">&rarr;</button>
+      </div>
+      <div class="pad pad-right">
+        <button class="tbtn tbtn-pedal brake" data-key="down">&#9776;</button>
+        <button class="tbtn tbtn-gasturbo" id="gasturbo">
+          <span class="zone-turbo">TURBO</span>
+          <span class="zone-gas">&#8285;&#8285;&#8285;</span>
+        </button>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
