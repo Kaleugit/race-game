@@ -2,9 +2,15 @@
 <html lang="pt-br">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Race Game</title>
-    <link rel="icon" href="data:,">
+    <link rel="icon" href="icons/icon-192.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#050208">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 100%; overflow: hidden; }
@@ -91,9 +97,9 @@
         display: none;
       }
       #touchpad.show { display: block; }
-      #touchpad .pad { position: absolute; bottom: 12px; display: flex; gap: 8px; pointer-events: none; }
-      #touchpad .pad-left { left: 12px; }
-      #touchpad .pad-right { right: 12px; align-items: flex-end; }
+      #touchpad .pad { position: absolute; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 8px; pointer-events: none; }
+      #touchpad .pad-left { left: calc(12px + env(safe-area-inset-left, 0px)); }
+      #touchpad .pad-right { right: calc(12px + env(safe-area-inset-right, 0px)); align-items: flex-end; }
       #touchpad .tbtn {
         background: rgba(255,255,255,0.10);
         border: 1px solid rgba(255,255,255,0.35);
@@ -212,6 +218,26 @@
         transition: background 0.15s;
       }
       #lobby-mute:hover { background: rgba(255,255,255,0.1); }
+      #ios-hint {
+        position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+        transform: translateX(-50%);
+        z-index: 30; display: none;
+        max-width: min(440px, calc(100vw - 32px));
+        font-family: 'Courier New', monospace;
+        font-size: 13px; line-height: 1.5;
+        color: #fffbe0; background: rgba(0,0,0,0.85);
+        border: 1px solid #ffd86b;
+        padding: 12px 40px 12px 14px;
+        text-shadow: 1px 1px 0 #000;
+      }
+      #ios-hint.show { display: block; }
+      #ios-hint b { color: #ffd86b; }
+      #ios-hint-close {
+        position: absolute; top: 4px; right: 6px;
+        background: none; border: none; cursor: pointer;
+        color: #fffbe0; font-size: 18px; line-height: 1;
+        padding: 4px;
+      }
       #lobby-fullscreen:hover {
         background: rgba(255,216,107,0.18);
         border-color: #ff8a3a; color: #ffd86b;
@@ -360,6 +386,12 @@
         <div id="lobby-fullscreen-arrow">&#8593;</div>
       </div>
       <button id="lobby-mute" title="Mute/Unmute">&#128266;</button>
+    </div>
+    <div id="ios-hint">
+      <button id="ios-hint-close">&#10005;</button>
+      Para jogar em <b>tela cheia</b> no iPhone: toque em
+      <b>Compartilhar</b> &#x2191; e depois em
+      <b>Adicionar &agrave; Tela de In&iacute;cio</b>. Abra o jogo pelo &iacute;cone criado.
     </div>
     <div id="race-bar">
       <span id="race-bar-label-you">VOCÊ</span>

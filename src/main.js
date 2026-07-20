@@ -401,15 +401,31 @@ window.addEventListener('keyup', (e) => {
 const touchpadEl = document.getElementById('touchpad');
 const mobileToggleEl = document.getElementById('mobiletoggle');
 
+const iosHintEl = document.getElementById('ios-hint');
+const isStandalone = () =>
+  window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const fullscreenSupported = !!document.documentElement.requestFullscreen;
+
+document.getElementById('ios-hint-close').addEventListener('click', () => {
+  iosHintEl.classList.remove('show');
+});
+
 async function toggleTouch() {
   const showing = touchpadEl.classList.toggle('show');
   if (showing) {
-    try { await document.documentElement.requestFullscreen(); } catch (_) {}
+    if (fullscreenSupported) {
+      try { await document.documentElement.requestFullscreen(); } catch (_) {}
+    } else if (!isStandalone()) {
+      iosHintEl.classList.add('show');
+    }
     if (screen.orientation && screen.orientation.lock) {
       try { await screen.orientation.lock('landscape'); } catch (_) {}
     }
-  } else if (document.fullscreenElement) {
-    try { await document.exitFullscreen(); } catch (_) {}
+  } else {
+    iosHintEl.classList.remove('show');
+    if (document.fullscreenElement) {
+      try { await document.exitFullscreen(); } catch (_) {}
+    }
   }
 }
 
