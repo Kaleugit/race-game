@@ -74,7 +74,7 @@ Arquivo `src/stages/<id>.stage.js`, `export default`:
 
 ### Task 02 - Cena da pista a partir dos dados + fiação no `src/main.js`
 - Task ID: TASK-kaleugit-EP-002-02
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Standard
 - Domain: Estágios (cena e integração no loop)
