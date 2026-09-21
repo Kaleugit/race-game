@@ -89,7 +89,7 @@ createCarPhysics({ track, params }) → {
 
 ### Task 03 - Presets de pneus/câmbio e aderência por superfície
 - Task ID: TASK-kaleugit-EP-003-03
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 2
 - Execution Mode: Standard
 - Domain: Carro (peças e aderência)
