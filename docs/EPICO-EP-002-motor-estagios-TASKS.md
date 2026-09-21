@@ -34,12 +34,16 @@ Arquivo `src/stages/<id>.stage.js`, `export default`:
 }
 ```
 - `SURFACE_TYPES = ['dirt', 'mud', 'sand']` é exportado por `src/track/track.js` e é o contrato com a física (consumidor: EP-003-03).
+- `FEATURE_TYPES = ['bell', 'valley', 'plateau', 'wave', 'asym']` também é exportado por `src/track/track.js` (fonte única para a validação em `registry.js`).
+- Zonas de superfície são intervalos semiabertos `[from, to)`; vale a primeira zona que contém `x`; fora de zonas vale `surfaces.default` (padrão `'dirt'`). `from < to` é obrigatório.
+- `getDefaultStage()` = primeiro item de `listStages()` (ordenado por `order`, desempate por `id`); lança erro se não houver estágio visível.
+- Testes de simulação: `npm run test:sim` = `node --test "tests/sim/*.test.js"` (o argumento de diretório `tests/sim/` falha no Node 24 no Windows).
 
 ## Approved Task List
 
 ### Task 01 - Formato de estágio, registro e consulta de pista (sem render)
 - Task ID: TASK-kaleugit-EP-002-01
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Standard
 - Domain: Estágios (dados e consulta de pista)

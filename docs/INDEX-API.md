@@ -1,6 +1,6 @@
 # API Index — Kaleugit/race-game
 
-> **Coverage**: 0/5 backend files (0%), 0/0 frontend custom elements (0%).
+> **Coverage**: 4/9 backend files (44%), 0/0 frontend custom elements (0%).
 > Auto-generated from JSDoc `@module` / `@summary` / `@element` tags. Transition phase — files without these tags do NOT appear here.
 >
 > **If you don't find what you need:**
@@ -8,12 +8,22 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-21T21:33Z
-Total candidate files scanned: 5
+Last regenerated: 2026-09-21T22:17Z
+Total candidate files scanned: 9
 
 ## Backend modules
 
-_No tagged backend modules yet. Add `@module <name> — <purpose>` at the top of a `src/` file to populate this section._
+### `src/stages/index.js` — stages/index
+- Stage discovery: every src/stages/*.stage.js file becomes a stage (Vite import.meta.glob).
+
+### `src/stages/mata-atlantica.stage.js` — stages/mata-atlantica
+- Mata Atlântica stage data, migrated verbatim from the pre-migration src/main.js
+
+### `src/stages/registry.js` — stages/registry
+- Pure stage registry and stage-contract validation. No three.js, no DOM.
+
+### `src/track/track.js` — track/track
+- Pure track query built from stage data (height, slope, surface). No three.js, no DOM.
 
 ## Frontend custom elements
 

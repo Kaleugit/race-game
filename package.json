@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "playwright test"
+    "test": "playwright test",
+    "test:sim": "node --test \"tests/sim/*.test.js\""
   },
   "dependencies": {
     "three": "^0.160.0"
