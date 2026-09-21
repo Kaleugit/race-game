@@ -28,6 +28,31 @@ Do not manually edit the consolidated block.
 # 2026-09-21 — TASK-kaleugit-EP-001-01
 
 - EP-001: Playwright e2e added; `npm test` runs a smoke of the current flow against the production build (1 passed).
+
+
+# 2026-09-21 — TASK-kaleugit-EP-002-01
+
+- EP-002 Task 01: pure `createTrack` (src/track/track.js) + stage registry (src/stages/registry.js, index.js) + Mata Atlantica stage data; `npm run test:sim` (node:test, 10 pass) proves heights match the d399713 fixture within 1e-9. src/main.js untouched; `npm test` green.
+
+
+# 2026-09-21 — TASK-kaleugit-EP-002-02
+
+- EP-002 Task 02: new `src/track/track-scene.js` (`createTrackScene` -> `update(scroll)`, `dispose()`) builds road/mud/ground/sky/finish portal/zone overlays from stage data; `src/main.js` uses `track.heightAt`/`track.finishX` and `?stage=<id>` via `setStage(id)`. `npm test` and `npm run test:sim` green; UX parity gate pending human.
+
+
+# 2026-09-21 — TASK-kaleugit-EP-002-03
+
+- EP-002 Task 03 (CA-003 proof): hidden data-only stage `src/stages/teste-plano.stage.js` (finishX 200, sand + mud zones) plus `tests/e2e/stage-data.spec.js` (`/?stage=teste-plano` -> end overlay). No engine file changed. `npm test` 2 passed, `npm run test:sim` 10/10.
+
+
+# 2026-09-21 — TASK-kaleugit-EP-003-01
+
+- EP-003 Task 01 (Critical): car physics extracted to `src/physics/car-physics.js` (`createCarPhysics`) + `src/physics/params.js` (`BASE_PARAMS`); `src/main.js` steps `playerCar` in `tick` and renders from its state; `tests/sim/harness.js` `runRace()`. Bit-exact vs pre-extraction physics (12/12 scratch runs, 3 golden tests). `npm run test:sim` 20/20, `npm test` 2 passed. Stacked on PR #7. UX gate pending human.
+
+
+# 2026-09-21 — TASK-kaleugit-EP-003-02
+
+- EP-003 Task 02 (Standard): crash restart replaced by RF-005 auto-righting (human-approved behavior change). Chassis contact rests the car on CHASSIS_HITBOX; after 1.5 s upside down on the ground it is set back on its wheels keeping x (`righted: true`). Crash flow and overlay removed from src/main.js/index.html. `npm run test:sim` 26/26 (goldens unchanged), `npm test` 2 passed. UX gate pending human.
 <!-- SESSION_LOG:END -->
 
 ---

@@ -147,9 +147,33 @@
 - Change Log:
   - 2026-09-21 - Épico aprovado pelo gestor.
 
+### EP-007 - Som do motor realista
+- Status: PLANNED
+- Domain: Áudio (som do motor)
+- Objective: Trocar as 4 faixas de frequência fixas de `src/sound.js` por um som derivado de RPM real (marchas com relações, queda de RPM proporcional na troca, ordens do motor) e deixar o timbre mais grave.
+- Scope In:
+  - Modelo de motor puro (sem Web Audio): RPM a partir da velocidade, relações de marcha, diferencial e raio da roda; troca automática por RPM; queda de RPM na troca = razão entre relações; marcha lenta e corte; carga (acelerador) e freio-motor.
+  - Relações de marcha escaladas pelo preset de câmbio (Curta / Padrão / Longa) do EP-003.
+  - Síntese por ordens do motor (harmônicos inteiros e meio-inteiros da rotação do virabrequim, 4 cilindros 4 tempos) com brilho e volume dependentes da carga.
+  - Pitch mais grave: frequência de disparo entre ~27 Hz (≈800 RPM) e ~133 Hz (≈4000 RPM), contra 50–175 Hz atuais.
+  - Blow-off do turbo mantido.
+- Scope Out:
+  - Samples gravados (continua 100% procedural, sem arquivos de áudio).
+  - Som do bot (o bot não aparece na pista).
+  - Mudança na física do carro (o áudio só lê o estado).
+- Dependencies: EP-003
+- Completion Signal:
+  Teste de simulação do modelo de motor: RPM dentro de [idle, corte] em toda a corrida, cada troca para cima reduz o RPM pela razão das relações (±5%), frequência de disparo entre 25 e 140 Hz; `npm test` verde; teste de UX humano aprova realismo e tom.
+- Escalation Triggers:
+  - O som exigir dados que a física não expõe sem mudar o EP-003.
+  - Performance de áudio perceptivelmente pior em mobile.
+- Change Log:
+  - 2026-09-21 - Épico criado a pedido do gestor (marchas pouco realistas; pitch um pouco mais grave).
+
 ## Decisoes Autonomas
 - DA-001: EP-001 (infra e2e) vem antes de qualquer épico de gameplay — Criterio: CDC-001 + AGENTS.md "Non-Escalable: verification of non-UX behavior" — Racional: sem e2e, CA-001/CA-002/CA-007 ficariam FAIL; testar primeiro evita épicos que não conseguem fechar.
 - DA-002: A física por instância fica no EP-003 (carro), não no EP-002 (estágios) — Criterio: um domínio por épico (gen-epics) — Racional: o estágio só expõe altura e superfície; como o carro reage é domínio do carro.
 - DA-003: O conteúdo (EP-005) vem antes das telas (EP-006) — Criterio: CDC-005 + verificabilidade — Racional: CA-002 (desbloquear o Cerrado) é testado com o estágio real, sem estágio fictício.
 - DA-004: O mini-mapa fica no EP-006 e o EP-004 só expõe a posição do bot — Criterio: um domínio por épico — Racional: HUD é interface; o bot não conhece a tela.
 - DA-005: Integrar o e2e ao CI de governança fica fora do EP-001 — Criterio: ADR-016 — Racional: mudança de CI exige autorização específica do gestor; o e2e roda localmente via `npm test` até lá.
+- DA-006: EP-007 (som) executa logo após o EP-003 e antes do EP-004 — Criterio: pedido do gestor + CDC-005 — Racional: só depende do preset de câmbio do EP-003; rodar antes do EP-004 evita duas tasks mexendo no `main.js` ao mesmo tempo.
