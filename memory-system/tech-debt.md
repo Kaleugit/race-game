@@ -9,3 +9,4 @@ Rows whose Status is `open` are surfaced at SessionStart/PostCompact by `project
 
 | ID | Area | Severity | Description | Created | Status |
 |----|------|----------|-------------|---------|--------|
+| TD-001 | telemetry | low | On slow hosts (Windows ARM64, ~300ms per git call, ~3s per append-to-orphan.sh) 15 concurrent appends exceed the lock wait cap and drop lines; test-telemetry-orphan.sh "15 concurrent appends" fails under full-suite load. record-event.sh also blocks each hook ~3s. Fix path: detach record-event like statusline-tap, raise cap, poll in stream test. Telemetry is disabled in this project (TASK-kaleugit-20260921172138 report). | 2026-09-21 | open |

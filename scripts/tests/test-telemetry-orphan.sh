@@ -93,8 +93,12 @@ assert "no telemetry ref on traversal path" "! git -C '$NG' rev-parse --verify -
 # nothing (the original Critical bug). Concurrency must still not lose lines.
 NOFLOCK_BIN="$TMP/noflock-bin"
 mkdir -p "$NOFLOCK_BIN"
+# Exec shims, not symlinks: on Git Bash `ln -s` copies the binary away from its
+# DLLs (every command then exits 127); a shim runs the real binary in place.
 for c in git cat mktemp basename head find sleep mkdir rmdir rm bash sh dirname env; do
-  p="$(command -v "$c" 2>/dev/null)" && ln -sf "$p" "$NOFLOCK_BIN/$c"
+  p="$(command -v "$c" 2>/dev/null)" || continue
+  printf '#!%s\nexec "%s" "$@"\n' "$(command -v sh)" "$p" > "$NOFLOCK_BIN/$c"
+  chmod +x "$NOFLOCK_BIN/$c"
 done
 assert "test fixture excludes flock from the restricted PATH" "! PATH='$NOFLOCK_BIN' command -v flock >/dev/null 2>&1"
 

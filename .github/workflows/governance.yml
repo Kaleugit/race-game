@@ -195,6 +195,9 @@ jobs:
         if: steps.ci_mode.outputs.skip != '1'
         run: |
           chmod +x scripts/*.sh
+          # Skill discovery links are not versioned (Windows junctions); recreate them
+          # so validate-skill-taxonomy.sh finds .claude/skills and .agents/skills.
+          bash scripts/setup-links.sh
           bootstrap_status="$(sed -nE 's/^- Current Status: `([^`]+)`.*/\1/p' memory-system/2-tasks.md | head -n 1)"
           if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main" && ( "$bootstrap_status" == "PRE_BOOTSTRAP" || "$bootstrap_status" == "INCOMPLETE" || "$bootstrap_status" == "COMPLETE" ) ]]; then
             echo "WARN: bootstrap status '$bootstrap_status' -> advisory validation mode on main."
