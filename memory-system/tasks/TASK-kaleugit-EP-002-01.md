@@ -6,7 +6,7 @@
 - Depends On: TASK-kaleugit-EP-001-01
 - Blocked By: None
 - Branch: TASK-kaleugit-EP-002-01-implement
-- Workstreams: None
+- Workstreams: [development]
 - Execution Mode: Standard
 - Last Updated: 2026-09-21 19:15
 - Started: 2026-09-21 19:05
