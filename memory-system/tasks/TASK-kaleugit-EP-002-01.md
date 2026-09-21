@@ -8,16 +8,17 @@
 - Branch: TASK-kaleugit-EP-002-01-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 19:15
+- Last Updated: 2026-09-21 22:30
 - Started: 2026-09-21 19:05
-- Completed: 2026-09-21 19:15
+- Completed: 2026-09-21 22:30
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-002-01-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-002-01-implement-report-2026-09-21.md
 - prior-art: src/main.js:148 — pre-migration trackHeight/SLOPES/FEATURES, moved verbatim into src/track/track.js and src/stages/mata-atlantica.stage.js (no existing stage/track module)
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 - Delivery PR: #5
-- Delivery Status: PR_OPEN_MANUAL_MERGE
+- Delivery Status: MERGED
 
+- Delivery Merged At: 2026-09-21 22:30
 ## Autonomous Decisions
 - DA-001: `test:sim` uses `node --test "tests/sim/*.test.js"` instead of the literal `node --test tests/sim/` — Criteria: CDC-001 — Rationale: the directory argument fails with MODULE_NOT_FOUND on Node 24.15 (Windows); the glob is expanded by Node itself and works on Windows and Linux CI.
 - DA-002: `FEATURE_TYPES` exported from src/track/track.js next to `SURFACE_TYPES`; registry validates against both — Criteria: CDC-002 (DRY) — Rationale: single source of truth next to the math that interprets the types.
