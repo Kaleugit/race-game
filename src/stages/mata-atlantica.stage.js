@@ -1,5 +1,8 @@
-// Mata Atlântica — migrated verbatim from the pre-migration src/main.js
-// (SLOPES, FEATURES, FINISH_LINE_X, trackHeight noise, background, ground color).
+/**
+ * @module stages/mata-atlantica
+ * @summary Mata Atlântica stage data, migrated verbatim from the pre-migration src/main.js
+ * (SLOPES, FEATURES, FINISH_LINE_X, trackHeight noise, background, ground color).
+ */
 export default {
   id: 'mata-atlantica',
   name: 'Mata Atlântica',

@@ -1,5 +1,8 @@
-// Pure track query built from stage data. No three.js, no DOM.
-// Height math moved verbatim from the pre-migration src/main.js trackHeight.
+/**
+ * @module track/track
+ * @summary Pure track query built from stage data (height, slope, surface). No three.js, no DOM.
+ * Height math moved verbatim from the pre-migration src/main.js trackHeight.
+ */
 
 export const SURFACE_TYPES = ['dirt', 'mud', 'sand'];
 export const FEATURE_TYPES = ['bell', 'valley', 'plateau', 'wave', 'asym'];

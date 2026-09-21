@@ -1,4 +1,7 @@
-// Pure stage registry. No three.js, no DOM.
+/**
+ * @module stages/registry
+ * @summary Pure stage registry and stage-contract validation. No three.js, no DOM.
+ */
 import { SURFACE_TYPES, FEATURE_TYPES } from '../track/track.js';
 
 function isFiniteNumber(v) {
