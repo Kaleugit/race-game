@@ -13,6 +13,7 @@ import { initLobby } from './lobby.js';
 import { makeCar, makeCarGLB, WHEEL_RADIUS, SUSP_REST, DEBUG_CRASH_HITBOX } from './car.js';
 import { createCarPhysics } from './physics/car-physics.js';
 import { BASE_PARAMS } from './physics/params.js';
+import { DEFAULT_PARTS, resolveCarParams } from './parts/presets.js';
 import { initEngineSound } from './sound.js';
 
 const DEV_MODE = location.search.includes('dev');
@@ -95,7 +96,7 @@ function setStage(id) {
   if (trackScene) trackScene.dispose();
   track = createTrack(stage);
   trackScene = createTrackScene({ scene, skyScene, stage, track });
-  playerCar = createCarPhysics({ track, params: BASE_PARAMS });
+  playerCar = createCarPhysics({ track, params: resolveCarParams(BASE_PARAMS, DEFAULT_PARTS) });
   return stage;
 }
 

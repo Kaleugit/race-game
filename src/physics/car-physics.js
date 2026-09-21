@@ -1,7 +1,7 @@
 /**
  * @module physics/car-physics
  * @summary Per-instance car physics (turbo, speed, vertical/bounce, chassis contact, rotation,
- * suspension, auto-righting). No DOM, no three.js, no randomness. Driving math moved verbatim
+ * suspension, auto-righting, surface grip/drag). No DOM, no three.js, no randomness. Driving math moved verbatim
  * from the pre-extraction src/main.js update* functions, in the same order.
  * Chassis contact does not end the run: the car rests on CHASSIS_HITBOX, and after
  * params.autoRightDelay seconds upside down on the ground it is set back on its wheels (RF-005).
@@ -12,7 +12,7 @@
  * `input` has the shape of main.js `keys` plus `locked` (countdown / race end).
  * Dev toggles `state.suspensionEnabled` / `state.infiniteTurbo` survive `reset()`.
  * @summary Build a car physics instance: `{ state, step(dt, input), reset() }`.
- * @param {{ track: { heightAt: Function, slopeAt: Function, finishX: number }, params: object }} options
+ * @param {{ track: { heightAt: Function, slopeAt: Function, surfaceAt: Function, finishX: number }, params: object }} options
  */
 export function createCarPhysics({ track, params }) {
   const p = params;
@@ -88,6 +88,9 @@ export function createCarPhysics({ track, params }) {
       maxSpeed = p.maxSpeedTurbo;
     }
 
+    // RF-008: traction depends on the surface under the car (grip 1 on dirt = original math).
+    const surface = track.surfaceAt(state.x);
+    accel *= p.grip[surface];
     if (accel > 0 && state.speed < maxSpeed) state.speed += accel * dt;
     if (!inputLocked && input.down) {
       if (state.speed > 0) state.speed -= p.brake * dt;
@@ -101,6 +104,9 @@ export function createCarPhysics({ track, params }) {
     }
 
     state.speed -= Math.sign(state.speed) * p.drag * dt;
+    // Loose surfaces add drag proportional to speed (a terminal speed set by grip, never a stall).
+    const surfaceDrag = state.airborne ? 0 : p.surfaceDrag[surface];
+    if (surfaceDrag > 0) state.speed -= state.speed * Math.min(1, surfaceDrag * dt);
 
     if (accel > 0 && state.speed > maxSpeed) {
       state.speed = Math.max(maxSpeed, state.speed - (state.speed - maxSpeed) * 2.5 * dt);
