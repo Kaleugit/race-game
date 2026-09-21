@@ -8,15 +8,15 @@
 - Branch: TASK-kaleugit-EP-002-02-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 20:10
+- Last Updated: 2026-09-21 19:36
 - Started: 2026-09-21 19:40
-- Completed: 2026-09-21 20:10
+- Completed: 2026-09-21 19:36
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-002-02-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-002-02-implement-report-2026-09-21.md
 - prior-art: src/main.js:159 — pre-migration road/mud/ground/finish-portal/sky code, moved verbatim into src/track/track-scene.js (no existing scene module)
-- Delivery Handoff: DONE (owner: gohorse/subagent)
-- Delivery PR: Pending
-- Delivery Status: PR_OPEN
+- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery PR: #6
+- Delivery Status: PR_OPEN_MANUAL_MERGE
 - UX Gate: pending human (batched at epic end) — Mata Atlantica track, mud, background and driving feel vs prototype
 
 ## Autonomous Decisions
@@ -26,3 +26,4 @@
 - DA-004: Surface-zone overlays are flat strips at `heightAt + 0.02`, road depth, deformed once per zone and translated with scroll; missing `palette.zones[type]` falls back to 0x888888 — Criteria: CDC-002 (KISS) — Rationale: generic, no biome branch; Mata Atlantica has no zones so the prototype visual is unchanged.
 - DA-005: The hidden ground plane is now added to the scene (still `visible = false`); previously it was created but never added — Criteria: default (no visual change) — Rationale: lets `dispose()` own it uniformly; invisible, so rendering is identical.
 - DA-006: The physics slope formula in updateSpeed/updateRotation was kept inline (only `trackHeight` -> `track.heightAt`) instead of switching to `track.slopeAt` — Criteria: "nenhum valor de física muda" — Rationale: smallest diff; the extraction is EP-003-01.
+- Delivery Merged At: Pending
