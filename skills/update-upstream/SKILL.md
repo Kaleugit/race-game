@@ -65,6 +65,8 @@ normal case and the notes/checklist/CDT are how you resolve them.
 6. Finalize merge commit with clear scope.
 7. Apply every post-merge step prescribed by the migration notes that came
    in the delta (regenerations, dependency installs, restarts).
+   - Project opt-out: if `docs/decisions.md` has an `Accepted` ADR disabling telemetry
+     (race-game: ADR-019), SKIP the telemetry re-install below and keep it unwired.
    - ALWAYS re-assure inherited telemetry is active and verified, regardless of
      whether a telemetry note was in this delta (DA-zero-toil — this run must
      leave the environment COMPLETELY configured, not depend on operator memory):

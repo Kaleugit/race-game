@@ -8,7 +8,7 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-21T17:56Z
+Last regenerated: 2026-09-21T21:33Z
 Total candidate files scanned: 5
 
 ## Backend modules

@@ -358,3 +358,19 @@ Conjunto mínimo de decisões ativas do boilerplate (versão resumida).
     mudança no PR que a entrega.
   - Reversível: são gatilhos de workflow e dois passos de script.
   - Base do estudo: `docs/DRAFT-proposta-ci-economia-actions.md`.
+
+## ADR-019: Telemetria desligada neste projeto
+- Date: 2026-09-21
+- Status: Accepted
+- Context:
+  - O boilerplate ativa a skill `telemetry` em todo projeto derivado (hooks em `.claude/settings.json` + statusLine tap), gravando NDJSON no branch órfão `telemetry` para um painel central de monitoramento.
+  - Neste projeto isso não traz retorno (o painel central não é usado) e gerou custos medidos em 2026-09-21: previews da Vercel falhando a cada push do branch `telemetry`, entrada absoluta no `.gitignore`, e ~3s de bloqueio por hook no Windows ARM64 (~300ms por chamada de git), com perda de linhas sob concorrência (TD-001).
+- Decision:
+  - O gestor decidiu desligar a telemetria neste projeto: remover de `.claude/settings.json` todos os hooks de `skills/telemetry/` e a `statusLine` (não havia statusLine anterior; delegate vazio).
+  - A skill `skills/telemetry/` e seus testes permanecem no repositório (código herdado do boilerplate), apenas desligados — religar é rodar `./skills/telemetry/scripts/install-hooks.sh`.
+  - `skills/update-upstream` NÃO deve reativar a telemetria enquanto este ADR estiver `Accepted`.
+  - O branch remoto `telemetry` e o Ignored Build Step da Vercel ficam como estão (inertes).
+- Consequence:
+  - Sem dados deste projeto no monitoramento central e sem alerta de drift in-session.
+  - Hooks de prompt/skill/sessão deixam de pagar a latência do git.
+  - Reversível: reinstalar os hooks e mudar este ADR para `Superseded`.
