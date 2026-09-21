@@ -11,7 +11,7 @@ export const SUSP_MAX_COMPRESS = 0.110;
 /** @summary Maximum suspension extension. */
 export const SUSP_MAX_EXTEND = 0.066;
 
-/** @summary Chassis hitbox polygon in car-local [x, y] points (ground contact = crash). */
+/** @summary Chassis hitbox polygon in car-local [x, y] points (the car rests on it when it touches the ground). */
 export const CHASSIS_HITBOX = Object.freeze([
   [-1.05,  0.40],
   [-1.05,  0.68],
@@ -52,4 +52,10 @@ export const BASE_PARAMS = Object.freeze({
   SUSP_MAX_EXTEND,
   CAR_HALF_HEIGHT: 1.00,
   CHASSIS_HITBOX,
+  // RF-005 recovery: seconds upside down on the ground before the car is set back on its wheels.
+  autoRightDelay: 1.5,
+  // Deceleration (m/s^2) while the chassis slides on the ground.
+  chassisFriction: 15,
+  // Rate (1/s) at which a car resting on its chassis settles onto its wheels or its roof.
+  chassisSettleRate: 6,
 });
