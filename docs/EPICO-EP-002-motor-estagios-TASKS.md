@@ -104,7 +104,7 @@ Arquivo `src/stages/<id>.stage.js`, `export default`:
 
 ### Task 03 - Prova do CA-003: estágio de teste só com dados + e2e
 - Task ID: TASK-kaleugit-EP-002-03
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 2
 - Execution Mode: Quick
 - Domain: Testes (verificação do motor de estágios)

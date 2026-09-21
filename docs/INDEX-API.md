@@ -1,6 +1,6 @@
 # API Index — Kaleugit/race-game
 
-> **Coverage**: 6/10 backend files (60%), 0/0 frontend custom elements (0%).
+> **Coverage**: 7/11 backend files (64%), 0/0 frontend custom elements (0%).
 > Auto-generated from JSDoc `@module` / `@summary` / `@element` tags. Transition phase — files without these tags do NOT appear here.
 >
 > **If you don't find what you need:**
@@ -8,8 +8,8 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-21T22:33Z
-Total candidate files scanned: 10
+Last regenerated: 2026-09-21T22:44Z
+Total candidate files scanned: 11
 
 ## Backend modules
 
@@ -24,6 +24,9 @@ Total candidate files scanned: 10
 
 ### `src/stages/registry.js` — stages/registry
 - Pure stage registry and stage-contract validation. No three.js, no DOM.
+
+### `src/stages/teste-plano.stage.js` — stages/teste-plano
+- Hidden near-flat test stage (CA-003 proof): data only, one sand and one mud zone.
 
 ### `src/track/track-scene.js` — track/track-scene
 - Three.js scene objects for a stage (road, mud layer, ground, sky background,
