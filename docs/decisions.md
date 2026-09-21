@@ -385,6 +385,7 @@ Conjunto mínimo de decisões ativas do boilerplate (versão resumida).
   - O agente pode fazer merge (`gh pr merge --merge`) de PRs dos épicos EP-001..EP-006 **somente com o check `governance` verde** no SHA final. Nunca com check vermelho, pendente ou cancelado.
   - O agente decide autonomamente questões de escopo/implementação dentro desses épicos, registrando DA-xxx.
   - Continuam humanos: o gate de UX (sensação/visual — AGENTS.md), mudanças de CI/CD (ADR-016) e condições obrigatórias de escalonamento.
+- Amendment 2026-09-21: o gestor estendeu a autorização ("pode estender e mergear oq quiser") ao EP-007 e a qualquer épico criado por pedido dele neste ciclo. A trava de check `governance` verde continua obrigatória.
 - Consequence:
   - ADR-018 continua valendo fora desse escopo.
   - Reversível: o gestor revoga a qualquer momento mudando este ADR para `Superseded`.
