@@ -214,10 +214,6 @@ gasTurboEl.addEventListener('contextmenu', (e) => e.preventDefault());
 
 const state = {
   bob: 0,
-  crashed: false,
-  crashTimer: 0,
-  crashSettling: false,
-  crashSettleTimer: 0,
   suspensionEnabled: true,
   infiniteTurbo: false,
   gridVisible: false,
@@ -241,12 +237,7 @@ const BOT_CYCLE        = 7.0;
 const BOT_TURBO_ON     = 2.5;
 
 const engineSound = initEngineSound();
-const CRASH_AUTO_RESET = 2.0;
-const CRASH_SETTLE_DURATION = 4.0;
 
-const crashFadeEl = document.getElementById('crashfade');
-const crashPromptEl = document.getElementById('crashprompt');
-const crashTitleEl = document.getElementById('crashtitle');
 const countdownOverlayEl = document.getElementById('countdown-overlay');
 const countdownNumEl = document.getElementById('countdown-num');
 const endOverlayEl = document.getElementById('end-overlay');
@@ -271,34 +262,9 @@ btnRestartEl.addEventListener('click', () => {
   startCountdown();
 });
 
-function triggerCrash() {
-  if (state.crashed || state.crashSettling) return;
-  state.crashSettling = true;
-  state.crashSettleTimer = 0;
-  playerCar.state.turboActive = false;
-  flame.visible = false;
-  crashPromptEl.classList.add('show');
-  crashTitleEl.classList.add('show');
-}
-
-function finalizeCrash() {
-  state.crashSettling = false;
-  state.crashed = true;
-  state.crashTimer = 0;
-  playerCar.state.speed = 0;
-  playerCar.state.vy = 0;
-  playerCar.state.angVel = 0;
-  playerCar.state.suspVy = 0;
-  flame.visible = false;
-}
-
 function resetGame() {
   playerCar.reset();
   state.bob = 0;
-  state.crashed = false;
-  state.crashTimer = 0;
-  state.crashSettling = false;
-  state.crashSettleTimer = 0;
   state.raceStarted = false;
   state.raceFinished = false;
   state.raceTime = 0;
@@ -313,9 +279,6 @@ function resetGame() {
   carPivot.position.set(0, CAR_HALF_HEIGHT, 0);
   bodyGroup.position.y = 0;
   flame.visible = false;
-  crashFadeEl.style.opacity = '0';
-  crashPromptEl.classList.remove('show');
-  crashTitleEl.classList.remove('show');
   endOverlayEl.classList.remove('show');
   if (btnRestartEl) btnRestartEl.style.display = 'none';
 }
@@ -411,7 +374,7 @@ const raceBarPlayerEl = document.getElementById('race-bar-player');
 const raceBarBotEl = document.getElementById('race-bar-bot');
 
 
-// Flame/headlight from physics turbo state (skipped while crash-settling, as before).
+// Flame/headlight from physics turbo state.
 function renderTurbo() {
   const car = playerCar.state;
   flame.visible = car.turboActive;
@@ -517,39 +480,6 @@ function tick(now) {
 
   updateCountdown(dt);
 
-  if (state.crashed) {
-    state.crashTimer += dt;
-    crashFadeEl.style.opacity = '1';
-    if (state.crashTimer >= CRASH_AUTO_RESET) resetGame();
-    updateHUD();
-    renderer.autoClear = true;
-    renderer.render(skyScene, skyCamera);
-    renderer.autoClear = false;
-    renderer.clearDepth();
-    renderer.render(scene, camera);
-    renderer.autoClear = true;
-    requestAnimationFrame(tick);
-    return;
-  }
-
-  if (state.crashSettling) {
-    state.crashSettleTimer += dt;
-    const fade = Math.min(1, state.crashSettleTimer / CRASH_SETTLE_DURATION);
-    crashFadeEl.style.opacity = fade.toFixed(3);
-    if (state.crashSettleTimer >= CRASH_SETTLE_DURATION) {
-      finalizeCrash();
-      updateHUD();
-      renderer.autoClear = true;
-      renderer.render(skyScene, skyCamera);
-      renderer.autoClear = false;
-      renderer.clearDepth();
-      renderer.render(scene, camera);
-      renderer.autoClear = true;
-      requestAnimationFrame(tick);
-      return;
-    }
-  }
-
   if (state.raceStarted && !state.raceFinished) {
     state.raceTime += dt;
     updateBot(dt);
@@ -570,9 +500,9 @@ function tick(now) {
   const car = playerCar.state;
   car.suspensionEnabled = state.suspensionEnabled;
   car.infiniteTurbo = state.infiniteTurbo;
-  const events = playerCar.step(dt, { ...keys, locked: state.crashSettling || state.inputFrozen });
-  if (!state.crashSettling) renderTurbo();
-  if (events.chassisContact) triggerCrash();
+  // Chassis contact no longer ends the race: the car rests and auto-rights (RF-005).
+  playerCar.step(dt, { ...keys, locked: state.inputFrozen });
+  renderTurbo();
   renderSuspension();
   updateCarVisual(dt);
   const smokeIntensity = (car.turboActive && keys.up) ? 3 : keys.up ? 2 : 1;

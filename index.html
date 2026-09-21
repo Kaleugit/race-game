@@ -33,33 +33,6 @@
         color: #cfd6ff; text-shadow: 2px 2px 0 #000;
         font-size: 12px; opacity: 0.85;
       }
-      #crashfade {
-        position: fixed; inset: 0;
-        background: #050208;
-        opacity: 0;
-        pointer-events: none;
-      }
-      #crashprompt {
-        position: fixed; left: 50%; bottom: 64px;
-        transform: translateX(-50%);
-        display: none;
-        font-family: 'Courier New', monospace;
-        color: #fffbe0; text-shadow: 2px 2px 0 #000;
-        font-size: 14px; letter-spacing: 2px;
-        pointer-events: none;
-      }
-      #crashprompt.show { display: block; }
-      #crashtitle {
-        position: fixed; left: 50%; bottom: 110px;
-        transform: translateX(-50%);
-        display: none;
-        font-family: 'Courier New', monospace;
-        color: #fffbe0; text-shadow: 2px 2px 0 #000;
-        font-size: 32px; letter-spacing: 6px;
-        white-space: nowrap;
-        pointer-events: none;
-      }
-      #crashtitle.show { display: block; }
       #btn-back-lobby {
         position: fixed; top: 12px; right: 12px; z-index: 20;
         font-family: 'Courier New', monospace;
@@ -427,9 +400,6 @@
     <div id="help">
       &uarr; acelera &nbsp; &darr; freia &nbsp; &larr;&rarr; inclina &nbsp; ESPA&Ccedil;O turbo
     </div>
-    <div id="crashfade"></div>
-    <div id="crashtitle">BATEU!</div>
-    <div id="crashprompt">aguarde 2s ou clique em REINICIAR</div>
     <button id="btn-back-lobby" onclick="location.reload()" title="Voltar ao lobby">&#8592; LOBBY</button>
     <button id="btn-restart" title="Reiniciar corrida">&#8635; REINICIAR</button>
     <button id="mobiletoggle">TOUCH</button>

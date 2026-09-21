@@ -1,13 +1,15 @@
 /**
  * @module physics/car-physics
  * @summary Per-instance car physics (turbo, speed, vertical/bounce, chassis contact, rotation,
- * suspension). No DOM, no three.js, no randomness. Math moved verbatim from the
- * pre-extraction src/main.js update* functions, in the same order.
+ * suspension, auto-righting). No DOM, no three.js, no randomness. Driving math moved verbatim
+ * from the pre-extraction src/main.js update* functions, in the same order.
+ * Chassis contact does not end the run: the car rests on CHASSIS_HITBOX, and after
+ * params.autoRightDelay seconds upside down on the ground it is set back on its wheels (RF-005).
  */
 
 /**
  * Creates one car physics instance on a track.
- * `input` has the shape of main.js `keys` plus `locked` (countdown / crash settling).
+ * `input` has the shape of main.js `keys` plus `locked` (countdown / race end).
  * Dev toggles `state.suspensionEnabled` / `state.infiniteTurbo` survive `reset()`.
  * @summary Build a car physics instance: `{ state, step(dt, input), reset() }`.
  * @param {{ track: { heightAt: Function, slopeAt: Function, finishX: number }, params: object }} options
@@ -36,9 +38,20 @@ export function createCarPhysics({ track, params }) {
     state.prevTrackH = 0;
     state.fuel = 1.0;
     state.turboActive = false;
-    // Latched on the first chassis-ground contact; suppresses further checks until reset().
-    state.chassisLatched = false;
+    // Upside down (cos(rot - slope angle) < 0) at the end of the last frame (informational).
+    state.overturned = false;
+    // Seconds spent upside down on the ground; auto-right at p.autoRightDelay.
+    state.upsideDownTime = 0;
     state.finished = false;
+  }
+
+  function slopeAngleAt(x) {
+    return Math.atan(track.slopeAt(x));
+  }
+
+  // Upside down relative to the ground under the car (RF-005 definition).
+  function isOverturned() {
+    return Math.cos(state.rot - slopeAngleAt(state.x)) < 0;
   }
 
   function updateTurbo(dt, input) {
@@ -100,7 +113,7 @@ export function createCarPhysics({ track, params }) {
     return (track.heightAt(x + 1) + track.heightAt(x - 1)) / 2;
   }
 
-  // Returns { landed, chassisContact } for this frame.
+  // Returns { landed, chassisContact, groundContact } for this frame.
   function updatePhysics(dt) {
     let landed = false;
     const prevX = state.x;
@@ -116,7 +129,11 @@ export function createCarPhysics({ track, params }) {
     state.vy -= p.GRAVITY * dt;
     state.y += state.vy * dt;
 
-    if (state.y <= groundLevel) {
+    // Wheel line reached; the wheels only carry the car while they face the ground.
+    const onWheelLine = state.y <= groundLevel;
+    const wheelsDown = Math.cos(state.rot - slopeAngleAt(state.x)) >= 0;
+
+    if (onWheelLine && wheelsDown) {
       const wasAirborne = state.airborne;
       const ballVy = state.vy;
       const airTime = state.airTime;
@@ -150,27 +167,72 @@ export function createCarPhysics({ track, params }) {
       state.airTime += dt;
     }
 
-    const chassisContact = checkChassisHitbox();
-    if (chassisContact) state.chassisLatched = true;
-    return { landed, chassisContact };
+    const depth = chassisPenetration();
+    const chassisContact = depth >= 0;
+    if (chassisContact) restOnChassis(dt, depth);
+    return { landed, chassisContact, groundContact: onWheelLine || chassisContact };
   }
 
-  // Reads rot after this frame's landing wrap and suspY from the previous frame (as before).
-  function checkChassisHitbox() {
-    if (state.chassisLatched) return false;
+  // Deepest CHASSIS_HITBOX point below the ground (>= 0 means contact; same test as the old
+  // boolean check). Reads rot after this frame's landing wrap and suspY from the previous frame.
+  function chassisPenetration() {
     const cosA = Math.cos(state.rot);
     const sinA = Math.sin(state.rot);
     const wheelLift = Math.max(0, cosA) * 0.5 * (1 - cosA);
     const cy = state.y + p.CAR_HALF_HEIGHT + wheelLift;
     const yOff = state.suspY;
+    let depth = -Infinity;
     for (const [lx, ly] of p.CHASSIS_HITBOX) {
       const ay = ly + yOff;
       const wx = cosA * lx - sinA * ay;
       const wy = cy + sinA * lx + cosA * ay;
       const gh = track.heightAt(state.x + wx);
-      if (wy <= gh) return true;
+      depth = Math.max(depth, gh - wy);
     }
-    return false;
+    return depth;
+  }
+
+  // The car sits on its chassis: lift it so the deepest hitbox point is on the ground,
+  // stop the fall and apply chassis friction.
+  function restOnChassis(dt, depth) {
+    state.y += depth;
+    if (state.vy < 0) state.vy = 0;
+    state.airborne = false;
+    state.airTime = 0;
+    state.bounceLevel = 1;
+    const slow = Math.min(Math.abs(state.speed), p.chassisFriction * dt);
+    state.speed -= Math.sign(state.speed) * slow;
+  }
+
+  // While resting on the chassis the car settles toward the nearest stable pose:
+  // on its wheels (slope angle) or on its roof (slope angle + PI).
+  function settleOnChassis(dt) {
+    const slopeRot = slopeAngleAt(state.x);
+    const rel = Math.atan2(Math.sin(state.rot - slopeRot), Math.cos(state.rot - slopeRot));
+    const target = Math.abs(rel) > Math.PI / 2 ? Math.sign(rel) * Math.PI : 0;
+    const k = Math.min(1, p.chassisSettleRate * dt);
+    state.rot += (target - rel) * k;
+    state.angVel = 0;
+  }
+
+  // RF-005: back on the wheels at the current x, standing still.
+  function autoRight() {
+    const slopeRot = slopeAngleAt(state.x);
+    state.rot = slopeRot;
+    state.slopeRotVisual = slopeRot;
+    state.lean = 0;
+    state.angVel = 0;
+    state.y = computeAvg(state.x);
+    state.vy = 0;
+    state.speed = 0;
+    state.airborne = false;
+    state.airTime = 0;
+    state.bounceLevel = 1;
+    state.suspY = 0;
+    state.suspVy = 0;
+    state.prevTrackH = track.heightAt(state.x);
+    state.overturned = false;
+    state.upsideDownTime = 0;
   }
 
   function updateRotation(dt, input, inputLocked) {
@@ -205,7 +267,8 @@ export function createCarPhysics({ track, params }) {
     }
   }
 
-  function updateSuspension(dt) {
+  // Springs relax like in the air while the car rests on its chassis (wheels unloaded).
+  function updateSuspension(dt, onChassis) {
     if (!state.suspensionEnabled) {
       state.suspY = 0;
       state.suspVy = 0;
@@ -215,7 +278,7 @@ export function createCarPhysics({ track, params }) {
 
     const tH = track.heightAt(state.x);
 
-    if (state.airborne) {
+    if (state.airborne || onChassis) {
       const decay = Math.max(0, 1 - 7 * dt);
       state.suspY *= decay;
       state.suspVy *= decay;
@@ -242,17 +305,25 @@ export function createCarPhysics({ track, params }) {
 
   /**
    * Advances one frame. `finished` is informational only (never locks input).
+   * An upside-down car ignores throttle/turbo; resting on the chassis ignores steering.
    * @summary Step the car by `dt` seconds; returns `{ chassisContact, landed, righted }`.
    */
   function step(dt, input) {
-    updateTurbo(dt, input);
-    updateSpeed(dt, input);
-    const { landed, chassisContact } = updatePhysics(dt);
-    // Chassis contact locks input from this frame's rotation on (old triggerCrash set crashSettling mid-frame).
-    updateRotation(dt, input, input.locked || chassisContact);
-    updateSuspension(dt);
+    const driveInput = isOverturned() ? { ...input, locked: true } : input;
+    updateTurbo(dt, driveInput);
+    updateSpeed(dt, driveInput);
+    const { landed, chassisContact, groundContact } = updatePhysics(dt);
+    if (chassisContact) settleOnChassis(dt);
+    else updateRotation(dt, input, input.locked);
+
+    state.overturned = isOverturned();
+    state.upsideDownTime = state.overturned && groundContact ? state.upsideDownTime + dt : 0;
+    const righted = state.upsideDownTime >= p.autoRightDelay;
+    if (righted) autoRight();
+
+    updateSuspension(dt, chassisContact && !righted);
     if (state.x >= track.finishX) state.finished = true;
-    return { chassisContact, landed, righted: false };
+    return { chassisContact, landed, righted };
   }
 
   reset();
