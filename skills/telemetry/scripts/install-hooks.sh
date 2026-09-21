@@ -107,7 +107,10 @@ esac
 root="$(git -C "$DIR" rev-parse --show-toplevel 2>/dev/null || true)"
 if [ -n "$root" ]; then
   # canonicalize before prefix-stripping: on macOS mktemp/cwd paths can be
-  # symlinked (/var -> /private/var) while show-toplevel returns the real path
+  # symlinked (/var -> /private/var) while show-toplevel returns the real path.
+  # On Git Bash show-toplevel returns C:/... while pwd -P returns /c/..., so
+  # canonicalize the root the same way or the strip fails (absolute path leaks).
+  root="$(cd "$root" 2>/dev/null && pwd -P)"
   sidecar_canon="$(cd "$(dirname "$SIDECAR")" 2>/dev/null && pwd -P)/$(basename "$SIDECAR")"
   rel="${sidecar_canon#"$root"/}"
   gi="$root/.gitignore"
