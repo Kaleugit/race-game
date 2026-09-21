@@ -11,6 +11,7 @@
 - Last Updated: 2026-09-21 19:45
 - Started: 2026-09-21 19:40
 - Completed: 2026-09-21 19:45
+- Evidence: PASS — `npm test` 2 passed (smoke + stage-data), `npm run test:sim` 10/10, CA-003 diff check (see Evidence section)
 - prior-art: src/stages/mata-atlantica.stage.js (stage data shape) and tests/e2e/smoke.spec.js (e2e flow) — new files follow them; no existing test stage
 - Delivery Handoff: DONE (owner: gohorse/subagent)
 - Delivery PR: Pending
