@@ -4,7 +4,7 @@
 - Date: 2026-09-21 15:25
 - Task ID: TASK-kaleugit-20260921172138
 - Branch: TASK-kaleugit-20260921172138-devops
-- Validated commit: 9c5226681fe6b1256569074ca6596105ca9a2754
+- Validated commit: 927f12acc8af7e507eb591b808e7cb75660319e8
 - Delivery Skill Version: v1
 
 ## Scope Reviewed
@@ -45,3 +45,4 @@
   - Status: COMPLETED
   - Delivery Status: PR_OPEN_MANUAL_MERGE
   - Notes: merge is manual per ADR-018
+- Retry 2026-09-21: docs-only delta since 9c52266 (CHANGELOG.md added); semantic verdict inherited
