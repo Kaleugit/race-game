@@ -13,6 +13,7 @@
 - Completed: 2026-09-21 19:30
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-002-01-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-002-01-implement-report-2026-09-21.md
+- prior-art: src/main.js:148 — pre-migration trackHeight/SLOPES/FEATURES, moved verbatim into src/track/track.js and src/stages/mata-atlantica.stage.js (no existing stage/track module)
 - Delivery Handoff: DONE (owner: gohorse/subagent)
 - Delivery PR: TBD
 - Delivery Status: PR_OPEN_MANUAL_MERGE
