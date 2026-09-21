@@ -8,15 +8,16 @@
 - Branch: TASK-kaleugit-EP-002-03-implement
 - Workstreams: [development]
 - Execution Mode: Quick
-- Last Updated: 2026-09-21 19:45
+- Last Updated: 2026-09-21 23:12
 - Started: 2026-09-21 19:40
-- Completed: 2026-09-21 19:45
+- Completed: 2026-09-21 23:12
 - Evidence: PASS — `npm test` 2 passed (smoke + stage-data), `npm run test:sim` 10/10, CA-003 diff check (see Evidence section)
 - prior-art: src/stages/mata-atlantica.stage.js (stage data shape) and tests/e2e/smoke.spec.js (e2e flow) — new files follow them; no existing test stage
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 - Delivery PR: #7
-- Delivery Status: PR_OPEN_MANUAL_MERGE
+- Delivery Status: MERGED
 
+- Delivery Merged At: 2026-09-21 23:12
 ## Planning Notes (Quick)
 - Scope: 2 new files only — `src/stages/teste-plano.stage.js`, `tests/e2e/stage-data.spec.js`. No engine file (`src/main.js`, `src/track/*`, `src/stages/index.js`, `src/stages/registry.js`) changes: the glob in `src/stages/index.js` discovers the new file.
 - Acceptance: (1) CA-003 — source/test diff vs main is only the two new files (plus memory-system/docs metadata and regenerated docs/INDEX-API.md); (2) `npm test` passes smoke.spec.js and stage-data.spec.js; (3) `npm run test:sim` stays green (hidden stage does not change listStages/getDefaultStage).
