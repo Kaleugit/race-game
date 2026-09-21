@@ -8,17 +8,18 @@
 - Branch: TASK-kaleugit-EP-002-02-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 19:40
+- Last Updated: 2026-09-21 22:38
 - Started: 2026-09-21 19:20
-- Completed: 2026-09-21 19:36
+- Completed: 2026-09-21 22:38
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-002-02-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-002-02-implement-report-2026-09-21.md
 - prior-art: src/main.js:159 — pre-migration road/mud/ground/finish-portal/sky code, moved verbatim into src/track/track-scene.js (no existing scene module)
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 - Delivery PR: #6
-- Delivery Status: PR_OPEN_MANUAL_MERGE
+- Delivery Status: MERGED
 - UX Gate: pending human (batched at epic end) — Mata Atlantica track, mud, background and driving feel vs prototype
 
+- Delivery Merged At: 2026-09-21 22:38
 ## Autonomous Decisions
 - DA-001: Skipped architect/testing persona consults — Criteria: orchestrator instruction (speed over ceremony, at most 2 optional consults) — Rationale: mechanical, verbatim move defined in detail by the epic task list.
 - DA-002: `setStage(stageIdFromUrl())` is called in the initLobby callback right before `startCountdown()` (race-start flow); `track`/`trackScene` are `let` bindings assigned there — Criteria: done criterion "chamada real no fluxo de início de corrida" — Rationale: nothing reads `track` before the first `tick`, which is only scheduled from that callback.
