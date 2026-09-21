@@ -78,4 +78,5 @@ Policy:
 | TASK-kaleugit-20260921172138 | Fix failing governance test harnesses on Windows | COMPLETED | 1 | Standard | TASK-kaleugit-20260921172138-devops | [devops, testing] | 2026-09-21 21:32 |
 | TASK-kaleugit-20260921174640 | Disable telemetry in this project | COMPLETED | 1 | Standard | TASK-kaleugit-20260921174640-devops | [devops] | 2026-09-21 21:35 |
 | TASK-kaleugit-20260921180706 | CI: recreate skill links before validation; +x on CI scripts | COMPLETED | 1 | Standard | TASK-kaleugit-20260921180706-devops | [devops] | 2026-09-21 18:04 |
+| TASK-kaleugit-EP-001-01 | Playwright + npm test + smoke of the current flow | PENDING | 1 | Standard | TASK-kaleugit-EP-001-01-implement | None | 2026-09-21 18:55 |
 <!-- TASK_INDEX:END -->
