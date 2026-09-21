@@ -8,16 +8,16 @@
 - Branch: TASK-kaleugit-EP-003-01-implement
 - Workstreams: [development]
 - Execution Mode: Critical
-- Last Updated: 2026-09-21 20:55
+- Last Updated: 2026-09-21 20:23
 - Started: 2026-09-21 20:10
-- Completed: 2026-09-21 20:55
+- Completed: 2026-09-21 20:23
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-003-01-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-003-01-implement-report-2026-09-21.md
 - prior-art: src/main.js:462 — pre-extraction updateTurbo/updateSpeed/updatePhysics/checkChassisHitbox/updateRotation/updateSuspension, moved verbatim into src/physics/car-physics.js (no existing physics module)
 - Evidence: PASS — `npm run test:sim` 20/20 (incl. (a)-(d) and 3 golden tests vs pre-extraction physics), `npm test` 2 passed, done-criteria greps empty/as expected, scratch equivalence 12/12 runs bit-exact
-- Delivery Handoff: DONE (owner: gohorse/subagent)
-- Delivery PR: Pending
-- Delivery Status: PR_OPEN
+- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery PR: #8
+- Delivery Status: PR_OPEN_MANUAL_MERGE
 - UX Gate: pending human (batched at epic end) — driving, jump, landing, suspension and crash feel identical to the prototype
 
 ## Autonomous Decisions
@@ -28,3 +28,4 @@
 - DA-005: `turboActive = false` on crash stays in main.js `triggerCrash` (after the flame/headlight render), not in the module — Criteria: CDC-006 — Rationale: keeps the headlight/flame values of the contact frame identical to the old code.
 - DA-006: Removed unused `SUSP_RELEASE_BOOST` (dead constant in main.js) instead of moving it — Criteria: YAGNI — Rationale: never read; no behavior change.
 - DA-007: `src/car.js` got a JSDoc `@module` header besides the re-export — Criteria: CI JSDoc gate on changed src files — Rationale: required by governance CI; no code change.
+- Delivery Merged At: Pending
