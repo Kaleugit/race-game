@@ -1,6 +1,13 @@
+/**
+ * @module main
+ * @summary Game entry point: renderer, car, input, physics loop, HUD; stage selected via ?stage=<id>.
+ */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { makeSkyTexture, makeMountainTexture, makeHillTexture, makeRoadTexture } from './textures.js';
+import { makeSkyTexture, makeMountainTexture, makeHillTexture } from './textures.js';
+import { getDefaultStage, getStage } from './stages/index.js';
+import { createTrack } from './track/track.js';
+import { createTrackScene } from './track/track-scene.js';
 import { initLobby } from './lobby.js';
 import { makeCar, makeCarGLB, WHEEL_RADIUS, SUSP_REST, SUSP_MAX_COMPRESS, SUSP_MAX_EXTEND, DEBUG_CRASH_HITBOX, CHASSIS_HITBOX } from './car.js';
 import { initEngineSound } from './sound.js';
@@ -35,238 +42,6 @@ const rim = new THREE.DirectionalLight(0xff7a4a, 0.5);
 rim.position.set(15, 4, -10);
 scene.add(rim);
 
-const SLOPES = [
-  { x: 80,  w: 40, dh: 1.5 },
-  { x: 200, w: 15, dh: 1.0 },
-  { x: 290, w: 30, dh: -2.0 },
-  { x: 400, w: 12, dh: 2.0 },
-  { x: 500, w: 25, dh: -1.5 },
-  { x: 220,   w: 40, dh: 25 },
-  { x: 298.5, w: 57, dh: -25 },
-  { x: 600, w: 8,  dh: -1.5 },
-  { x: 720, w: 40, dh: 0.5 },
-  { x: 820, w: 6,  dh: 1.0 },
-];
-
-const FEATURES = [
-  { x: 75,  type: 'wave',    w: 6,  h: 0.2, count: 3 },
-  { x: 95,  type: 'bell',    w: 3,  h: 0.7 },
-  { x: 130, type: 'valley',  w: 6,  h: 0.6 },
-  { x: 165, type: 'plateau', w: 8,  h: 1.0 },
-  { x: 200, type: 'bell',    w: 3,  h: 0.8 },
-  { x: 240, type: 'asym',    w: 6,  h: 1.4, leftFactor: 0.4 },
-  { x: 285, type: 'wave',    w: 5,  h: 0.2, count: 3 },
-  { x: 340, type: 'plateau', w: 10, h: 0.8 },
-  { x: 370, type: 'bell',    w: 4,  h: 1.2 },
-  { x: 400, type: 'bell',    w: 2.5, h: 1.0 },
-  { x: 430, type: 'valley',  w: 6,  h: 0.8 },
-  { x: 460, type: 'wave',    w: 8,  h: 0.3, count: 4 },
-  { x: 500, type: 'plateau', w: 8,  h: 0.6 },
-  { x: 640, type: 'wave',    w: 10, h: 0.4, count: 3 },
-  { x: 680, type: 'valley',  w: 6,  h: 0.9 },
-  { x: 710, type: 'wave',    w: 8,  h: 0.3, count: 4 },
-  { x: 740, type: 'plateau', w: 6,  h: 0.8 },
-  { x: 780, type: 'bell',    w: 4,  h: 1.4 },
-  { x: 825, type: 'bell',    w: 3,  h: 0.8 },
-];
-
-const FINISH_LINE_X = 620;
-const BOT_FINISH_TIME = 26;
-
-function featureContribution(f, x) {
-  const t = x - f.x;
-  switch (f.type) {
-    case 'bell': {
-      if (Math.abs(t) >= f.w) return 0;
-      const k = Math.cos(t * Math.PI / (2 * f.w));
-      return f.h * k * k;
-    }
-    case 'valley': {
-      if (Math.abs(t) >= f.w) return 0;
-      const k = Math.cos(t * Math.PI / (2 * f.w));
-      return -f.h * k * k;
-    }
-    case 'plateau': {
-      const absT = Math.abs(t);
-      if (absT >= f.w) return 0;
-      const transition = f.w * 0.5;
-      const flatLimit = f.w - transition;
-      if (absT <= flatLimit) return f.h;
-      const u = (f.w - absT) / transition;
-      const smooth = u * u * (3 - 2 * u);
-      return f.h * smooth;
-    }
-    case 'wave': {
-      if (Math.abs(t) >= f.w) return 0;
-      const env = Math.cos(t * Math.PI / (2 * f.w));
-      const count = f.count || 3;
-      return f.h * env * env * Math.sin(t * Math.PI * count / f.w);
-    }
-    case 'asym': {
-      const leftFactor = f.leftFactor != null ? f.leftFactor : 0.4;
-      if (t < 0) {
-        const wL = f.w * leftFactor;
-        if (t <= -wL) return 0;
-        const k = Math.cos(t * Math.PI / (2 * wL));
-        return f.h * k * k;
-      } else {
-        if (t >= f.w) return 0;
-        const k = Math.cos(t * Math.PI / (2 * f.w));
-        return f.h * k * k;
-      }
-    }
-    default:
-      return 0;
-  }
-}
-
-function rampEase(u) {
-  if (u <= 0) return 0;
-  if (u >= 1) return 1;
-  const a = 0.25;
-  const slope = 1 / (1 - a);
-  if (u < a) {
-    const t = u / a;
-    return slope * a * 0.5 * t * t;
-  }
-  if (u > 1 - a) {
-    const t = (1 - u) / a;
-    return 1 - slope * a * 0.5 * t * t;
-  }
-  return slope * a * 0.5 + slope * (u - a);
-}
-
-function baseElevation(x) {
-  let h = 0;
-  for (const s of SLOPES) {
-    const t = (x - (s.x - s.w / 2)) / s.w;
-    h += s.dh * rampEase(t);
-  }
-  return h;
-}
-
-function trackHeight(x) {
-  let h = baseElevation(x)
-        + Math.sin(x * 0.06) * 0.18
-        + Math.sin(x * 0.13 + 1.7) * 0.10
-        + Math.sin(x * 0.31 + 0.4) * 0.05;
-  for (const f of FEATURES) {
-    h += featureContribution(f, x);
-  }
-  return h;
-}
-
-const ROAD_W = 80;
-const ROAD_D = 7;
-const ROAD_SEGMENTS = 220;
-
-const roadGeo = new THREE.PlaneGeometry(ROAD_W, ROAD_D, ROAD_SEGMENTS, 1);
-roadGeo.rotateX(-Math.PI / 2);
-
-const jungleRoadTex = makeRoadTexture();
-jungleRoadTex.repeat.set(8, 1);
-
-const roadMat = new THREE.MeshStandardMaterial({
-  map: jungleRoadTex,
-  flatShading: true,
-  roughness: 0.8,
-  metalness: 0.1
-});
-const road = new THREE.Mesh(roadGeo, roadMat);
-scene.add(road);
-
-const groundGeo = new THREE.PlaneGeometry(80, 18);
-groundGeo.rotateX(-Math.PI / 2);
-const groundMat = new THREE.MeshStandardMaterial({ color: 0x1a2818, flatShading: true });
-const ground = new THREE.Mesh(groundGeo, groundMat);
-ground.position.set(0, -0.05, -16);
-ground.visible = false;
-
-function makeMudTexture() {
-  const c = document.createElement('canvas');
-  c.width = 256; c.height = 256;
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = '#3a2a1a';
-  ctx.fillRect(0, 0, 256, 256);
-  for (let i = 0; i < 70; i++) {
-    const x = Math.random() * 256;
-    const y = Math.random() * 256;
-    const len = 8 + Math.random() * 28;
-    const angle = Math.random() * Math.PI * 2;
-    ctx.strokeStyle = `rgba(${20 + Math.random() * 18 | 0},${14 + Math.random() * 12 | 0},${5 + Math.random() * 10 | 0},0.55)`;
-    ctx.lineWidth = 0.8 + Math.random();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
-    ctx.stroke();
-  }
-  for (let i = 0; i < 50; i++) {
-    const x = Math.random() * 256;
-    const y = Math.random() * 256;
-    const r = 3 + Math.random() * 14;
-    const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-    grad.addColorStop(0, 'rgba(28,18,10,0.7)');
-    grad.addColorStop(1, 'rgba(28,18,10,0)');
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  for (let i = 0; i < 40; i++) {
-    const x = Math.random() * 256;
-    const y = Math.random() * 256;
-    const r = 0.8 + Math.random() * 1.6;
-    const tone = 70 + Math.random() * 60;
-    ctx.fillStyle = `rgb(${tone + 12 | 0},${tone | 0},${Math.max(0, tone - 25) | 0})`;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  const tex = new THREE.CanvasTexture(c);
-  tex.wrapS = THREE.RepeatWrapping;
-  tex.wrapT = THREE.RepeatWrapping;
-  return tex;
-}
-
-const mudTex = makeMudTexture();
-mudTex.repeat.set(20, 3);
-
-
-const MUD_W = 80;
-const MUD_D = 10;
-const MUD_SEGMENTS = 120;
-const mudGeo = new THREE.PlaneGeometry(MUD_W, MUD_D, MUD_SEGMENTS, 1);
-mudGeo.rotateX(-Math.PI / 2);
-const mudMat = new THREE.MeshStandardMaterial({ map: mudTex, flatShading: true, roughness: 1.0 });
-const mudStrip = new THREE.Mesh(mudGeo, mudMat);
-mudStrip.position.set(0, 0, 0);
-scene.add(mudStrip);
-
-function deformMud() {
-  const positions = mudGeo.attributes.position;
-  for (let i = 0; i <= MUD_SEGMENTS; i++) {
-    const localX = -MUD_W / 2 + (i / MUD_SEGMENTS) * MUD_W;
-    const h = trackHeight(state.scroll + localX);
-    positions.setY(i, h - 0.05);
-    positions.setY(i + MUD_SEGMENTS + 1, h - 0.05);
-  }
-  positions.needsUpdate = true;
-  mudGeo.computeVertexNormals();
-}
-
-
-function deformRoad() {
-  const positions = roadGeo.attributes.position;
-  for (let i = 0; i <= ROAD_SEGMENTS; i++) {
-    const localX = -ROAD_W / 2 + (i / ROAD_SEGMENTS) * ROAD_W;
-    const h = trackHeight(state.scroll + localX);
-    positions.setY(i, h);
-    positions.setY(i + ROAD_SEGMENTS + 1, h);
-  }
-  positions.needsUpdate = true;
-  roadGeo.computeVertexNormals();
-}
-
 const SUSP_K = 77;
 const SUSP_DAMP = 6.6;
 const SUSP_RELEASE_BOOST = 5.5;
@@ -298,70 +73,30 @@ const skyCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.inn
 skyCamera.position.set(0, 4, 12);
 skyCamera.lookAt(0, 0, -8);
 
-new THREE.TextureLoader().load('/img/misty-tropical-jungle.jpg', (tex) => {
-  tex.colorSpace = THREE.SRGBColorSpace;
-  skyScene.background = tex;
-});
-
 const grid = new THREE.GridHelper(GRID_SIZE, GRID_DIV, 0x888888, 0x444444);
 grid.position.set(0, 0, 0);
 grid.visible = false;
 scene.add(grid);
 
-
-// finish portal group
-const finishPortal = new THREE.Group();
-
-// two side poles
-const poleMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
-const poleGeo = new THREE.CylinderGeometry(0.18, 0.18, 7, 8);
-const poleL = new THREE.Mesh(poleGeo, poleMat);
-poleL.position.set(0, 3.5, -2.2);
-finishPortal.add(poleL);
-const poleR = new THREE.Mesh(poleGeo, poleMat);
-poleR.position.set(0, 3.5, 2.2);
-finishPortal.add(poleR);
-
-// arch across the top — series of box segments forming a curve
-const archMat = new THREE.MeshLambertMaterial({ color: 0xffd86b, emissive: 0xffa030, emissiveIntensity: 0.6 });
-const archSegments = 12;
-const archRadius = 2.4;
-const archCenterY = 7;
-for (let i = 0; i <= archSegments; i++) {
-  const t = i / archSegments;
-  const angle = Math.PI * t; // 0 → π (left pole to right pole)
-  const az = -Math.cos(angle) * archRadius;
-  const ay = Math.sin(angle) * archRadius * 0.55 + archCenterY;
-  const seg = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.36, 0.36), archMat);
-  seg.position.set(0, ay, az);
-  finishPortal.add(seg);
+// Stage selection: ?stage=<id> (unknown or absent id -> default stage).
+function stageIdFromUrl() {
+  return new URLSearchParams(location.search).get('stage');
 }
 
-// checkered ground marking — alternating black/white strips along Z
-const tileW = 0.5;
-const tileD = 0.55;
-const cols = 8;
-const rows = 2;
-const matW = new THREE.MeshLambertMaterial({ color: 0xffffff });
-const matB = new THREE.MeshLambertMaterial({ color: 0x111111 });
-for (let r = 0; r < rows; r++) {
-  for (let c = 0; c < cols; c++) {
-    const isWhite = (r + c) % 2 === 0;
-    const tile = new THREE.Mesh(
-      new THREE.BoxGeometry(tileD, 0.05, tileW),
-      isWhite ? matW : matB
-    );
-    tile.position.set(
-      (r - rows / 2 + 0.5) * tileD,
-      0.025,
-      (c - cols / 2 + 0.5) * tileW
-    );
-    finishPortal.add(tile);
+let track = null;
+let trackScene = null;
+
+function setStage(id) {
+  let stage = id ? getStage(id) : null;
+  if (!stage) {
+    if (id) console.warn(`stage '${id}' not found, using default`);
+    stage = getDefaultStage();
   }
+  if (trackScene) trackScene.dispose();
+  track = createTrack(stage);
+  trackScene = createTrackScene({ scene, skyScene, stage, track });
+  return stage;
 }
-
-scene.add(finishPortal);
-const finishLineMesh = finishPortal; // alias for update loop
 
 const keys = { up: false, down: false, left: false, right: false, space: false };
 window.addEventListener('keydown', (e) => {
@@ -773,7 +508,7 @@ function updateSpeed(dt) {
 
   if (!state.airborne) {
     const T = state.scroll;
-    const slope = (trackHeight(T + 1) - trackHeight(T - 1)) / 2;
+    const slope = (track.heightAt(T + 1) - track.heightAt(T - 1)) / 2;
     const slopeAngle = Math.atan(slope);
     state.speed -= GRAVITY * 0.8 * Math.sin(slopeAngle) * dt;
   }
@@ -788,7 +523,7 @@ function updateSpeed(dt) {
 }
 
 function computeAvg(scroll) {
-  return (trackHeight(scroll + 1) + trackHeight(scroll - 1)) / 2;
+  return (track.heightAt(scroll + 1) + track.heightAt(scroll - 1)) / 2;
 }
 
 function updatePhysics(dt) {
@@ -855,7 +590,7 @@ function checkChassisHitbox() {
     const ay = ly + yOff;
     const wx = cosA * lx - sinA * ay;
     const wy = cy + sinA * lx + cosA * ay;
-    const gh = trackHeight(state.scroll + wx);
+    const gh = track.heightAt(state.scroll + wx);
     if (wy <= gh) return true;
   }
   return false;
@@ -888,7 +623,7 @@ function updateRotation(dt) {
     state.lean += (leanInput - state.lean) * k;
 
     const T = state.scroll;
-    const slope = (trackHeight(T + 1) - trackHeight(T - 1)) / 2;
+    const slope = (track.heightAt(T + 1) - track.heightAt(T - 1)) / 2;
     const slopeRot = Math.atan(slope);
     state.slopeRotVisual += (slopeRot - state.slopeRotVisual) * k;
     carPivot.rotation.z = state.slopeRotVisual + state.lean;
@@ -899,7 +634,7 @@ function updateSuspension(dt) {
   if (!state.suspensionEnabled) {
     state.suspY = 0;
     state.suspVy = 0;
-    state.prevTrackH = trackHeight(state.scroll);
+    state.prevTrackH = track.heightAt(state.scroll);
     bodyGroup.position.y = 0;
     for (const s of springs) {
       s.group.scale.y = 1;
@@ -908,7 +643,7 @@ function updateSuspension(dt) {
     return;
   }
 
-  const tH = trackHeight(state.scroll);
+  const tH = track.heightAt(state.scroll);
 
   if (state.airborne) {
     const decay = Math.max(0, 1 - 7 * dt);
@@ -965,22 +700,17 @@ function updateBot(dt) {
   state.botTurboActive = state.botTurboCycle < BOT_TURBO_ON;
   const spd = BOT_BASE_SPEED * (state.botTurboActive ? BOT_TURBO_MULT : 1);
   const prevBotScroll = state.botScroll;
-  state.botScroll = Math.min(state.botScroll + spd * dt, FINISH_LINE_X);
-  if (prevBotScroll < FINISH_LINE_X && state.botScroll >= FINISH_LINE_X) {
+  state.botScroll = Math.min(state.botScroll + spd * dt, track.finishX);
+  if (prevBotScroll < track.finishX && state.botScroll >= track.finishX) {
     state.botFinishTime = state.raceTime;
   }
-  raceBarBotEl.style.left = ((state.botScroll / FINISH_LINE_X) * 100).toFixed(1) + '%';
+  raceBarBotEl.style.left = ((state.botScroll / track.finishX) * 100).toFixed(1) + '%';
   raceBarBotEl.style.boxShadow = state.botTurboActive ? '0 0 10px #ff4444, 0 0 20px #ff8800' : '0 0 6px #ff4444';
 }
 
 function updateScrollVisuals(dt) {
   const dx = state.speed * dt;
   grid.position.x -= dx;
-
-  const finishRelX = FINISH_LINE_X - state.scroll;
-  finishLineMesh.position.x = finishRelX;
-  const finishH = trackHeight(state.scroll + finishRelX);
-  finishLineMesh.position.y = finishH;
 }
 
 const SKY_SCROLL_PERIOD = 3000;
@@ -1018,7 +748,7 @@ function updateHUD() {
 
   if (state.raceStarted && !state.raceFinished) {
     if (botDistEl) botDistEl.textContent = Math.round(state.botScroll);
-    const playerProgress = Math.min(state.scroll / FINISH_LINE_X, 1);
+    const playerProgress = Math.min(state.scroll / track.finishX, 1);
     raceBarPlayerEl.style.left = (playerProgress * 100).toFixed(1) + '%';
   }
 }
@@ -1067,7 +797,7 @@ function tick(now) {
     state.raceTime += dt;
     updateBot(dt);
 
-    if (state.botScroll >= FINISH_LINE_X && state.scroll < FINISH_LINE_X && !state.botWon) {
+    if (state.botScroll >= track.finishX && state.scroll < track.finishX && !state.botWon) {
       showDefeatScreen();
     }
 
@@ -1075,7 +805,7 @@ function tick(now) {
       endPlayerTimeEl.textContent = state.raceTime.toFixed(1) + 's';
     }
 
-    if (state.scroll >= FINISH_LINE_X) {
+    if (state.scroll >= track.finishX) {
       showEndScreen(!state.botWon);
     }
   }
@@ -1093,10 +823,7 @@ function tick(now) {
   updateCamera(dt);
   updateScrollVisuals(dt);
   updateSky();
-  deformRoad();
-  deformMud();
-  mudTex.offset.x = state.scroll / 8;
-  jungleRoadTex.offset.x = state.scroll / 10;
+  trackScene.update(state.scroll);
   updateHUD();
 
   renderer.autoClear = true;
@@ -1119,6 +846,7 @@ initLobby((carFactory) => {
     hitboxDebug = carBuilt.hitboxDebug;
     carPivot.add(carBuilt.group);
   }
+  setStage(stageIdFromUrl());
   last = performance.now();
   startCountdown();
   requestAnimationFrame(tick);
