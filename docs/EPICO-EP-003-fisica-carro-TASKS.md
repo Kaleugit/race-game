@@ -60,7 +60,7 @@ createCarPhysics({ track, params }) → {
 
 ### Task 02 - Auto-desvira (RF-005) no lugar do reset por crash
 - Task ID: TASK-kaleugit-EP-003-02
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Standard
 - Domain: Carro (física — recuperação)
