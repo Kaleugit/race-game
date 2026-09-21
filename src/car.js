@@ -1,22 +1,19 @@
+/**
+ * @module car
+ * @summary Bandeirante car meshes (procedural and GLB), smoke, springs, hitbox debug.
+ * Suspension limits and CHASSIS_HITBOX live in src/physics/params.js; re-exported here.
+ */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
+import { SUSP_REST, SUSP_MAX_COMPRESS, SUSP_MAX_EXTEND, CHASSIS_HITBOX } from './physics/params.js';
+
+/** @summary Suspension/hitbox constants, re-exported from src/physics/params.js. */
+export { SUSP_REST, SUSP_MAX_COMPRESS, SUSP_MAX_EXTEND, CHASSIS_HITBOX };
 
 export const WHEEL_RADIUS = 0.5;
-export const SUSP_REST = 0.110;
-export const SUSP_MAX_COMPRESS = 0.110;
-export const SUSP_MAX_EXTEND = 0.066;
 
 export const DEBUG_CRASH_HITBOX = false;
-export const CHASSIS_HITBOX = [
-  [-1.05,  0.40],
-  [-1.05,  0.68],
-  [ 0.55,  0.68],
-  [ 0.55,  0.40],
-  [ 0.45,  0.26],
-  [ 1.45,  0.26],
-  [ 1.45,  0.05],
-];
 
 let _smokeTex = null;
 function getSmokeTex() {

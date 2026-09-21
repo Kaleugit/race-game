@@ -1,6 +1,6 @@
 # API Index — Kaleugit/race-game
 
-> **Coverage**: 7/11 backend files (64%), 0/0 frontend custom elements (0%).
+> **Coverage**: 10/13 backend files (77%), 0/0 frontend custom elements (0%).
 > Auto-generated from JSDoc `@module` / `@summary` / `@element` tags. Transition phase — files without these tags do NOT appear here.
 >
 > **If you don't find what you need:**
@@ -8,13 +8,24 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-21T22:44Z
-Total candidate files scanned: 11
+Last regenerated: 2026-09-21T23:20Z
+Total candidate files scanned: 13
 
 ## Backend modules
 
+### `src/car.js` — car
+- Bandeirante car meshes (procedural and GLB), smoke, springs, hitbox debug.
+
 ### `src/main.js` — main
-- Game entry point: renderer, car, input, physics loop, HUD; stage selected via ?stage=<id>.
+- Game entry point: renderer, car visuals, input, race loop, HUD; stage selected via ?stage=<id>.
+
+### `src/physics/car-physics.js` — physics/car-physics
+- Per-instance car physics (turbo, speed, vertical/bounce, chassis contact, rotation,
+- Build a car physics instance: `{ state, step(dt, input), reset() }`.
+
+### `src/physics/params.js` — physics/params
+- Car physics constants (BASE_PARAMS), moved verbatim from the pre-extraction
+- Default car parameters: the prototype's driving feel. Frozen; derive copies to tune.
 
 ### `src/stages/index.js` — stages/index
 - Stage discovery: every src/stages/*.stage.js file becomes a stage (Vite import.meta.glob).
