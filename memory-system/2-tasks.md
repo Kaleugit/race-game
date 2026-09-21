@@ -78,5 +78,20 @@ Policy:
 | TASK-kaleugit-20260921172138 | Fix failing governance test harnesses on Windows | COMPLETED | 1 | Standard | TASK-kaleugit-20260921172138-devops | [devops, testing] | 2026-09-21 21:32 |
 | TASK-kaleugit-20260921174640 | Disable telemetry in this project | COMPLETED | 1 | Standard | TASK-kaleugit-20260921174640-devops | [devops] | 2026-09-21 21:35 |
 | TASK-kaleugit-20260921180706 | CI: recreate skill links before validation; +x on CI scripts | COMPLETED | 1 | Standard | TASK-kaleugit-20260921180706-devops | [devops] | 2026-09-21 18:04 |
-| TASK-kaleugit-EP-001-01 | Playwright + npm test + smoke of the current flow | PENDING | 1 | Standard | TASK-kaleugit-EP-001-01-implement | None | 2026-09-21 18:55 |
+| TASK-kaleugit-EP-001-01 | Playwright + npm test + smoke of the current flow | COMPLETED | 1 | Standard | TASK-kaleugit-EP-001-01-implement | [testing] | 2026-09-21 21:59 |
+| TASK-kaleugit-EP-002-01 | Stage data format, registry and track query (no render) | PENDING | 1 | Standard | TASK-kaleugit-EP-002-01-implement | None | 2026-09-21 19:00 |
+| TASK-kaleugit-EP-002-02 | Track scene from stage data + wiring in src/main.js | PENDING | 1 | Standard | TASK-kaleugit-EP-002-02-implement | None | 2026-09-21 19:00 |
+| TASK-kaleugit-EP-003-01 | Extract per-instance car physics + simulation harness | PENDING | 1 | Critical | TASK-kaleugit-EP-003-01-implement | None | 2026-09-21 19:00 |
+| TASK-kaleugit-EP-003-02 | Auto-right after 1.5s upside down (RF-005) | PENDING | 1 | Standard | TASK-kaleugit-EP-003-02-implement | None | 2026-09-21 19:00 |
+| TASK-kaleugit-EP-004-01 | Bot AI driver, bot preset and harness calibration | PENDING | 1 | Standard | TASK-kaleugit-EP-004-01-implement | None | 2026-09-21 19:00 |
+| TASK-kaleugit-EP-004-02 | Real bot in the game loop (remove ghost) | PENDING | 1 | Standard | TASK-kaleugit-EP-004-02-implement | None | 2026-09-21 19:00 |
+| TASK-kaleugit-EP-005-01 | Polished Mata Atlantica (60-90s, hand-placed hazards) + duration test | PENDING | 1 | Standard | TASK-kaleugit-EP-005-01-implement | None | 2026-09-21 19:00 |
+| TASK-kaleugit-EP-005-02 | Cerrado stage (sand/red earth, harder bot) | PENDING | 1 | Standard | TASK-kaleugit-EP-005-02-implement | None | 2026-09-21 19:00 |
+| TASK-kaleugit-EP-006-01 | Local profile: garage and progress in localStorage | PENDING | 1 | Standard | TASK-kaleugit-EP-006-01-implement | None | 2026-09-21 19:00 |
+| TASK-kaleugit-EP-006-03 | Screens: garage, stage map and result | PENDING | 1 | Standard | TASK-kaleugit-EP-006-03-implement | None | 2026-09-21 19:00 |
+| TASK-kaleugit-EP-006-04 | Full flow, mini-map and wiring in src/main.js/src/lobby.js | PENDING | 1 | Standard | TASK-kaleugit-EP-006-04-implement | None | 2026-09-21 19:00 |
+| TASK-kaleugit-EP-002-03 | CA-003 proof: data-only test stage + e2e | PENDING | 2 | Quick | TASK-kaleugit-EP-002-03-implement | None | 2026-09-21 19:00 |
+| TASK-kaleugit-EP-003-03 | Tire/gearbox presets and surface grip | PENDING | 2 | Standard | TASK-kaleugit-EP-003-03-implement | None | 2026-09-21 19:00 |
+| TASK-kaleugit-EP-006-02 | Car visual: color and tires | PENDING | 2 | Quick | TASK-kaleugit-EP-006-02-implement | None | 2026-09-21 19:00 |
+| TASK-kaleugit-EP-006-05 | e2e for UI acceptance criteria (CA-001, CA-002, CA-006, CA-007) | PENDING | 2 | Standard | TASK-kaleugit-EP-006-05-implement | None | 2026-09-21 19:00 |
 <!-- TASK_INDEX:END -->
