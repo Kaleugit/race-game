@@ -8,16 +8,16 @@
 - Branch: TASK-kaleugit-EP-003-03-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 21:30
+- Last Updated: 2026-09-21 20:57
 - Started: 2026-09-21 20:42
-- Completed: 2026-09-21 21:30
+- Completed: 2026-09-21 20:57
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-003-03-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-003-03-implement-report-2026-09-21.md
 - prior-art: src/physics/params.js — BASE_PARAMS extended with grip/surfaceDrag; src/track/track.js surfaceAt/SURFACE_TYPES reused; no existing parts/preset code (src/parts/ is new)
 - Evidence: PASS — `npm run test:sim` 37/37 (11 new in tests/sim/parts.test.js: identity deep-equal, CA-008 >= 3% per swap (min 5.0%), Off-road 7.68 s vs Estrada 12.70 s on the sand stretch, CDC-102 non-dominance for every tire/gearbox pair + negative control; 3 EP-003-01 goldens unchanged); `npm test` local failure reproduces on unmodified main (low headless FPS), CI authoritative
-- Delivery Handoff: DONE (owner: gohorse/subagent)
-- Delivery PR: Pending
-- Delivery Status: PR_OPEN
+- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery PR: #10
+- Delivery Status: PR_OPEN_MANUAL_MERGE
 - UX Gate: pending human (batched at epic end) — tire/gearbox differences perceptible; Misto/Padrão keeps the current feel
 
 ## Autonomous Decisions
@@ -28,3 +28,4 @@
 - DA-005: CDC-102 scorecard = terrain (dirt, mud, sand flat 300 m) x metric (race time, max speed, sprint = time to 40 m) — Criteria: epic "terreno ou métrica (tempo, velocidade máxima)" + RF-009 "curta = mais aceleração" — Rationale: with Off-road tires Curta's only advantage is acceleration, which time/max speed over 300 m do not show; the sprint metric measures it directly. A negative-control test proves the check detects a dominant preset.
 - DA-006: CA-008 measured on the new sand fixture (dirt [0,100) + sand [100,300)) rather than teste-plano — Criteria: epic Task 03 "Criar tests/sim/fixtures/areia.stage.js" — Rationale: a 200 m sand stretch gives clear differences; teste-plano stays unchanged.
 - DA-007: No persona consults — Criteria: runbook (at most 2 lightweight consults; human prefers speed) — Rationale: presets, formula and tests fully specified by the epic Task 03.
+- Delivery Merged At: Pending
