@@ -13,7 +13,7 @@ Bootstrap source: `BRIEFING.md`.
 ## Current Project
 **Name:** race-game
 **Type:** Browser game (1v1 side-scroll arcade racer, static Vite build)
-**Status:** Bootstrap COMPLETE — prototype exists (lobby, one track, fixed-time ghost opponent)
+**Status:** READY_FOR_EXECUTION — prototype exists (lobby, one track, fixed-time ghost opponent)
 **Last Updated:** 2026-09-21
 
 ## Project Goals
@@ -24,8 +24,8 @@ Bootstrap source: `BRIEFING.md`.
 5. Long term (not this cycle): PvP 1v1 skill-gaming with wagers — see `docs/briefing.md`.
 
 ## Current Sprint/Phase
-**Sprint:** Bootstrap
-**Focus:** PROJECT_SPECS approval, then epic decomposition (`/gen-epics`)
+**Sprint:** EP-001
+**Focus:** e2e test infrastructure (EP-001), then EP-002 stage engine
 **Deadline:** TBD
 
 ## Tech Stack Summary
