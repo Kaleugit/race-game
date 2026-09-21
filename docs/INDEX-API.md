@@ -1,6 +1,6 @@
 # API Index — Kaleugit/race-game
 
-> **Coverage**: 0/5 backend files (0%), 0/0 frontend custom elements (0%).
+> **Coverage**: 0/9 backend files (0%), 0/0 frontend custom elements (0%).
 > Auto-generated from JSDoc `@module` / `@summary` / `@element` tags. Transition phase — files without these tags do NOT appear here.
 >
 > **If you don't find what you need:**
@@ -8,8 +8,8 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-21T21:33Z
-Total candidate files scanned: 5
+Last regenerated: 2026-09-21T22:15Z
+Total candidate files scanned: 9
 
 ## Backend modules
 
