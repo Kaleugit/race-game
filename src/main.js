@@ -1,6 +1,7 @@
 /**
  * @module main
- * @summary Game entry point: renderer, car, input, physics loop, HUD; stage selected via ?stage=<id>.
+ * @summary Game entry point: renderer, car visuals, input, race loop, HUD; stage selected via ?stage=<id>.
+ * Car physics lives in src/physics/car-physics.js (playerCar); this file only renders its state.
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -9,7 +10,9 @@ import { getDefaultStage, getStage } from './stages/index.js';
 import { createTrack } from './track/track.js';
 import { createTrackScene } from './track/track-scene.js';
 import { initLobby } from './lobby.js';
-import { makeCar, makeCarGLB, WHEEL_RADIUS, SUSP_REST, SUSP_MAX_COMPRESS, SUSP_MAX_EXTEND, DEBUG_CRASH_HITBOX, CHASSIS_HITBOX } from './car.js';
+import { makeCar, makeCarGLB, WHEEL_RADIUS, SUSP_REST, DEBUG_CRASH_HITBOX } from './car.js';
+import { createCarPhysics } from './physics/car-physics.js';
+import { BASE_PARAMS } from './physics/params.js';
 import { initEngineSound } from './sound.js';
 
 const DEV_MODE = location.search.includes('dev');
@@ -42,10 +45,6 @@ const rim = new THREE.DirectionalLight(0xff7a4a, 0.5);
 rim.position.set(15, 4, -10);
 scene.add(rim);
 
-const SUSP_K = 77;
-const SUSP_DAMP = 6.6;
-const SUSP_RELEASE_BOOST = 5.5;
-
 let carBuilt = makeCar();
 let flame = carBuilt.flame;
 let wheels = carBuilt.wheels;
@@ -62,7 +61,7 @@ const carPivot = new THREE.Group();
 carPivot.add(carBuilt.group);
 scene.add(carPivot);
 
-const CAR_HALF_HEIGHT = 1.00;
+const CAR_HALF_HEIGHT = BASE_PARAMS.CAR_HALF_HEIGHT;
 
 const GRID_SIZE = 200;
 const GRID_DIV = 20;
@@ -85,6 +84,7 @@ function stageIdFromUrl() {
 
 let track = null;
 let trackScene = null;
+let playerCar = null;
 
 function setStage(id) {
   let stage = id ? getStage(id) : null;
@@ -95,6 +95,7 @@ function setStage(id) {
   if (trackScene) trackScene.dispose();
   track = createTrack(stage);
   trackScene = createTrackScene({ scene, skyScene, stage, track });
+  playerCar = createCarPhysics({ track, params: BASE_PARAMS });
   return stage;
 }
 
@@ -212,38 +213,13 @@ gasTurboEl.addEventListener('pointercancel', releaseGasTurbo);
 gasTurboEl.addEventListener('contextmenu', (e) => e.preventDefault());
 
 const state = {
-  speed: 0,
-  maxSpeedNormal: 250 / 9,
-  maxSpeedTurbo: 390 / 9,
-  maxSpeedTurboOnly: 140 / 9,
-  accelNormal: 14,
-  accelTurbo: 30,
-  accelTurboOnly: 18,
-  brake: 26,
-  reverseAccel: 8,
-  maxReverse: 65 / 9,
-  drag: 3.5,
-  scroll: 0,
   bob: 0,
-  y: 0,
-  vy: 0,
-  airborne: false,
-  airTime: 0,
-  bounceLevel: 1,
-  angVel: 0,
-  fuel: 1.0,
-  turboActive: false,
   crashed: false,
   crashTimer: 0,
   crashSettling: false,
   crashSettleTimer: 0,
-  suspY: 0,
-  suspVy: 0,
-  prevTrackH: 0,
   suspensionEnabled: true,
   infiniteTurbo: false,
-  lean: 0,
-  slopeRotVisual: 0,
   gridVisible: false,
   debugVisible: false,
   raceStarted: false,
@@ -258,25 +234,15 @@ const state = {
   botWon: false,
 };
 
-const GRAVITY = 23.4;
 // BOT: base ~19 m/s, turbo 1.7× for 2.5s every 7s cycle → avg ≈ 23.8 m/s → 620m / 23.8 ≈ 26s
 const BOT_BASE_SPEED   = 19;
 const BOT_TURBO_MULT   = 1.7;
 const BOT_CYCLE        = 7.0;
 const BOT_TURBO_ON     = 2.5;
 
-const TURBO_DEPLETE = 1 / 3.0;
-const TURBO_RECHARGE = 1 / 6.0;
-
 const engineSound = initEngineSound();
-const GROUND_LEAN = 0.198;
-const AIR_TORQUE = 9.0;
 const CRASH_AUTO_RESET = 2.0;
 const CRASH_SETTLE_DURATION = 4.0;
-const BOUNCE_MIN_AIRTIME = 1.0;
-const BOUNCE_AIRTIME_CAP = 4.0;
-const BOUNCE_DECAY = 0.4;
-const BOUNCE_CHASSIS_SCALE = 0.13;
 
 const crashFadeEl = document.getElementById('crashfade');
 const crashPromptEl = document.getElementById('crashprompt');
@@ -309,7 +275,7 @@ function triggerCrash() {
   if (state.crashed || state.crashSettling) return;
   state.crashSettling = true;
   state.crashSettleTimer = 0;
-  state.turboActive = false;
+  playerCar.state.turboActive = false;
   flame.visible = false;
   crashPromptEl.classList.add('show');
   crashTitleEl.classList.add('show');
@@ -319,34 +285,20 @@ function finalizeCrash() {
   state.crashSettling = false;
   state.crashed = true;
   state.crashTimer = 0;
-  state.speed = 0;
-  state.vy = 0;
-  state.angVel = 0;
-  state.suspVy = 0;
+  playerCar.state.speed = 0;
+  playerCar.state.vy = 0;
+  playerCar.state.angVel = 0;
+  playerCar.state.suspVy = 0;
   flame.visible = false;
 }
 
 function resetGame() {
-  state.speed = 0;
-  state.scroll = 0;
+  playerCar.reset();
   state.bob = 0;
-  state.y = 0;
-  state.vy = 0;
-  state.airborne = false;
-  state.airTime = 0;
-  state.bounceLevel = 1;
-  state.angVel = 0;
-  state.fuel = 1.0;
-  state.turboActive = false;
   state.crashed = false;
   state.crashTimer = 0;
   state.crashSettling = false;
   state.crashSettleTimer = 0;
-  state.suspY = 0;
-  state.suspVy = 0;
-  state.prevTrackH = 0;
-  state.lean = 0;
-  state.slopeRotVisual = 0;
   state.raceStarted = false;
   state.raceFinished = false;
   state.raceTime = 0;
@@ -459,219 +411,21 @@ const raceBarPlayerEl = document.getElementById('race-bar-player');
 const raceBarBotEl = document.getElementById('race-bar-bot');
 
 
-function updateTurbo(dt) {
-  if (state.inputFrozen || state.crashSettling) {
-    state.turboActive = false;
-    flame.visible = false;
-    carHeadlight.intensity = 0.7;
-    return;
-  }
-  if (state.infiniteTurbo) {
-    state.fuel = 1;
-    state.turboActive = keys.space;
-  } else if (keys.space && state.fuel > 0) {
-    state.turboActive = true;
-    state.fuel = Math.max(0, state.fuel - TURBO_DEPLETE * dt);
-  } else {
-    state.turboActive = false;
-    if (!keys.space) state.fuel = Math.min(1, state.fuel + TURBO_RECHARGE * dt);
-  }
-  flame.visible = state.turboActive;
-  if (state.turboActive) {
+// Flame/headlight from physics turbo state (skipped while crash-settling, as before).
+function renderTurbo() {
+  const car = playerCar.state;
+  flame.visible = car.turboActive;
+  if (car.turboActive) {
     flame.scale.set(0.85 + Math.random() * 0.4, 0.85 + Math.random() * 0.3, 0.85 + Math.random() * 0.3);
   }
-  carHeadlight.intensity = state.turboActive ? 1.6 : 0.7;
+  carHeadlight.intensity = car.turboActive ? 1.6 : 0.7;
 }
 
-function updateSpeed(dt) {
-  let accel, maxSpeed;
-  const inputLocked = state.crashSettling || state.inputFrozen;
-  if (!inputLocked && keys.up && state.turboActive) {
-    accel = state.accelTurbo;
-    maxSpeed = state.maxSpeedTurbo;
-  } else if (!inputLocked && state.turboActive) {
-    accel = state.accelTurboOnly;
-    maxSpeed = state.maxSpeedTurboOnly;
-  } else if (!inputLocked && keys.up) {
-    accel = state.accelNormal;
-    maxSpeed = state.maxSpeedNormal;
-  } else {
-    accel = 0;
-    maxSpeed = state.maxSpeedTurbo;
-  }
-
-  if (accel > 0 && state.speed < maxSpeed) state.speed += accel * dt;
-  if (!inputLocked && keys.down) {
-    if (state.speed > 0) state.speed -= state.brake * dt;
-    else state.speed -= state.reverseAccel * dt;
-  }
-
-  if (!state.airborne) {
-    const T = state.scroll;
-    const slope = (track.heightAt(T + 1) - track.heightAt(T - 1)) / 2;
-    const slopeAngle = Math.atan(slope);
-    state.speed -= GRAVITY * 0.8 * Math.sin(slopeAngle) * dt;
-  }
-
-  state.speed -= Math.sign(state.speed) * state.drag * dt;
-
-  if (accel > 0 && state.speed > maxSpeed) {
-    state.speed = Math.max(maxSpeed, state.speed - (state.speed - maxSpeed) * 2.5 * dt);
-  }
-  const speedCap = state.maxSpeedTurbo * 1.6;
-  state.speed = Math.max(-state.maxReverse, Math.min(speedCap, state.speed));
-}
-
-function computeAvg(scroll) {
-  return (track.heightAt(scroll + 1) + track.heightAt(scroll - 1)) / 2;
-}
-
-function updatePhysics(dt) {
-  const prevScroll = state.scroll;
-  state.scroll += state.speed * dt;
-
-  const avg = computeAvg(state.scroll);
-  const avgPrev = computeAvg(prevScroll);
-  const groundVy = dt > 0 ? (avg - avgPrev) / dt : 0;
-
-  const leanLift = Math.abs(Math.sin(state.lean)) + 0.5 * Math.cos(state.lean) - 0.5;
-  const groundLevel = avg + leanLift;
-
-  state.vy -= GRAVITY * dt;
-  state.y += state.vy * dt;
-
-  if (state.y <= groundLevel) {
-    const wasAirborne = state.airborne;
-    const ballVy = state.vy;
-    const airTime = state.airTime;
-    state.y = groundLevel;
-    state.vy = groundVy;
-    state.airborne = false;
-    state.airTime = 0;
-    if (!wasAirborne) state.bounceLevel = 1;
-    if (wasAirborne && ballVy < groundVy) {
-      const impactSpeed = groundVy - ballVy;
-      const intensity = state.bounceLevel;
-      let r = carPivot.rotation.z;
-      r = ((r + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
-      state.suspVy -= (3 + impactSpeed * 0.4) * intensity;
-      if (airTime >= BOUNCE_MIN_AIRTIME && intensity > 0.05) {
-        const t = Math.min(airTime, BOUNCE_AIRTIME_CAP);
-        const bounceFactor = (0.2 + t * 0.3) * intensity * BOUNCE_CHASSIS_SCALE;
-        state.vy = groundVy + impactSpeed * bounceFactor;
-        state.airborne = true;
-        state.bounceLevel *= BOUNCE_DECAY;
-        state.angVel = 0;
-      } else {
-        carPivot.rotation.z = r;
-        state.bounceLevel = 1;
-        state.angVel = 0;
-      }
-    }
-  } else {
-    state.airborne = true;
-    state.airTime += dt;
-  }
-
-  if (checkChassisHitbox()) {
-    triggerCrash();
-    return;
-  }
-}
-
-function checkChassisHitbox() {
-  if (state.crashSettling || state.crashed) return false;
-  const cosA = Math.cos(carPivot.rotation.z);
-  const sinA = Math.sin(carPivot.rotation.z);
-  const wheelLift = Math.max(0, cosA) * 0.5 * (1 - cosA);
-  const cy = state.y + CAR_HALF_HEIGHT + wheelLift;
-  const yOff = bodyGroup.position.y;
-  for (const [lx, ly] of CHASSIS_HITBOX) {
-    const ay = ly + yOff;
-    const wx = cosA * lx - sinA * ay;
-    const wy = cy + sinA * lx + cosA * ay;
-    const gh = track.heightAt(state.scroll + wx);
-    if (wy <= gh) return true;
-  }
-  return false;
-}
-
-function updateRotation(dt) {
-  const inputLocked = state.crashSettling || state.inputFrozen;
-  if (state.airborne) {
-    if (!inputLocked && keys.left) state.angVel += AIR_TORQUE * dt;
-    if (!inputLocked && keys.right) state.angVel -= AIR_TORQUE * dt;
-    state.angVel *= 0.992;
-    carPivot.rotation.z += state.angVel * dt;
-  } else if (inputLocked) {
-    state.angVel *= Math.max(0, 1 - 4 * dt);
-    if (Math.abs(state.angVel) < 0.05) state.angVel = 0;
-    carPivot.rotation.z += state.angVel * dt;
-  } else {
-    let leanInput = 0;
-    if (keys.left && keys.up) {
-      const forwardSpeed = Math.max(0, state.speed);
-      const factor = 1 - Math.min(1, forwardSpeed / state.maxSpeedNormal);
-      leanInput = GROUND_LEAN * factor;
-    }
-    if (keys.right && keys.down) {
-      const reverseSpeed = Math.max(0, -state.speed);
-      const factor = 1 - Math.min(1, reverseSpeed / state.maxReverse);
-      leanInput = -GROUND_LEAN * factor;
-    }
-    const k = Math.min(1, 12 * dt);
-    state.lean += (leanInput - state.lean) * k;
-
-    const T = state.scroll;
-    const slope = (track.heightAt(T + 1) - track.heightAt(T - 1)) / 2;
-    const slopeRot = Math.atan(slope);
-    state.slopeRotVisual += (slopeRot - state.slopeRotVisual) * k;
-    carPivot.rotation.z = state.slopeRotVisual + state.lean;
-  }
-}
-
-function updateSuspension(dt) {
-  if (!state.suspensionEnabled) {
-    state.suspY = 0;
-    state.suspVy = 0;
-    state.prevTrackH = track.heightAt(state.scroll);
-    bodyGroup.position.y = 0;
-    for (const s of springs) {
-      s.group.scale.y = 1;
-      for (const ring of s.rings) ring.scale.y = 1;
-    }
-    return;
-  }
-
-  const tH = track.heightAt(state.scroll);
-
-  if (state.airborne) {
-    const decay = Math.max(0, 1 - 7 * dt);
-    state.suspY *= decay;
-    state.suspVy *= decay;
-  } else {
-    const groundDelta = tH - state.prevTrackH;
-    state.suspY -= groundDelta;
-
-    state.suspVy -= SUSP_K * state.suspY * dt;
-    state.suspVy *= Math.max(0, 1 - SUSP_DAMP * dt);
-    state.suspY += state.suspVy * dt;
-
-    if (state.suspY > SUSP_MAX_EXTEND) {
-      state.suspY = SUSP_MAX_EXTEND;
-      if (state.suspVy > 0) state.suspVy = 0;
-    }
-    if (state.suspY < -SUSP_MAX_COMPRESS) {
-      state.suspY = -SUSP_MAX_COMPRESS;
-      if (state.suspVy < 0) state.suspVy = 0;
-    }
-  }
-
-  state.prevTrackH = tH;
-
-  bodyGroup.position.y = state.suspY;
-
-  const factor = Math.max(0.25, 1 + state.suspY / SUSP_REST);
+// Body offset and spring stretch from physics suspension state (suspY is 0 when disabled).
+function renderSuspension() {
+  const car = playerCar.state;
+  bodyGroup.position.y = car.suspY;
+  const factor = Math.max(0.25, 1 + car.suspY / SUSP_REST);
   for (const s of springs) {
     s.group.scale.y = factor;
     for (const ring of s.rings) ring.scale.y = 1 / factor;
@@ -679,11 +433,13 @@ function updateSuspension(dt) {
 }
 
 function updateCarVisual(dt) {
+  const car = playerCar.state;
+  carPivot.rotation.z = car.rot;
   carPivot.position.x = 0;
   const cosR = Math.cos(carPivot.rotation.z);
   const wheelLift = Math.max(0, cosR) * 0.5 * (1 - cosR);
-  carPivot.position.y = state.y + CAR_HALF_HEIGHT + wheelLift;
-  const wheelSpin = -state.speed * dt * 2.3;
+  carPivot.position.y = car.y + CAR_HALF_HEIGHT + wheelLift;
+  const wheelSpin = -car.speed * dt * 2.3;
   for (const w of wheels) w.rotation.y += wheelSpin;
 }
 
@@ -709,7 +465,7 @@ function updateBot(dt) {
 }
 
 function updateScrollVisuals(dt) {
-  const dx = state.speed * dt;
+  const dx = playerCar.state.speed * dt;
   grid.position.x -= dx;
 }
 
@@ -717,7 +473,7 @@ const SKY_SCROLL_PERIOD = 3000;
 const SKY_ORBIT_RADIUS = 20;
 const SKY_ORBIT_ARC = Math.PI * 0.4;
 function updateSky() {
-  const angle = (state.scroll / SKY_SCROLL_PERIOD) * SKY_ORBIT_ARC;
+  const angle = (playerCar.state.x / SKY_SCROLL_PERIOD) * SKY_ORBIT_ARC;
   skyCamera.position.set(
     Math.sin(angle) * SKY_ORBIT_RADIUS,
     8,
@@ -736,19 +492,20 @@ const posWrapEl = document.getElementById('hud-pos');
 const posValEl = document.getElementById('pos');
 
 function updateHUD() {
-  speedEl.textContent = Math.round(state.speed * 3.6 * 2.5);
-  distEl.textContent = Math.round(state.scroll);
+  const car = playerCar.state;
+  speedEl.textContent = Math.round(car.speed * 3.6 * 2.5);
+  distEl.textContent = Math.round(car.x);
   if (fuelEl) {
-    fuelEl.textContent = fuelBarText(state.fuel);
-    fuelEl.style.color = state.turboActive ? '#ff8a3a'
-                       : state.fuel < 0.2  ? '#ff5555'
+    fuelEl.textContent = fuelBarText(car.fuel);
+    fuelEl.style.color = car.turboActive ? '#ff8a3a'
+                       : car.fuel < 0.2  ? '#ff5555'
                        : '#ffd86b';
   }
-  if (state.gridVisible && posValEl) posValEl.textContent = Math.round(state.scroll);
+  if (state.gridVisible && posValEl) posValEl.textContent = Math.round(car.x);
 
   if (state.raceStarted && !state.raceFinished) {
     if (botDistEl) botDistEl.textContent = Math.round(state.botScroll);
-    const playerProgress = Math.min(state.scroll / track.finishX, 1);
+    const playerProgress = Math.min(car.x / track.finishX, 1);
     raceBarPlayerEl.style.left = (playerProgress * 100).toFixed(1) + '%';
   }
 }
@@ -797,7 +554,7 @@ function tick(now) {
     state.raceTime += dt;
     updateBot(dt);
 
-    if (state.botScroll >= track.finishX && state.scroll < track.finishX && !state.botWon) {
+    if (state.botScroll >= track.finishX && playerCar.state.x < track.finishX && !state.botWon) {
       showDefeatScreen();
     }
 
@@ -805,25 +562,27 @@ function tick(now) {
       endPlayerTimeEl.textContent = state.raceTime.toFixed(1) + 's';
     }
 
-    if (state.scroll >= track.finishX) {
+    if (playerCar.state.x >= track.finishX) {
       showEndScreen(!state.botWon);
     }
   }
 
-  if (!state.crashSettling) updateTurbo(dt);
-  updateSpeed(dt);
-  updatePhysics(dt);
-  updateRotation(dt);
-  updateSuspension(dt);
+  const car = playerCar.state;
+  car.suspensionEnabled = state.suspensionEnabled;
+  car.infiniteTurbo = state.infiniteTurbo;
+  const events = playerCar.step(dt, { ...keys, locked: state.crashSettling || state.inputFrozen });
+  if (!state.crashSettling) renderTurbo();
+  if (events.chassisContact) triggerCrash();
+  renderSuspension();
   updateCarVisual(dt);
-  const smokeIntensity = (state.turboActive && keys.up) ? 3 : keys.up ? 2 : 1;
-  const isTurbulent = state.airborne || Math.abs(state.angVel) > 2.0;
-  carBuilt.updateSmoke(dt, smokeIntensity, state.speed, isTurbulent);
-  engineSound.update(state.speed, state.turboActive, state.maxSpeedNormal);
+  const smokeIntensity = (car.turboActive && keys.up) ? 3 : keys.up ? 2 : 1;
+  const isTurbulent = car.airborne || Math.abs(car.angVel) > 2.0;
+  carBuilt.updateSmoke(dt, smokeIntensity, car.speed, isTurbulent);
+  engineSound.update(car.speed, car.turboActive, BASE_PARAMS.maxSpeedNormal);
   updateCamera(dt);
   updateScrollVisuals(dt);
   updateSky();
-  trackScene.update(state.scroll);
+  trackScene.update(car.x);
   updateHUD();
 
   renderer.autoClear = true;

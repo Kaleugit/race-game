@@ -30,7 +30,7 @@ createCarPhysics({ track, params }) → {
 
 ### Task 01 - Extrair física por instância + harness de simulação
 - Task ID: TASK-kaleugit-EP-003-01
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Critical
 - Domain: Carro (física)
