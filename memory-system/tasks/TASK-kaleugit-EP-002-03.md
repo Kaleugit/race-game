@@ -13,9 +13,9 @@
 - Completed: 2026-09-21 19:45
 - Evidence: PASS — `npm test` 2 passed (smoke + stage-data), `npm run test:sim` 10/10, CA-003 diff check (see Evidence section)
 - prior-art: src/stages/mata-atlantica.stage.js (stage data shape) and tests/e2e/smoke.spec.js (e2e flow) — new files follow them; no existing test stage
-- Delivery Handoff: DONE (owner: gohorse/subagent)
-- Delivery PR: Pending
-- Delivery Status: Pending
+- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery PR: #7
+- Delivery Status: PR_OPEN_MANUAL_MERGE
 
 ## Planning Notes (Quick)
 - Scope: 2 new files only — `src/stages/teste-plano.stage.js`, `tests/e2e/stage-data.spec.js`. No engine file (`src/main.js`, `src/track/*`, `src/stages/index.js`, `src/stages/registry.js`) changes: the glob in `src/stages/index.js` discovers the new file.
@@ -31,3 +31,4 @@
 ## Autonomous Decisions
 - DA-001: Test stage uses `/img/cerrado.jpg` background, `mudLayer: false`, zones sand [60,90) and mud [120,150), palette colors for both zone types, a single low-amplitude noise term — Criteria: task description ("quase plana", existing background in public/img) — Rationale: exercises generic zone rendering for both types without the mud-layer special case.
 - DA-002: e2e also asserts no "stage ... not found" console warning — Criteria: CA-003 — Rationale: without it, a silent fallback to the default stage would still pass the flow.
+- Delivery Merged At: Pending
