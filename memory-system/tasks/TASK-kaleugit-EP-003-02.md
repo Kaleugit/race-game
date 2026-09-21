@@ -8,18 +8,19 @@
 - Branch: TASK-kaleugit-EP-003-02-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 20:37
+- Last Updated: 2026-09-21 23:39
 - Started: 2026-09-21 20:25
-- Completed: 2026-09-21 20:37
+- Completed: 2026-09-21 23:39
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-003-02-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-003-02-implement-report-2026-09-21.md
 - prior-art: src/physics/car-physics.js — EP-003-01 checkChassisHitbox (boolean) extended to a penetration depth and reused for the chassis rest; src/main.js triggerCrash/finalizeCrash removed (no existing recovery/righting code)
 - Evidence: PASS — `npm run test:sim` 26/26 (6 new in tests/sim/auto-right.test.js incl. CA-005 righted at 1.517s and flip sequence on mata-atlantica finishing; 3 EP-003-01 golden tests unchanged and green), `npm test` 2 passed, `grep -nE "triggerCrash|finalizeCrash|CRASH_AUTO_RESET" src/main.js` empty
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 - Delivery PR: #9
-- Delivery Status: PR_OPEN_MANUAL_MERGE
+- Delivery Status: MERGED
 - UX Gate: pending human (batched at epic end) — timing and look of the auto-right (instant pose change at 1.5s), roof rest and chassis slide
 
+- Delivery Merged At: 2026-09-21 23:39
 ## Autonomous Decisions
 - DA-001: "Upside down" uses the slope ANGLE: `cos(rot - atan(slopeAt(x))) < 0` — Criteria: epic text says "cos(rot - inclinação)"; slopeAt returns dy/dx — Rationale: rot is an angle; atan(slope) is the inclination angle already used by the rotation code. No new definition (side flips follow the same rule), so no human escalation.
 - DA-002: Wheels only carry the car while they face the ground (`cos(rot - slope angle) >= 0`); upside down the wheel clamp is skipped and CHASSIS_HITBOX alone holds the car up — Criteria: epic "repousa sobre o chassi (clamp vertical pelos pontos de CHASSIS_HITBOX)" — Rationale: with the old rotation-agnostic wheel clamp an upside-down car floated 0.32 above the ground and a wheel landing snapped it upright instantly. Non-crash runs are unaffected (goldens bit-identical).
