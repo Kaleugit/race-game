@@ -21,7 +21,7 @@
 
 ### Out of Scope
 - Changing `scripts/run-tests.sh`, `scripts/validate-*`, or CI workflows.
-- Changing `append-to-orphan.sh` locking logic (it is not the defect).
+- (Revised mid-task: `append-to-orphan.sh` locking WAS a defect once the fixture ran; fixed and recorded.)
 
 ## Requirements
 ### Functional
@@ -34,6 +34,7 @@
 - AC-002: `bash scripts/tests/test-telemetry-install.sh` -> ALL PASS.
 - AC-003: `bash scripts/tests/test-telemetry-orphan.sh` -> ALL PASS, including the fixture assertion that flock is absent from the restricted PATH.
 - AC-004: `bash scripts/run-tests.sh` exits 0.
+- AC-006: `skills/gen-api-index/scripts/gen-api-index.sh` is executable in git so test-gen-api-index.sh passes on Linux CI (added mid-task after the first CI run).
 - AC-005: Re-running install-hooks on the real repo leaves exactly one `.claude/telemetry-statusline.json` line in `.gitignore`.
 
 ## Technical Impact
