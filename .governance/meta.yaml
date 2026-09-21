@@ -1,0 +1,17 @@
+generated_at: 2026-09-21T16:07:18Z
+generator: gen-governance-core
+sources:
+  - path: AGENTS.md
+    sha256: 1c7bfd43ce547c94b870ac38c622a4a4d9e89020124170779693d7e85b0ceaf2
+  - path: INTEGRITY-RULES.md
+    sha256: 6450f2cb97214dc62fb531d4e5db590d4937031fe92e34dad573cd3790d12bc4
+  - path: CLAUDE.md
+    sha256: b0ff03c7f61b827855e4f669304d641aa69cba0e27e4bcd74865920e7d1e6eef
+  - path: docs/PROJECT_SPECS.md
+    sha256: db38f2845d3878d76b63c1aeb6fb4f743703b9b0f6dbe1ecd5d54c94557a9564
+  - path: docs/EPICOS.md
+    sha256: 7a3fe69b9577215d2bf74053920e900b0cd0e0c0b2c4f79d8dd684c415f9cd6d
+  - path: docs/decisions.md
+    sha256: 39c49be7c00db0b7178492f353cbc47f6942d4e96d9aef17b0480d6a9781a84e
+  - path: docs/language-policy.md
+    sha256: db88d6439d2d253ef48d10425844dbb862ff1f7f323cce609ef47713272c667c
