@@ -8,14 +8,14 @@
 - Branch: TASK-kaleugit-EP-002-01-implement
 - Workstreams: None
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 19:30
+- Last Updated: 2026-09-21 19:15
 - Started: 2026-09-21 19:05
-- Completed: 2026-09-21 19:30
+- Completed: 2026-09-21 19:15
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-002-01-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-002-01-implement-report-2026-09-21.md
 - prior-art: src/main.js:148 — pre-migration trackHeight/SLOPES/FEATURES, moved verbatim into src/track/track.js and src/stages/mata-atlantica.stage.js (no existing stage/track module)
-- Delivery Handoff: DONE (owner: gohorse/subagent)
-- Delivery PR: TBD
+- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery PR: #5
 - Delivery Status: PR_OPEN_MANUAL_MERGE
 
 ## Autonomous Decisions
@@ -24,3 +24,4 @@
 - DA-003: Surface zones are half-open `[from, to)`, first match wins; `from < to` required — Criteria: CDC-006 — Rationale: unambiguous adjacency between zones; Mata Atlantica has no zones so behaviour is unchanged.
 - DA-004: `getDefaultStage()` = first of `listStages()` (order, then id), throws if none visible — Criteria: CDC-001 — Rationale: deterministic; fails loudly instead of returning undefined.
 - DA-005: Fixture generator committed as tests/sim/fixtures/generate-mata-atlantica-heights.mjs; it evaluates lines 38-157 of `git show d399713:src/main.js`, independent of the new code — Criteria: CDC-001 — Rationale: fixture reproducible and not self-referential.
+- Delivery Merged At: Pending
