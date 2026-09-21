@@ -1,3 +1,4 @@
 {"ts":"2026-09-21T13:05:37-0300","session":"7bd4a4a2-8656-47f6-bef4-68acff5abfa6","repo":"Kaleugit/race-game","branch":"main","category":"session_start","event":"SessionStart","source":"startup"}
 {"ts":"2026-09-21T13:05:43-0300","session":"7bd4a4a2-8656-47f6-bef4-68acff5abfa6","repo":"Kaleugit/race-game","branch":"main","category":"prompt","event":"UserPromptSubmit","detail":" <pasted_content id=\"f0ad\"> 3. Na sessão nova, mande: /gen-governance-core Quando ele terminar: /bootstrap </pasted_content id=\"f0ad\">"}
 {"ts":"2026-09-21T13:05:54-0300","session":"7bd4a4a2-8656-47f6-bef4-68acff5abfa6","repo":"Kaleugit/race-game","branch":"main","category":"tool","event":"PreToolUse","actor":"skill","name":"gen-governance-core"}
+{"ts":"2026-09-21T13:07:31-0300","session":"7bd4a4a2-8656-47f6-bef4-68acff5abfa6","repo":"Kaleugit/race-game","branch":"main","category":"tool","event":"PreToolUse","actor":"skill","name":"bootstrap"}
