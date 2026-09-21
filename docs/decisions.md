@@ -374,3 +374,17 @@ Conjunto mínimo de decisões ativas do boilerplate (versão resumida).
   - Sem dados deste projeto no monitoramento central e sem alerta de drift in-session.
   - Hooks de prompt/skill/sessão deixam de pagar a latência do git.
   - Reversível: reinstalar os hooks e mudar este ADR para `Superseded`.
+
+## ADR-020: Merge autônomo de PRs verdes e decisões dos épicos EP-001..EP-006
+- Date: 2026-09-21
+- Status: Accepted
+- Context:
+  - ADR-018 define merge sempre manual pelo gestor. Com 15 tasks sequenciais, isso cria uma pausa humana por task sem ganho de controle.
+- Decision:
+  - O gestor (Kaleu) autorizou explicitamente, em 2026-09-21: "nesse repo ta liberado pra fazer merge e tomar decisão em relação a esses eps ai".
+  - O agente pode fazer merge (`gh pr merge --merge`) de PRs dos épicos EP-001..EP-006 **somente com o check `governance` verde** no SHA final. Nunca com check vermelho, pendente ou cancelado.
+  - O agente decide autonomamente questões de escopo/implementação dentro desses épicos, registrando DA-xxx.
+  - Continuam humanos: o gate de UX (sensação/visual — AGENTS.md), mudanças de CI/CD (ADR-016) e condições obrigatórias de escalonamento.
+- Consequence:
+  - ADR-018 continua valendo fora desse escopo.
+  - Reversível: o gestor revoga a qualquer momento mudando este ADR para `Superseded`.
