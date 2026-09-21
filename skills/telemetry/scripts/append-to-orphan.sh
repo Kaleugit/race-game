@@ -96,27 +96,33 @@ if command -v flock >/dev/null 2>&1; then
     lock_held="flock"
   fi
 else
-  # Atomic mkdir-lock (macOS ships no flock). A healthy holder releases in well
-  # under a second (its trap runs); if the dir is STILL held after ~5s the holder
-  # almost certainly died mid-section (SIGKILL — its trap never ran), so break it
-  # once and take it. No find/stat/mtime: portable across GNU/BSD/macOS/bfs.
-  # Worst case under a wrongful break is two writers in the section at once, which
-  # update-ref's compare-and-swap turns into one dropped line, never corruption.
+  # Atomic mkdir-lock (macOS ships no flock). The holder records its PID inside
+  # the lock dir. After ~5s of waiting a lock is broken ONLY if its holder is
+  # gone (no pid file, or `kill -0` fails: SIGKILL, trap never ran). Elapsed
+  # time alone is no proof of death: on slow hosts (Git Bash, where each git
+  # call costs ~100ms) a queue of live writers exceeds 5s, and breaking a live
+  # holder lets update-ref's compare-and-swap drop lines. A live holder is
+  # waited on up to ~30s, then THIS append is skipped (best-effort, never block).
+  # No find/stat/mtime: portable across GNU/BSD/macOS/bfs/MSYS.
   _n=0; _got=0
-  while [ "$_n" -lt 50 ]; do
-    if mkdir "$LOCKDIR" 2>/dev/null; then _got=1; break; fi
+  while [ "$_n" -lt 300 ]; do
+    if mkdir "$LOCKDIR" 2>/dev/null; then
+      echo "$$" > "$LOCKDIR/pid" 2>/dev/null; _got=1; break
+    fi
     _n=$((_n + 1)); sleep 0.1
+    if [ "$_n" -ge 50 ] && [ $((_n % 10)) -eq 0 ]; then
+      _pid="$(cat "$LOCKDIR/pid" 2>/dev/null)"
+      if [ -z "$_pid" ] || ! kill -0 "$_pid" 2>/dev/null; then
+        rm -f "$LOCKDIR/pid" 2>/dev/null; rmdir "$LOCKDIR" 2>/dev/null
+      fi
+    fi
   done
-  if [ "$_got" -eq 0 ]; then
-    rmdir "$LOCKDIR" 2>/dev/null || rm -rf "$LOCKDIR" 2>/dev/null
-    mkdir "$LOCKDIR" 2>/dev/null && _got=1
-  fi
   [ "$_got" -eq 1 ] && lock_held="mkdir"
 fi
 [ -n "$lock_held" ] || { rm -f "$tmpidx"; exit 0; }
 
 # Release the lock + clean the temp index on any exit (never leak either).
-trap 'rm -f "$tmpidx"; [ "$lock_held" = mkdir ] && rmdir "$LOCKDIR" 2>/dev/null; [ "$lock_held" = flock ] && exec 9>&-; :' EXIT
+trap 'rm -f "$tmpidx"; [ "$lock_held" = mkdir ] && { rm -f "$LOCKDIR/pid"; rmdir "$LOCKDIR"; } 2>/dev/null; [ "$lock_held" = flock ] && exec 9>&-; :' EXIT
 
 (
   parent="$(GIT rev-parse --verify -q "$REF" 2>/dev/null || true)"
@@ -170,7 +176,7 @@ trap 'rm -f "$tmpidx"; [ "$lock_held" = mkdir ] && rmdir "$LOCKDIR" 2>/dev/null;
 # Critical section done — release the lock now (the async push needs no lock and
 # must not keep the flock fd alive in its background child).
 rm -f "$tmpidx"
-[ "$lock_held" = mkdir ] && rmdir "$LOCKDIR" 2>/dev/null
+[ "$lock_held" = mkdir ] && { rm -f "$LOCKDIR/pid"; rmdir "$LOCKDIR"; } 2>/dev/null
 [ "$lock_held" = flock ] && exec 9>&-
 trap - EXIT
 
