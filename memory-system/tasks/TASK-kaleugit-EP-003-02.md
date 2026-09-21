@@ -8,16 +8,16 @@
 - Branch: TASK-kaleugit-EP-003-02-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 20:40
+- Last Updated: 2026-09-21 20:37
 - Started: 2026-09-21 20:25
-- Completed: 2026-09-21 20:40
+- Completed: 2026-09-21 20:37
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-003-02-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-003-02-implement-report-2026-09-21.md
 - prior-art: src/physics/car-physics.js — EP-003-01 checkChassisHitbox (boolean) extended to a penetration depth and reused for the chassis rest; src/main.js triggerCrash/finalizeCrash removed (no existing recovery/righting code)
 - Evidence: PASS — `npm run test:sim` 26/26 (6 new in tests/sim/auto-right.test.js incl. CA-005 righted at 1.517s and flip sequence on mata-atlantica finishing; 3 EP-003-01 golden tests unchanged and green), `npm test` 2 passed, `grep -nE "triggerCrash|finalizeCrash|CRASH_AUTO_RESET" src/main.js` empty
-- Delivery Handoff: DONE (owner: gohorse/subagent)
-- Delivery PR: Pending
-- Delivery Status: PR_OPEN
+- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery PR: #9
+- Delivery Status: PR_OPEN_MANUAL_MERGE
 - UX Gate: pending human (batched at epic end) — timing and look of the auto-right (instant pose change at 1.5s), roof rest and chassis slide
 
 ## Autonomous Decisions
@@ -28,3 +28,4 @@
 - DA-005: Harness no longer stops on chassis contact; `crashed` now means "chassis touched the ground at least once" and `rightedTimes` lists auto-right times — Criteria: behavior change approved by the human (2026-09-21) — Rationale: keeps the existing golden/(c) assertions meaningful (they still assert no chassis contact) without editing them.
 - DA-006: Removed the now-dead crash overlay DOM/CSS (`#crashfade`, `#crashtitle`, `#crashprompt`) from index.html — Criteria: YAGNI; epic "deixam de ser acionados" — Rationale: nothing references them; their text ("aguarde 2s ou clique em REINICIAR") is obsolete.
 - DA-007: No persona consults (architect/testing) — Criteria: runbook "at most 2 lightweight consults", human preference for speed — Rationale: scope and tests fully specified by the epic Task 02 done criteria.
+- Delivery Merged At: Pending
