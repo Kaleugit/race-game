@@ -8,18 +8,19 @@
 - Branch: TASK-kaleugit-EP-003-01-implement
 - Workstreams: [development]
 - Execution Mode: Critical
-- Last Updated: 2026-09-21 20:23
+- Last Updated: 2026-09-21 23:26
 - Started: 2026-09-21 20:10
-- Completed: 2026-09-21 20:23
+- Completed: 2026-09-21 23:26
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-003-01-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-003-01-implement-report-2026-09-21.md
 - prior-art: src/main.js:462 — pre-extraction updateTurbo/updateSpeed/updatePhysics/checkChassisHitbox/updateRotation/updateSuspension, moved verbatim into src/physics/car-physics.js (no existing physics module)
 - Evidence: PASS — `npm run test:sim` 20/20 (incl. (a)-(d) and 3 golden tests vs pre-extraction physics), `npm test` 2 passed, done-criteria greps empty/as expected, scratch equivalence 12/12 runs bit-exact
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 - Delivery PR: #8
-- Delivery Status: PR_OPEN_MANUAL_MERGE
+- Delivery Status: MERGED
 - UX Gate: pending human (batched at epic end) — driving, jump, landing, suspension and crash feel identical to the prototype
 
+- Delivery Merged At: 2026-09-21 23:26
 ## Autonomous Decisions
 - DA-001: Equivalence proven against the old code (text-extracted from 54003dd, three.js stubbed) frame by frame, plus committed golden checkpoints, in addition to the analytical invariants of the epic DA-003 — Criteria: orchestrator instruction (Critical: prove equivalence numerically) + CDC-001 — Rationale: extraction by text was cheap; bit-exact comparison is the strongest guard for driving feel.
 - DA-002: Golden checkpoints are literals in tests/sim/car-physics.test.js instead of a fixture file — Criteria: escalation rule "more than 6 files changed" — Rationale: keeps source/test files at 6 (docs/INDEX-API.md is generated).
