@@ -15,3 +15,7 @@
 ## Epic List
 
 _(vazio — preenchido por `skills/gen-epics`)_
+
+## Decisoes Autonomas
+
+_(vazio — preenchido por `skills/gen-epics`)_

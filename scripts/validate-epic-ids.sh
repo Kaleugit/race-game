@@ -46,7 +46,9 @@ while IFS= read -r line; do
 done < <(grep -nE '^### *EP-' "$EPICOS" | grep -vE '^[0-9]+:### EP-[0-9]{3} - .+')
 
 # --- Rule 2: no duplicate epic IDs ----------------------------------------
-REGISTERED="$(grep -oE '^### EP-[0-9]{3}' "$EPICOS" | grep -oE 'EP-[0-9]{3}' | sort)"
+# `|| true`: an EPICOS.md with no epics yet (pre gen-epics) is valid; without it
+# grep's no-match exit aborts the script silently under set -euo pipefail.
+REGISTERED="$(grep -oE '^### EP-[0-9]{3}' "$EPICOS" | grep -oE 'EP-[0-9]{3}' | sort || true)"
 
 while IFS= read -r dup; do
   [[ -z "$dup" ]] && continue
@@ -81,6 +83,7 @@ done < <(grep -oE '^[-*] *\**DA-[0-9]{3}' "$EPICOS" | grep -oE 'DA-[0-9]{3}' | s
 # --- Rule 6 (warn): gaps in the epic sequence ------------------------------
 LAST=0
 while IFS= read -r id; do
+  [[ -z "$id" ]] && continue
   n=$((10#${id#EP-}))
   if [[ "$n" -gt $((LAST + 1)) && "$LAST" -gt 0 ]]; then
     warn "gap in epic sequence between EP-$(printf '%03d' "$LAST") and $id"
@@ -97,7 +100,7 @@ if [[ "${DA_REUSED:-0}" -gt 0 ]]; then
 fi
 
 if [[ "$FAILURES" -eq 0 ]]; then
-  echo "Epic ID registry OK ($(echo "$UNIQUE_REGISTERED" | wc -l | tr -d ' ') epics registered)"
+  echo "Epic ID registry OK ($(printf '%s' "$UNIQUE_REGISTERED" | grep -c . || true) epics registered)"
 fi
 
 exit "$FAILURES"

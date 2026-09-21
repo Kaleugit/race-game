@@ -17,6 +17,7 @@
 ### In Scope
 - .github/workflows/governance.yml: one step line `bash scripts/setup-links.sh` before validate-all.sh.
 - Mode 100644 -> 100755 on scripts/validate-* (9), scripts/reconcile-*.sh (3), scripts/run-tests.sh.
+- (Added after first PR run, separately authorized by the manager on 2026-09-21: "sim") scripts/validate-epic-ids.sh: tolerate an EPICOS.md with zero epics; docs/EPICOS.md: add the required `## Decisoes Autonomas` section from the gen-epics template.
 
 ### Out of Scope
 - Changing validators; tracking the links in git (project decision: not versioned, see scripts/setup-links.sh header).
@@ -30,6 +31,7 @@
 ## Acceptance Criteria
 - AC-001: The PR governance run has no "missing symlink" error.
 - AC-002: `git ls-files -s` shows 100755 for the 13 scripts.
+- AC-003: `bash scripts/validate-epic-ids.sh` exits 0 with zero epics and still fails on a duplicate epic ID.
 
 ## Technical Impact
 - Files/Modules: .github/workflows/governance.yml, 13 scripts (mode only)
