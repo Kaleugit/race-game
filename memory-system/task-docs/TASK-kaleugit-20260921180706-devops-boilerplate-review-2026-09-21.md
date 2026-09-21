@@ -24,3 +24,9 @@
 - Delivery unblock: YES
 - If NO, blocked by: N/A
 - Follow-up owner: devops (confirm on the PR run that Rule 9 passes and that the setup-links output shows "criado ... (symlink)" for both paths). On the next `update-upstream`, keep the `setup-links.sh` step and the 100755 modes when resolving any conflict.
+
+## Addendum — 2026-09-21 18:25 (commit 5e4199a)
+- Files: `scripts/validate-epic-ids.sh` (`|| true` on the Rule 2 REGISTERED pipeline; empty-id skip in the Rule 6 loop; OK-line count via `printf '%s' | grep -c .`), `docs/EPICOS.md` (adds `## Decisoes Autonomas` placeholder, matches `skills/gen-epics/references/epicos-template.md:50`), plus the task planning/report docs.
+- Assessment: Root-cause fix, and no rule is weaker. `|| true` covers the whole pipeline, so the only thing it now accepts is grep finding no match (exit 1). A read error (exit 2) is not a real risk because line 36 already checks that the file exists. Worktree re-run: `Epic ID registry OK (0 epics registered)` rc=0. I also tested a scratch copy of the script: a malformed heading, a duplicate EP-001, an unregistered EP-009 in a filename and a duplicate DA-001 each FAIL, the EP-001 -> EP-004 gap is a WARN, and rc=1. With 0 epics, 2 DA sections -> FAIL (found 2) and the filename rule still FAILs. With 0 epics, 0 DA sections -> FAIL (found 0). Rules 1, 3, 4 and 5 are unchanged. Rule 4 stays strict with an empty registry.
+- Upstream action: Open an issue in the boilerplate, or send a PR through `update-upstream` in reverse, with (a) the same 3-line script patch and (b) a `## Decisoes Autonomas` placeholder in the EPICOS.md stub that bootstrap generates. Without both, every newly derived project fails the validator before gen-epics runs: at first silently (rc=1, no message), and once (a) is in, on Rule 3. Add a regression case to the validator's test/CI: an empty EPICOS.md must give rc=0. This is not a blocker for this delivery.
+- Delivery unblock: YES
