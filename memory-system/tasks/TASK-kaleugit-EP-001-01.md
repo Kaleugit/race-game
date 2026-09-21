@@ -1,11 +1,18 @@
 # TASK-kaleugit-EP-001-01 - Playwright + npm test + smoke of the current flow
 
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Description: Add @playwright/test (Chromium), playwright.config.js with a build+preview webServer, `npm test`, and tests/e2e/smoke.spec.js driving Lobby -> countdown -> race -> end overlay using existing index.html IDs; fail on page errors. No production code changes. See docs/EPICO-EP-001-infra-e2e-TASKS.md Task 01.
 - Depends On: None
 - Blocked By: None
 - Branch: TASK-kaleugit-EP-001-01-implement
-- Workstreams: None
+- Workstreams: [testing]
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 18:55
+- Last Updated: 2026-09-21 19:10
+- Started: 2026-09-21 19:00
+- Completed: 2026-09-21 19:10
+- Planning: memory-system/task-docs/TASK-kaleugit-EP-001-01-implement-planning-2026-09-21.md
+- Report: memory-system/task-docs/TASK-kaleugit-EP-001-01-implement-report-2026-09-21.md
+- prior-art: none
+- tests_runtime: 58
+- Delivery Handoff: PENDING (owner: skills/delivery)

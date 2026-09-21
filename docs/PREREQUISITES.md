@@ -6,7 +6,7 @@ Revisado em 2026-09-21 pelo `skills/bootstrap`.
 ## Ambiente
 - [x] Node.js e npm disponíveis (verificado: Node v24.15.0, npm 11.12.1).
 - [x] `npm install && npm run build` funciona (verificado em 2026-09-21; aviso de chunk > 500 kB é conhecido, não bloqueia).
-- [ ] Ferramenta de e2e no navegador (ex.: Playwright) instalada e com navegador baixado. **Bloqueante** para CA-001/CA-002/CA-007: sem e2e esses critérios ficam `FAIL`, nunca são delegados ao humano. Dependência de dev aprovada pelo Kaleu em 2026-09-21; instalação (`npm i -D @playwright/test && npx playwright install chromium`) acontece na primeira task de épico que precisar de e2e.
+- [x] Ferramenta de e2e no navegador: `@playwright/test` 1.63 + Chromium headless instalados (EP-001, 2026-09-21); `npm test` roda a suíte contra o build de produção.
 
 ## Acessos e credenciais
 - [x] GitHub CLI autenticado (`gh auth status`: conta `Kaleugit`); remote `origin` = `Kaleugit/race-game`.

@@ -18,3 +18,7 @@ __pycache__/
 .claude/skills
 .agents/skills
 .claude/telemetry-statusline.json
+
+# Playwright
+test-results/
+playwright-report/
