@@ -1,0 +1,3 @@
+interface:
+  display_name: "Solve Issues"
+  short_description: "Analyze issues/PRs, propose approved improvements, then orchestrate implementation and commit/push"

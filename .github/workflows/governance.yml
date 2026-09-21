@@ -1,0 +1,218 @@
+name: Governance Validation
+
+on:
+  pull_request:
+    branches: ["main"]
+    # ADR-018: `ready_for_review` sozinho NÃO cobre PR aberto já como non-draft
+    # (o GitHub emite `opened` e nunca `ready_for_review`), o que deixaria esse PR
+    # sem check para sempre. Mantemos os types generosos e economizamos no `if` do
+    # job abaixo, que é onde a economia realmente acontece.
+    types: [opened, reopened, synchronize, ready_for_review]
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: governance-${{ github.ref }}
+  # ADR-018: em PR, cancela runs antigos do mesmo PR (o `group` já isola por
+  # `refs/pull/<n>/merge`). Na main NUNCA cancela — cada merge valida por inteiro.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  governance:
+    # ADR-018 — ESTE `if` é o mecanismo de economia. Um job pulado por condição
+    # não aloca runner e custa ZERO minuto; o early-exit em runtime (abaixo, no
+    # step de ci-mode) sobe o runner e o GitHub fatura 1 minuto mínimo por job.
+    # Enquanto o PR está em draft, portanto, nenhum push cobra nada; ao sair de
+    # draft (`gh pr ready`, último passo do deliver-to-main.sh) roda o run único.
+    # Depois disso, cada push revalida automaticamente via `synchronize`, então o
+    # check nunca fica preso a um commit antigo.
+    # A forma explícita `event_name != 'pull_request' ||` é obrigatória: em `push`
+    # o objeto `pull_request` é null e `null == false` seria true só por coerção.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve CI mode and decide early-exit
+        id: ci_mode
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -eu
+          mode="lite"
+          if [ -f .governance/ci-mode.conf ]; then
+            raw="$(head -n 1 .governance/ci-mode.conf | tr -d '[:space:]')"
+            case "$raw" in
+              strict|lite|off) mode="$raw" ;;
+              "") mode="lite" ;;
+              *)
+                echo "WARN: unknown ci-mode '$raw' in .governance/ci-mode.conf; defaulting to 'lite'."
+                mode="lite"
+                ;;
+            esac
+          fi
+          echo "Resolved CI mode: $mode (event=$EVENT_NAME actor=$ACTOR)"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          skip=0
+          reason=""
+          if [ "$mode" = "off" ]; then
+            skip=1
+            reason="mode=off (governance CI disabled; local pre-commit hook is authoritative)"
+          elif [ "$mode" = "lite" ]; then
+            # ADR-018: o `lite` NÃO pula mais eventos de pull_request. Com o run
+            # de PR agora sendo raro (um por entrega, no ready), ele passa a
+            # validar de verdade — mesmo custo dos early-exits antigos, valor
+            # muito maior. O guard `EVENT_NAME = push` não é cosmético: sem ele,
+            # um PR aberto por bot faria skip silencioso (antes isso não ocorria
+            # porque o ramo de pull_request vinha primeiro).
+            if [ "$EVENT_NAME" = "push" ] && [ "$ACTOR" = "github-actions[bot]" ]; then
+              skip=1
+              reason="mode=lite skips github-actions[bot] pushes (reconcile/finalize commits)"
+            fi
+          fi
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
+          if [ "$skip" = "1" ]; then
+            echo "Early-exit: $reason"
+            echo "Workflow reports neutrally green so branch protection checks remain satisfied."
+          else
+            echo "Proceeding with governance validation."
+          fi
+
+      - name: Enforce consolidated artifacts policy on PR
+        if: steps.ci_mode.outputs.skip != '1' && github.event_name == 'pull_request'
+        run: |
+          changed_files="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")"
+          if echo "$changed_files" | grep -Eq '^memory-system/2-tasks.md$|^memory-system/session-log.md$|^memory-system/workstreams/[^/]+/notes.md$'; then
+            echo "ERROR: do not edit consolidated artifacts in task branches."
+            echo "Update source fragments/files only:"
+            echo "- memory-system/tasks/*.md"
+            echo "- memory-system/session-log.d/*.md"
+            echo "- memory-system/workstreams/*/notes.d/*.md"
+            echo "CI on main reconciles consolidated artifacts automatically."
+            exit 1
+          fi
+
+      - name: JSDoc convention on changed files
+        if: steps.ci_mode.outputs.skip != '1' && github.event_name == 'pull_request'
+        run: |
+          set -e
+          base_ref="origin/${{ github.base_ref }}"
+          changed="$(git diff --name-only "$base_ref"...HEAD)"
+          fail=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            [ -f "$f" ] || continue
+            matched=0
+            case "$f" in
+              src/*.js|src/*.ts|src/*.jsx|src/*.tsx) matched=1 ;;
+              public/*.js) matched=1 ;;
+              src/*/*) case "$f" in *.js|*.ts|*.jsx|*.tsx) matched=1 ;; esac ;;
+              public/*/*) case "$f" in *.js) matched=1 ;; esac ;;
+            esac
+            [ "$matched" -eq 1 ] || continue
+            if ! head -n 8 "$f" 2>/dev/null | grep -qE '@module|@element'; then
+              echo "ERROR: $f modified but missing JSDoc @module (backend) or @element (custom element) in the head block." >&2
+              fail=1
+            fi
+          done <<< "$changed"
+          if [ "$fail" -ne 0 ]; then
+            echo "JSDoc convention enforced. See AGENTS.md §'Code Conventions' and docs/INDEX-API.md."
+            echo "Regenerate the index after adding tags: ./skills/gen-api-index/scripts/gen-api-index.sh"
+            exit 1
+          fi
+
+      - name: API index in sync (staleness gate)
+        if: steps.ci_mode.outputs.skip != '1'
+        run: |
+          set -e
+          gen="./skills/gen-api-index/scripts/gen-api-index.sh"
+          idx="docs/INDEX-API.md"
+          if [ ! -x "$gen" ]; then echo "gen-api-index not present; skipping."; exit 0; fi
+          tmp="$(mktemp)"
+          if ! bash "$gen" --out "$tmp" >/dev/null 2>&1; then
+            echo "ERROR: gen-api-index failed to run." >&2; rm -f "$tmp"; exit 1
+          fi
+          # Compare ignoring the volatile `Last regenerated` timestamp line.
+          grep -v 'Last regenerated' "$idx" > "${tmp}.committed" 2>/dev/null || true
+          grep -v 'Last regenerated' "$tmp" > "${tmp}.fresh"
+          if ! diff "${tmp}.committed" "${tmp}.fresh" >/dev/null; then
+            echo "ERROR: docs/INDEX-API.md is stale (out of sync with JSDoc @module/@element tags)." >&2
+            echo "Regenerate and commit it: ./skills/gen-api-index/scripts/gen-api-index.sh" >&2
+            diff "${tmp}.committed" "${tmp}.fresh" | head -40 >&2 || true
+            rm -f "$tmp" "${tmp}.committed" "${tmp}.fresh"; exit 1
+          fi
+          rm -f "$tmp" "${tmp}.committed" "${tmp}.fresh"
+          echo "docs/INDEX-API.md in sync."
+
+      - name: Enforce docs-only scope for direct commits on main
+        if: steps.ci_mode.outputs.skip != '1' && github.event_name == 'push' && github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          before_sha="${{ github.event.before }}"
+          after_sha="${{ github.sha }}"
+
+          if [[ "$before_sha" == "0000000000000000000000000000000000000000" ]]; then
+            commits="$after_sha"
+          else
+            commits="$(git rev-list --reverse "${before_sha}..${after_sha}")"
+          fi
+
+          if [[ -z "$commits" ]]; then
+            echo "Info: no commits found in push range; skipping direct-commit docs-only policy."
+            exit 0
+          fi
+
+          all_commits_associated_with_pr=1
+          for sha in $commits; do
+            pr_count="$(gh api "repos/${{ github.repository }}/commits/${sha}/pulls" --jq 'length' 2>/dev/null || echo 0)"
+            if [[ "$pr_count" == "0" ]]; then
+              all_commits_associated_with_pr=0
+              break
+            fi
+          done
+
+          if [[ "$all_commits_associated_with_pr" == "1" ]]; then
+            echo "Info: push commits are associated with PR flow (merge/squash/rebase). Skipping direct-commit docs-only policy."
+            exit 0
+          fi
+
+          bash ./scripts/validate-docs-only-scope.sh --from "$before_sha" --to "$after_sha"
+
+      - name: Run governance validations
+        if: steps.ci_mode.outputs.skip != '1'
+        run: |
+          chmod +x scripts/*.sh
+          bootstrap_status="$(sed -nE 's/^- Current Status: `([^`]+)`.*/\1/p' memory-system/2-tasks.md | head -n 1)"
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main" && ( "$bootstrap_status" == "PRE_BOOTSTRAP" || "$bootstrap_status" == "INCOMPLETE" || "$bootstrap_status" == "COMPLETE" ) ]]; then
+            echo "WARN: bootstrap status '$bootstrap_status' -> advisory validation mode on main."
+            ./scripts/validate-all.sh || echo "WARN: validation failed but allowed during bootstrap on main."
+          else
+            ./scripts/validate-all.sh
+          fi
+
+      - name: Reconcile consolidated artifacts on main (generated artifacts)
+        if: steps.ci_mode.outputs.skip != '1' && github.event_name == 'push' && github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]'
+        run: |
+          ./scripts/reconcile-task-index.sh
+          ./scripts/reconcile-session-log.sh
+          ./scripts/reconcile-workstream-notes.sh
+          if ! git diff --quiet -- memory-system/2-tasks.md memory-system/session-log.md memory-system/workstreams/*/notes.md; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add memory-system/2-tasks.md memory-system/session-log.md memory-system/workstreams/*/notes.md
+            git commit -m "chore: reconcile consolidated artifacts [skip ci]"
+            git push || echo "WARN: unable to push reconciled consolidated artifacts from CI"
+          fi

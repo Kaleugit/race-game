@@ -1,0 +1,8 @@
+# Baseline de violações ACEITAS do campo `Branch:` em memory-system/tasks/.
+#
+# Cada linha: <task-id> <valor-de-Branch-aceito>
+# Linhas em branco e tudo após '#' são ignorados.
+#
+# REGRA: uma entrada aqui NÃO perdoa a task para sempre — ela perdoa exatamente
+# aquele par (task, branch). Qualquer violação nova volta a ser ERROR.
+# Novo projeto começa vazio.

@@ -3,3 +3,17 @@ dist/
 .env
 .env.local
 *.local
+
+# governança (agentes-oda) — estado local de sessão
+.governance/.turn-counter
+.governance/.dirty
+.governance/.context-pct
+.claude/telemetry-statusline.json
+.vite/
+__pycache__/
+*.pyc
+
+# Links de descoberta de skills — recriados por scripts/setup-links.sh
+# (junction no Windows; o git atravessaria e duplicaria as skills no indice)
+.claude/skills
+.agents/skills

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Delivery"
+  short_description: "Natural-language semantic validation + ready-for-delivery handoff"

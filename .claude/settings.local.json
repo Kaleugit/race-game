@@ -19,7 +19,11 @@
       "Bash(pkill -f \"vite\")",
       "Bash(pkill -f \"node.*dev\")",
       "Bash(cmd *)",
-      "PowerShell(Stop-Process *)"
+      "PowerShell(Stop-Process *)",
+      "Bash(curl -fsSL https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md -o /tmp/cc-watch/agentes-oda/CHANGELOG.md)",
+      "Read(//tmp/cc-watch/agentes-oda/**)",
+      "Bash(mkdir -p /tmp/cc-watch/agentes-oda)",
+      "Bash(claude --version)"
     ]
   }
 }

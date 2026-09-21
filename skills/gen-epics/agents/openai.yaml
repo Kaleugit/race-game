@@ -1,0 +1,3 @@
+interface:
+  display_name: "Gen Epics"
+  short_description: "Define and approve epic roadmap to EPICOS.md"

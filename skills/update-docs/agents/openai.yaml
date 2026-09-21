@@ -1,0 +1,3 @@
+interface:
+  display_name: "Update Docs"
+  short_description: "Semantically update docs from PROJECT_SPECS and BRIEFING without overwrites"

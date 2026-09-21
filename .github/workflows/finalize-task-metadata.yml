@@ -1,0 +1,101 @@
+name: Finalize Task Metadata
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: finalize-task-metadata-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  finalize:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve CI mode and decide early-exit
+        id: ci_mode
+        run: |
+          set -eu
+          mode="lite"
+          if [ -f .governance/ci-mode.conf ]; then
+            raw="$(head -n 1 .governance/ci-mode.conf | tr -d '[:space:]')"
+            case "$raw" in
+              strict|lite|off) mode="$raw" ;;
+              "") mode="lite" ;;
+              *)
+                echo "WARN: unknown ci-mode '$raw' in .governance/ci-mode.conf; defaulting to 'lite'."
+                mode="lite"
+                ;;
+            esac
+          fi
+          echo "Resolved CI mode: $mode"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          if [ "$mode" = "off" ]; then
+            echo "Early-exit: mode=off (finalize-task-metadata disabled; rely on local tooling)."
+            echo "skip=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract task id from head ref or PR title
+        id: task
+        if: steps.ci_mode.outputs.skip != '1'
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -eu
+          re='TASK-[a-z0-9][a-z0-9-]*-(EP-[0-9]{3,}-[0-9]{2,}|[0-9]{14})'
+          task_id="$(printf '%s\n%s\n' "$HEAD_REF" "$PR_TITLE" | grep -oE "$re" | head -n 1 || true)"
+          if [ -z "$task_id" ]; then
+            echo "INFO: no TASK-* id found in head ref or PR title — skipping."
+            echo "task_id=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "task_id=$task_id" >> "$GITHUB_OUTPUT"
+          echo "Resolved task id: $task_id"
+
+      - name: Run finalize-task-metadata.sh
+        if: steps.task.outputs.task_id != ''
+        env:
+          TASK_ID: ${{ steps.task.outputs.task_id }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MERGED_AT: ${{ github.event.pull_request.merged_at }}
+        run: |
+          chmod +x scripts/finalize-task-metadata.sh
+          ./scripts/finalize-task-metadata.sh \
+            --task-id "$TASK_ID" \
+            --pr "$PR_NUMBER" \
+            --merged-at "$MERGED_AT"
+
+      - name: Commit and push if changed
+        if: steps.task.outputs.task_id != ''
+        env:
+          TASK_ID: ${{ steps.task.outputs.task_id }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -eu
+          if git diff --quiet -- "memory-system/tasks/$TASK_ID.md"; then
+            echo "INFO: no metadata diff to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "memory-system/tasks/$TASK_ID.md"
+          git commit -m "chore: finalize metadata for $TASK_ID (PR #$PR_NUMBER) [skip ci]"
+          # Pull-rebase guards against concurrent merges updating main between checkout and push.
+          git pull --rebase origin main
+          git push origin main

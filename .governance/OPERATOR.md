@@ -1,0 +1,1 @@
+<!-- Operator notes — free-form context injected VERBATIM into the prompt at SessionStart, PostCompact, and every 5th user prompt. Edit freely; this file is yours (derived projects own it). KEEP IT SHORT — it re-lands periodically, so long content bloats context and pulls compaction earlier. Leave blank (only this comment) to inject nothing. -->

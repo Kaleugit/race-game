@@ -1,0 +1,7 @@
+docs/docs-criar-cs-ia/todas-as-cs-extraido/*.txt text eol=lf
+docs/docs-criar-cs-ia/base-conhecimento/receitas/*.txt text eol=lf
+docs/docs-criar-cs-ia/base-conhecimento/*.txt text eol=lf
+# EP-034 T06: golden byte-idêntico comparado em memória contra saída LF do
+# template literal — sem esta regra, autocrlf=true entrega CRLF no checkout
+# Windows e o teste falha de forma ambiental (item 19 do baseline).
+tests/unit/fixtures/ep029-golden-cs-nova.html text eol=lf

@@ -1,0 +1,3 @@
+interface:
+  display_name: "DevOps"
+  short_description: "CI/CD, deploy, rollback, and operations reliability"

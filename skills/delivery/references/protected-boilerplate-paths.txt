@@ -1,0 +1,12 @@
+# Paths that are considered boilerplate-protected in derived projects.
+# If a task branch changes one of these paths, delivery requires architect review.
+
+AGENTS.md
+CLAUDE.md
+INTEGRITY-RULES.md
+.github/workflows/governance.yml
+scripts/*
+skills/*/SKILL.md
+.claude/agents/*
+skills/*/scripts/*
+memory-system/templates/*
