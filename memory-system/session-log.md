@@ -53,6 +53,11 @@ Do not manually edit the consolidated block.
 # 2026-09-21 — TASK-kaleugit-EP-003-02
 
 - EP-003 Task 02 (Standard): crash restart replaced by RF-005 auto-righting (human-approved behavior change). Chassis contact rests the car on CHASSIS_HITBOX; after 1.5 s upside down on the ground it is set back on its wheels keeping x (`righted: true`). Crash flow and overlay removed from src/main.js/index.html. `npm run test:sim` 26/26 (goldens unchanged), `npm test` 2 passed. UX gate pending human.
+
+
+# 2026-09-21 — TASK-kaleugit-EP-003-03
+
+- EP-003 Task 03 (Standard): tire (Estrada/Misto/Off-road) and gearbox (Curta/Padrão/Longa) presets in src/parts/presets.js with resolveCarParams; physics applies grip[surfaceAt(x)] to acceleration and speed-proportional surfaceDrag on the ground. Misto/Padrão = identity over BASE_PARAMS (goldens unchanged). CA-008 and CDC-102 proven in tests/sim/parts.test.js. `npm run test:sim` 37/37. UX gate pending human.
 <!-- SESSION_LOG:END -->
 
 ---

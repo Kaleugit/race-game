@@ -93,7 +93,7 @@ Policy:
 | TASK-kaleugit-EP-007-01 | Engine model (RPM, gears, shifts) | PENDING | 1 | Standard | TASK-kaleugit-EP-007-01-implement | None | 2026-09-21 20:50 |
 | TASK-kaleugit-EP-007-02 | Engine-order synthesis + wiring | PENDING | 1 | Standard | TASK-kaleugit-EP-007-02-implement | None | 2026-09-21 20:50 |
 | TASK-kaleugit-EP-002-03 | CA-003 proof: data-only test stage + e2e | COMPLETED | 2 | Quick | TASK-kaleugit-EP-002-03-implement | [development] | 2026-09-21 23:12 |
-| TASK-kaleugit-EP-003-03 | Tire/gearbox presets and surface grip | PENDING | 2 | Standard | TASK-kaleugit-EP-003-03-implement | None | 2026-09-21 19:00 |
+| TASK-kaleugit-EP-003-03 | Tire/gearbox presets and surface grip | COMPLETED | 2 | Standard | TASK-kaleugit-EP-003-03-implement | [development] | 2026-09-21 20:57 |
 | TASK-kaleugit-EP-006-02 | Car visual: color and tires | PENDING | 2 | Quick | TASK-kaleugit-EP-006-02-implement | None | 2026-09-21 19:00 |
 | TASK-kaleugit-EP-006-05 | e2e for UI acceptance criteria (CA-001, CA-002, CA-006, CA-007) | PENDING | 2 | Standard | TASK-kaleugit-EP-006-05-implement | None | 2026-09-21 19:00 |
 <!-- TASK_INDEX:END -->
