@@ -193,4 +193,39 @@ Do not edit generated block manually.
 
 - race-hud API is now `{ configure, update, setPositions(playerFirst) }` (setBotDist and #bot-dist removed); pure `playerLeads(prev, playerX, botX, finishX)` exported from src/ui/race-hud.js. Badges `#race-pos-you` / `#race-pos-bot` inside the race-bar labels, `data-leader`.
 - Countdown is 1 s total (main.js COUNTDOWN_S = 1, "VAI!" at 0.6 s). tests/e2e/race-position.spec.js uses `?stage=...&dev` + key T (infinite turbo) to make the player retake the lead deterministically.
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-11
+
+- `src/bot/ghost-car.js`: `createGhostCar({ scene, look })` -> `{ setEnabled(on), update(botState, playerX, dt, halfWidth), dispose() }`, frozen `GHOST_TUNING` (opacity, tint, tintMix, emissive, cullMargin, renderOrder). Screen x of any world object = `worldX - playerX` (the camera keeps the player at world x = 0). Built lazily in main.js `setUpGhost()` on the first race with the option on; `#hud[data-ghost]` exposes the state.
+- `profile.js` now stores `settings: { ghostBot }` beside garage/progress: `getSettings()` / `saveSettings(partial)`, `DEFAULT_SETTINGS` exported, still version 1 and non-destructive (missing/invalid = default, reading never rewrites the JSON). `tests/sim/profile.test.js` pins the stored shape, so a new option has to be added there on purpose.
+- Map screen carries pre-race options now: `showStageMap({ ..., ghostBot, onGhostToggle })` renders `#map-ghost` / `#map-ghost-value`; `tests/e2e/map-layout.spec.js` proves non-overlap + no scrolling at 1280x720, 1920x1080, 640x360 and 740x360 in both states.
+- `tests/e2e/ghost-bot.spec.js` samples real pixels on `teste-plano` (cold-blue signature in the road band `{x:0,y:400,w:1280,h:260}`, player holding ArrowUp so the ghost stays on screen ~3 s): on = 2600–10100 px/frame, off = 0. Recalibrate if the camera, VIEW_H, GHOST_TUNING or that stage's background change.
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-12
+
+- New pure module `src/stages/hazard-signs.js`: `SIGN_LEAD_M` (20), `MIN_SIGN_X` (0), `hazardZones(stage)`, `hazardRuns(stage)`, `signPositions(stage) -> [{ x, type, hazardFrom }]`. Hazard = surface zone whose `type` differs from `surfaces.default`; terrain features are not hazards. Runs less than 20 m apart merge, so signs are always >= 20 m apart and never stack.
+- `src/track/hazard-sign.js` `createHazardSign()` (flat-shaded low-poly: post + dark triangle + yellow face + box "!"); `SIGN_TUNING` frozen knobs at the top. `src/track/track-scene.js` places one per sign at `(x, track.heightAt(x), -4.2)` and scrolls it via `userData.x - scroll`, like the zone overlays. Decorative only — never read by physics.
+- A new stage (including EP-008-13 free roam) gets its signs for free by declaring `surfaces.zones`; `tests/sim/hazard-signs.test.js` is generic over `loadStageModules()` so it covers new stages automatically.
+- `tests/e2e/hazard-sign.spec.js` checks rendered pixels (clipped screenshot in a HUD-free band, sign-yellow signature: 0 with no sign in view, ~4400 with one) — no production test hook. Marked `test.slow()`.
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-13
+
+- Stage contract: optional `mode` field, validated in `src/stages/registry.js` (`STAGE_MODES = ['race', 'free']`, `stageMode(stage)`, `isFreeRoam(stage)`; missing = `race`). A `mode: 'free'` stage is `hidden` and carries no `bot` block, so it never reaches `listStages()`, the unlock ladder or the CA-004/CA-009 sim tests.
+- `src/stages/terra-livre.stage.js` (id `terra-livre`, 5000 m): ten hand-placed 500 m sections, 20 non-overlapping elevation ramps (net ~+1 m, range 44 m, max slope 0.703 vs Mata's 0.86), 69 features using all five kinds, 21 mud/sand zones at least 20 m apart (so each gets its own EP-008-12 sign; first hazard at 140 m, first sign at 120 m). Reference input finishes in ~158 s with no stall. Background `/img/cloud-forest-landscape.jpg`, `mudLayer: false`.
+- `src/stages/livre-teste.stage.js` (180 m, hidden, `mode: 'free'`): the `teste-plano` twin used by the e2e to reach the free-roam end screen in seconds. `?stage=livre-teste`.
+- `src/main.js`: one `state.freeRoam` flag set in `setStage` from the stage data. Free roam skips the bot physics instance entirely (`botCar`/`botDriver` stay null — `renderBotBar` and the ghost update are guarded), never adds `.show` to `#race-bar`, forces `setUpGhost` off, shows MODO LIVRE in `#countdown-vs`, and calls `finishFreeRoam()` (never `finishRace`/`recordWin`). `#hud[data-mode="free"|"race"]` is the e2e hook.
+- `src/ui/free-end.js`: `showFreeEnd({ distance, time, onAgain, onBack })` / `hideFreeEnd()` over `#free-end-overlay` (`#free-end-dist[data-metres]`, `#free-end-time[data-seconds]`, `#free-end-again`, `#free-end-back`). Data + callbacks only, like the other screen modules. `hideFreeEnd()` also runs in `resetGame` and `leaveRace`.
+- `src/ui/stage-map.js`: `showStageMap({ ..., freeStage, onFree })` shows `#map-free` (teal, infinity mark, `data-stage-id`, `#map-free-sub` = "5.0 km · SEM ADVERSÁRIO"); hidden when either is absent. `initLobby({ ..., freeStage })` passes `getStage('terra-livre')` from `src/main.js` (`FREE_STAGE_ID`).
+- e2e helpers added to `tests/e2e/drive.js`: `startFreeRoamFromMap`, `driveFreeRoamToEnd`, `driveForMs`, `readProfile`; `driveToFinish` now shares an internal `holdThrottleUntil(page, endId)` with the free-roam variant (same ArrowUp+Space policy).
+- `tests/e2e/map-layout.spec.js` now includes `#map-free` in the pairwise non-overlap/in-viewport set at all four viewports and asserts its border colour differs from the stage rows, so the "visually distinct" requirement cannot silently regress.
+- Free roam is proven not to write: the specs compare the raw `race_profile_v1` string before and after the run (it stays `null` on a fresh profile).
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-14
+
+- `E2E_PORT=<port> npm test` picks the preview port (default 4173). Nothing else hardcodes 4173.
+- The governance workflow does NOT run e2e (validate-all only) — the local `npm test` before delivery is the only end-to-end evidence.
 <!-- WORKSTREAM_NOTES:END -->

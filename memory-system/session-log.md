@@ -183,6 +183,26 @@ Do not manually edit the consolidated block.
 # 2026-09-22 — TASK-kaleugit-EP-008-10
 
 - EP-008 Task 10 (Quick): HUD keeps only the player's DIST; race bar shows 1º/2º badges for VOCÊ and BOT (leader gold); countdown 3 s -> 1 s ("1" -> "VAI!"). test:sim 109/109, npm test green. UX pending human.
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-11
+
+- EP-008 Task 11 (Standard): optional BOT FANTASMA — the opponent can now be drawn on the track as a translucent tinted copy of the Bandeirante, culled off-screen, with no collision and no effect on physics or on the bot simulation. Toggle on the map screen ("BOT FANTASMA: LIGADO/DESLIGADO"), persisted in race_profile_v1, default off. test:sim 115/115, npm test 29/29. UX pending human.
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-12
+
+- EP-008 Task 12 (Quick): low-poly "!" warning sign generated from stage data 20 m before every hazard run (mud/sand), in every stage; hazards closer than 20 m merge into one sign. No collision, no physics change. test:sim 123/123, npm test 22/22. UX pending human.
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-13
+
+- EP-008 Task 13 (Standard): MODO LIVRE — a 5 km free-roam terrain (`terra-livre`) reachable from an always-unlocked card on the map. No bot, no race bar, no 1º/2º badges, no ghost, no win/defeat and nothing written to `race_profile_v1`; the HUD keeps speed/turbo/distance and reaching 5000 m opens a plain FIM DO PERCURSO screen with DE NOVO / VOLTAR. Stage contract gained an optional `mode` field (`race` default, `free`). test:sim 137/137, npm test 34/34. UX pending human.
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-14
+
+- EP-008 Task 14 (Quick): playwright.config.js reads E2E_PORT (default 4173) so parallel task worktrees can run e2e simultaneously. Verified on 4183 while another worktree held 4173.
 <!-- SESSION_LOG:END -->
 
 ---
