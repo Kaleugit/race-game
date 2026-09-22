@@ -29,7 +29,8 @@ function relDiff(a, b) {
 }
 
 test('resolveCarParams(BASE_PARAMS, DEFAULT_PARTS) is deep-equal to BASE_PARAMS (Misto + Padrão identity)', () => {
-  assert.deepEqual(DEFAULT_PARTS, { tire: 'misto', gearbox: 'padrao' });
+  // RF-012 added engine/chassis/tank defaults (tests/sim/parts-rf012.test.js).
+  assert.deepEqual(DEFAULT_PARTS, { tire: 'misto', gearbox: 'padrao', engine: 'e20', chassis: 'medio', tank: 'medio' });
   assert.deepEqual(resolveCarParams(BASE_PARAMS, DEFAULT_PARTS), { ...BASE_PARAMS });
   assert.deepEqual(TIRES.misto.grip, BASE_PARAMS.grip);
   assert.equal(TIRES.misto.topSpeedMult, 1);

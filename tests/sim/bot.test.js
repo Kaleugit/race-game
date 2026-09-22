@@ -166,7 +166,7 @@ test('runBotToFinish: advances only the bot to finishX; equals the full-race tim
 });
 
 test('resolveBotParams: stage data only, never the garage choice', () => {
-  assert.deepEqual(BOT_DEFAULT_PARTS, { tire: 'misto', gearbox: 'padrao' });
+  assert.deepEqual(BOT_DEFAULT_PARTS, { tire: 'misto', gearbox: 'padrao', engine: 'e20', chassis: 'medio', tank: 'medio' });
   const noParts = { ...mata, bot: { difficulty: 0.5 } };
   const expectedDefault = resolveCarParams(BASE_PARAMS, BOT_DEFAULT_PARTS);
   assert.deepEqual(resolveBotParams(noParts), expectedDefault);

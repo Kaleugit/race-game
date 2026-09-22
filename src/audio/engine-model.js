@@ -2,9 +2,10 @@
  * @module audio/engine-model
  * @summary Pure engine model for the engine sound (EP-007): RPM from car speed through a 5-speed
  * automatic gearbox scaled by the EP-003 gearbox preset, ratio-based RPM drop on upshift,
- * idle/redline limits, airborne free-rev and the 4-stroke firing frequency. No Web Audio / DOM.
+ * idle/redline limits, airborne free-rev and the 4-stroke firing frequency. The RF-012 engine
+ * preset (ENGINES[id].sound) slightly changes idle/redline/shift points. No Web Audio / DOM.
  */
-import { GEARBOXES } from '../parts/presets.js';
+import { GEARBOXES, ENGINES } from '../parts/presets.js';
 
 /**
  * Defaults: 4-cylinder 4-stroke diesel (Toyota Bandeirante), idle 800 / redline 4000 rpm, so the
@@ -14,6 +15,7 @@ import { GEARBOXES } from '../parts/presets.js';
  * [idle, redline] for every gearbox preset, because the preset scales the ratios by
  * 1 / topSpeedMult) and full turbo now tops out in 4th. Sound only: physics is unaffected.
  * `wheelRadius` mirrors WHEEL_RADIUS in src/car.js (not imported: that module needs three.js).
+ * `engine` is the RF-012 engine id; 'e20' (the original engine) has no sound override.
  * @summary Default engine/gearbox configuration.
  */
 export const ENGINE_DEFAULTS = Object.freeze({
@@ -34,6 +36,7 @@ export const ENGINE_DEFAULTS = Object.freeze({
   airRevUp: 8,
   airRevDown: 3,
   gearboxPreset: 'padrao',
+  engine: 'e20',
 });
 
 /**
@@ -57,11 +60,16 @@ export function scaleGearRatios(gearRatios, preset) {
  * `airborne` frees the wheels (fast free-rev with throttle, no shifts; RPM rejoins the wheels on
  * landing). Returns `{ rpm, gear, load, shifting, firingHz }` with rpm in [idleRpm, redlineRpm],
  * gear 1-based, load 0..1 (0 while shifting), firingHz = rpm / 60 * cylinders / 2.
- * @summary Build a pure engine model: `{ update(dt, input), reset(), gearRatios }`.
+ * Option precedence: ENGINE_DEFAULTS < ENGINES[options.engine].sound < explicit options.
+ * `config` is the resolved (frozen) configuration. Throws on an unknown engine or gearbox id.
+ * @summary Build a pure engine model: `{ update(dt, input), reset(), gearRatios, config }`.
  * @param {Partial<typeof ENGINE_DEFAULTS>} [options]
  */
 export function createEngineModel(options = {}) {
-  const cfg = { ...ENGINE_DEFAULTS, ...options };
+  const engineId = options.engine ?? ENGINE_DEFAULTS.engine;
+  const enginePreset = ENGINES[engineId];
+  if (!enginePreset) throw new Error(`unknown engine '${engineId}'`);
+  const cfg = Object.freeze({ ...ENGINE_DEFAULTS, ...enginePreset.sound, ...options, engine: engineId });
   const ratios = Object.freeze(scaleGearRatios(cfg.gearRatios, cfg.gearboxPreset));
   const top = ratios.length;
   const wheelRpmPerSpeed = 60 / (2 * Math.PI * cfg.wheelRadius);
@@ -118,5 +126,5 @@ export function createEngineModel(options = {}) {
   }
 
   reset();
-  return { update, reset, gearRatios: ratios };
+  return { update, reset, gearRatios: ratios, config: cfg };
 }

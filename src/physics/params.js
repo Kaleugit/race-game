@@ -39,10 +39,17 @@ export const BASE_PARAMS = Object.freeze({
   GRAVITY: 23.4,
   TURBO_DEPLETE: 1 / 3.0,
   TURBO_RECHARGE: 1 / 6.0,
+  // RF-012 turbo tank size relative to the original tank (1 = tanque Médio). fuel stays 0..1 of the
+  // tank: burn and recharge rates are divided by it, so a bigger tank lasts longer and refills slower.
+  turboCapacity: 1,
   // Turbo hysteresis: after the tank runs empty, fuel (0..1) needed before the turbo re-ignites.
   turboReigniteFuel: 0.25,
   GROUND_LEAN: 0.198,
   AIR_TORQUE: 9.0,
+  // RF-012 car mass relative to the original car (1 = motor 2.0 + chassi Médio + tanque Médio).
+  // Divides the throttle/turbo acceleration, the air torque and the landing rebound: lighter cars
+  // accelerate harder but spin and bounce more (less stable). Gravity, drag and brakes ignore it.
+  mass: 1,
   BOUNCE_MIN_AIRTIME: 1.0,
   BOUNCE_AIRTIME_CAP: 4.0,
   BOUNCE_DECAY: 0.4,

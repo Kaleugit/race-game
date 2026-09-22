@@ -8,7 +8,7 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-22T03:45Z
+Last regenerated: 2026-09-22T04:16Z
 Total candidate files scanned: 26
 
 ## Backend modules
@@ -17,7 +17,7 @@ Total candidate files scanned: 26
 - Pure engine model for the engine sound (EP-007): RPM from car speed through a 5-speed
 - Default engine/gearbox configuration.
 - Scale gear ratios by the EP-003 gearbox preset (`curta`, `padrao`, `longa`).
-- Build a pure engine model: `{ update(dt, input), reset(), gearRatios }`.
+- Build a pure engine model: `{ update(dt, input), reset(), gearRatios, config }`.
 
 ### `src/bot/bot-driver.js` — bot/bot-driver
 - Bot AI (RF-004): turns the bot car's state into the same input the player produces
@@ -50,10 +50,13 @@ Total candidate files scanned: 26
 - Color entry by id, or undefined for an unknown id.
 
 ### `src/parts/presets.js` — parts/presets
-- Tire and gearbox presets (RF-008, RF-009) and resolveCarParams, which turns a part
+- Tire, gearbox, engine, chassis and turbo tank presets (RF-008, RF-009, RF-012) and
 - Tire presets keyed by id (`estrada`, `misto`, `offroad`).
 - Gearbox presets keyed by id (`curta`, `padrao`, `longa`).
-- Build frozen car params from `base` and `{ tire, gearbox, upgrades = [] }`.
+- Engine presets keyed by id (`e16`, `e20`, `e24`).
+- Chassis presets keyed by id (`leve`, `medio`, `pesado`).
+- Turbo tank presets keyed by id (`pequeno`, `medio`, `grande`).
+- Build frozen car params from `base` and `{ tire, gearbox, engine?, chassis?, tank?, upgrades = [] }`.
 
 ### `src/physics/car-physics.js` — physics/car-physics
 - Per-instance car physics (turbo, speed, vertical/bounce, chassis contact, rotation,

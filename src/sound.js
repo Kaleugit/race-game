@@ -5,8 +5,11 @@
  * 2 and 4 of the crank frequency with light detune, per-order gains driven by load, a lowpass that
  * tracks RPM and load, a light combustion-noise layer amplitude-modulated at the firing frequency,
  * turbo hiss/whine while the turbo is on and a blow-off when it is released.
+ * The RF-012 engine preset changes the model's RPM range (ENGINES[id].sound) and the synth
+ * brightness (ENGINES[id].timbre): 1.6 brighter and higher-revving, 2.4 deeper.
  */
 import { createEngineModel, ENGINE_DEFAULTS } from './audio/engine-model.js';
+import { ENGINES } from './parts/presets.js';
 
 // Engine orders relative to the crank frequency (rpm / 60). Order 2 = firing frequency of a
 // 4-cylinder 4-stroke (27-133 Hz). `detune` is in cents; `idle`/`load` are the order gain without
@@ -36,10 +39,10 @@ function makeNoiseBuffer(ctx, seconds) {
 
 /**
  * Creates the engine sound. `start()` opens/resumes the AudioContext, resets the engine model and
- * fades in; `update(dt, { speed, throttle, airborne, turboActive, gearboxPreset })` advances the
+ * fades in; `update(dt, { speed, throttle, airborne, turboActive, gearboxPreset, engine })` advances the
  * engine model one frame and retunes the synth (no-op until started); `stop()` fades out.
- * `gearboxPreset` is the EP-003 gearbox id (`curta`/`padrao`/`longa`); changing it rebuilds the
- * engine model.
+ * `gearboxPreset` is the EP-003 gearbox id (`curta`/`padrao`/`longa`) and `engine` the RF-012
+ * engine id (`e16`/`e20`/`e24`); changing either rebuilds the engine model.
  * @summary Build the engine sound: `{ start, update, stop }`.
  * @returns {{ start: () => void, update: (dt: number, input: object) => void, stop: () => void }}
  */
@@ -52,9 +55,9 @@ export function initEngineSound() {
   let running = false;
   let prevTurboActive = false;
   let preset = ENGINE_DEFAULTS.gearboxPreset;
-  let engine = createEngineModel({ gearboxPreset: preset });
-
-  const rpmSpan = ENGINE_DEFAULTS.redlineRpm - ENGINE_DEFAULTS.idleRpm;
+  let engineId = ENGINE_DEFAULTS.engine;
+  let engine = createEngineModel({ gearboxPreset: preset, engine: engineId });
+  let timbre = ENGINES[engineId].timbre;
 
   function ensureContext() {
     if (ctx) return;
@@ -151,16 +154,19 @@ export function initEngineSound() {
     masterGain.gain.setTargetAtTime(MASTER_LEVEL, ctx.currentTime, 0.9);
   }
 
-  function update(dt, { speed = 0, throttle = 0, airborne = false, turboActive = false, gearboxPreset } = {}) {
+  function update(dt, { speed = 0, throttle = 0, airborne = false, turboActive = false, gearboxPreset, engine: nextEngine } = {}) {
     if (!running || !ctx) return;
-    if (gearboxPreset && gearboxPreset !== preset) {
-      preset = gearboxPreset;
-      engine = createEngineModel({ gearboxPreset: preset });
+    if ((gearboxPreset && gearboxPreset !== preset) || (nextEngine && nextEngine !== engineId)) {
+      preset = gearboxPreset || preset;
+      engineId = nextEngine || engineId;
+      engine = createEngineModel({ gearboxPreset: preset, engine: engineId });
+      timbre = ENGINES[engineId].timbre;
     }
+    const { idleRpm, redlineRpm } = engine.config;
     const { rpm, load, firingHz } = engine.update(dt, { speed, throttle, airborne });
     const t = ctx.currentTime;
     const crankHz = rpm / 60;
-    const rpmNorm = Math.min(1, Math.max(0, (rpm - ENGINE_DEFAULTS.idleRpm) / rpmSpan));
+    const rpmNorm = Math.min(1, Math.max(0, (rpm - idleRpm) / (redlineRpm - idleRpm)));
 
     for (const v of voices) {
       v.osc.frequency.setTargetAtTime(crankHz * v.order, t, PITCH_TAU);
@@ -168,10 +174,10 @@ export function initEngineSound() {
       v.gain.gain.setTargetAtTime(g, t, GAIN_TAU);
     }
     // Closed and muffled at idle / off-load, opens with RPM and much more with load.
-    filter.frequency.setTargetAtTime(160 + rpmNorm * 700 + load * (250 + rpmNorm * 900), t, FILTER_TAU);
+    filter.frequency.setTargetAtTime(timbre * (160 + rpmNorm * 700 + load * (250 + rpmNorm * 900)), t, FILTER_TAU);
 
     combMod.frequency.setTargetAtTime(firingHz, t, PITCH_TAU);
-    combBp.frequency.setTargetAtTime(350 + rpmNorm * 700, t, FILTER_TAU);
+    combBp.frequency.setTargetAtTime(timbre * (350 + rpmNorm * 700), t, FILTER_TAU);
     const combLevel = 0.015 + 0.05 * load;
     combGain.gain.setTargetAtTime(combLevel, t, GAIN_TAU);
     combModDepth.gain.setTargetAtTime(combLevel, t, GAIN_TAU);
