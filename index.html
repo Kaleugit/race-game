@@ -647,6 +647,24 @@
       .map-stage[data-locked="true"] .map-num { color: #4a5070; }
       .map-stage .map-name { flex: 1; font-size: 18px; letter-spacing: 4px; }
       .map-stage .map-info { font-size: 12px; letter-spacing: 2px; color: #cfd6ff; }
+      /* Pre-race option (EP-008-11): draw the bot as a ghost on the track. Same card language as the
+         stage rows, but dashed + muted while off so it never competes with the stage list. */
+      .map-toggle {
+        display: flex; align-items: center; justify-content: space-between; gap: 14px;
+        font-family: var(--ui-font); text-align: left; cursor: pointer;
+        color: var(--ui-ink-2); background: var(--ui-face);
+        border: 2px dashed var(--ui-line);
+        padding: 10px 16px;
+        text-shadow: 2px 2px 0 #000;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+      }
+      .map-toggle:hover { background: rgba(255,216,107,0.1); border-color: var(--ui-gold); color: var(--ui-ink); }
+      .map-toggle .map-toggle-k { font-size: 13px; letter-spacing: 3px; }
+      .map-toggle .map-toggle-v { font-size: 13px; letter-spacing: 3px; color: var(--ui-muted); }
+      .map-toggle[data-ghost="on"] { border-style: solid; border-color: var(--ui-gold); color: var(--ui-ink); }
+      .map-toggle[data-ghost="on"] .map-toggle-v {
+        color: var(--ui-gold); text-shadow: 2px 2px 0 #000, 0 0 10px rgba(255,216,107,0.5);
+      }
       #map-back { align-self: flex-start; }
       /* Mobile landscape: compact everything to fit ~360px of height. */
       @media (max-height: 500px) {
@@ -676,6 +694,8 @@
         .screen-primary { font-size: 15px; padding: 8px 20px; }
         .map-stage { padding: 8px 12px; }
         .map-stage .map-name { font-size: 15px; }
+        .map-toggle { padding: 6px 12px; gap: 10px; }
+        .map-toggle .map-toggle-k, .map-toggle .map-toggle-v { font-size: 11px; letter-spacing: 2px; }
         #end-overlay { gap: 8px; }
         #end-result { font-size: 40px; }
         #end-times { font-size: 15px; line-height: 1.6; }
@@ -788,6 +808,10 @@
       <div id="map-panel" class="screen-panel">
         <div class="screen-title">MAPA</div>
         <div id="map-stages"></div>
+        <button id="map-ghost" class="map-toggle" type="button" aria-pressed="false" data-ghost="off" hidden>
+          <span class="map-toggle-k">BOT FANTASMA</span>
+          <span id="map-ghost-value" class="map-toggle-v">DESLIGADO</span>
+        </button>
         <button id="map-back" class="end-secondary" type="button" hidden>&#8592; LOBBY</button>
       </div>
     </div>

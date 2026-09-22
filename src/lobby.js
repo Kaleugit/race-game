@@ -19,11 +19,16 @@ const CARS = [
  * `#lobby-play` (CORRIDA) opens the stage map (or, with `testStageId` from `?stage=<id>`, starts
  * that stage directly) and the race uses the garage saved in the profile. `#lobby-garage`
  * (GARAGEM) opens the garage carousel; PRONTO saves the choice in the profile and returns to the
- * lobby (also when the garage was opened from the result screen). `#map-back` returns to the lobby.
+ * lobby (also when the garage was opened from the result screen). The map also carries the pre-race
+ * BOT FANTASMA toggle, saved in the profile as soon as it is flipped. `#map-back` returns to the lobby.
  * Picking an unlocked stage closes the lobby and calls `onStart(stageId, carFactory)`.
  * @summary Start the lobby; returns `{ openHome, openGarage, openMap }` to reopen it after a race.
  * @param {{
- *   profile: { getGarage: () => object, saveGarage: (sel: object) => object, isUnlocked: (id: string) => boolean },
+ *   profile: {
+ *     getGarage: () => object, saveGarage: (sel: object) => object,
+ *     getSettings: () => { ghostBot: boolean }, saveSettings: (partial: object) => object,
+ *     isUnlocked: (id: string) => boolean,
+ *   },
  *   stages: Array<{ id: string }>,
  *   testStageId?: string | null,
  *   onStart: (stageId: string, carFactory: Function) => void,
@@ -287,6 +292,9 @@ export function initLobby({ profile, stages, testStageId = null, onStart }) {
       isUnlocked: (id) => profile.isUnlocked(id),
       onSelect: start,
       onBack: openHome,
+      // Pre-race option (EP-008-11): persisted right away, so it also survives a reload.
+      ghostBot: profile.getSettings().ghostBot,
+      onGhostToggle: (on) => profile.saveSettings({ ghostBot: on }),
     });
   }
 

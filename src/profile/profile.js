@@ -15,6 +15,12 @@ export const LEGACY_BEST_KEY = 'race_best_time';
 const PROFILE_VERSION = 1;
 const LEGACY_BEST_STAGE = 'mata-atlantica';
 
+/** @summary Race options stored outside the garage; a profile without them loads these values. */
+export const DEFAULT_SETTINGS = Object.freeze({
+  /** EP-008-11: draw the opponent as a translucent ghost on the track (off = race bar only). */
+  ghostBot: false,
+});
+
 const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const isPositiveNumber = (v) => typeof v === 'number' && Number.isFinite(v) && v > 0;
 
@@ -63,13 +69,22 @@ function sanitizeGarage(g) {
   };
 }
 
+function sanitizeSettings(s) {
+  const src = isPlainObject(s) ? s : {};
+  // Missing / non-boolean values simply load the default: no destructive migration (EP-008-11).
+  return {
+    ghostBot: typeof src.ghostBot === 'boolean' ? src.ghostBot : DEFAULT_SETTINGS.ghostBot,
+  };
+}
+
 /**
  * Creates the profile over `storage`. `stages` is the ordered visible stage list (`listStages()`):
  * the first one is always unlocked and a win unlocks the next one in that order. Corrupted JSON or
  * unknown part/color ids fall back to defaults (a profile saved before the engine/chassis/tank parts
  * loads them as DEFAULT_PARTS, so getGarage() is always safe for resolveCarParams).
  * `garage.upgrades` is reserved for future upgrades: kept as stored, not exposed by getGarage.
- * @summary Build the profile API `{ getGarage, saveGarage, getUnlocked, isUnlocked, getBest, recordWin }`.
+ * `settings` holds the race options (EP-008-11 ghost bot); absent or invalid values load DEFAULT_SETTINGS.
+ * @summary Build the profile API `{ getGarage, saveGarage, getSettings, saveSettings, getUnlocked, isUnlocked, getBest, recordWin }`.
  * @param {Storage | null} [storage] defaults to `localStorage` (null = memory only)
  * @param {Array<{ id: string }>} [stages] ordered stages, as returned by `listStages()`
  */
@@ -101,6 +116,7 @@ export function createProfile(storage = defaultStorage(), stages = []) {
         upgrades: isPlainObject(garageSrc.upgrades) ? garageSrc.upgrades : {},
       },
       progress: { unlocked, best },
+      settings: sanitizeSettings(src.settings),
     };
 
     let migrated = false;
@@ -125,8 +141,25 @@ export function createProfile(storage = defaultStorage(), stages = []) {
     return { color, tire, gearbox, engine, chassis, tank };
   }
 
+  /** @returns {{ ghostBot: boolean }} */
+  function getSettings() {
+    const { ghostBot } = data.settings;
+    return { ghostBot };
+  }
+
   return {
     getGarage,
+    getSettings,
+    /**
+     * Merges race options into the profile (unknown keys are dropped, invalid values reset to the
+     * default of that field) and persists them.
+     * @returns {{ ghostBot: boolean }} the settings after the merge
+     */
+    saveSettings(partial) {
+      data.settings = sanitizeSettings({ ...data.settings, ...(isPlainObject(partial) ? partial : {}) });
+      persist();
+      return getSettings();
+    },
     /** Saves a garage choice; invalid ids fall back to the default of that field. */
     saveGarage(choice) {
       data.garage = { ...sanitizeGarage(choice), upgrades: data.garage.upgrades };
