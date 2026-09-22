@@ -47,7 +47,7 @@
 
 ### Task 02 - Estágio Cerrado (areia/terra vermelha, bot mais difícil)
 - Task ID: TASK-kaleugit-EP-005-02
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Standard
 - Domain: Conteúdo (level design — Cerrado)
