@@ -5,6 +5,7 @@ import { trackErrors, openMapFromLobby } from './drive.js';
 // rows or the LOBBY button, everything stays inside the viewport and the panel still fits without
 // scrolling, on desktop and phone landscape — in both states of the toggle (the ON state has a
 // thicker, solid border than the dashed OFF state).
+// EP-008-13: the MODO LIVRE card joined the same panel and is held to the same bar.
 const VIEWPORTS = [
   { width: 1280, height: 720 },
   { width: 1920, height: 1080 },
@@ -29,6 +30,7 @@ for (const viewport of VIEWPORTS) {
         const rect = (el) => el.getBoundingClientRect().toJSON();
         const out = {
           title: rect(document.querySelector('#map-panel .screen-title')),
+          free: rect(document.getElementById('map-free')),
           ghost: rect(document.getElementById('map-ghost')),
           back: rect(document.getElementById('map-back')),
         };
@@ -54,12 +56,23 @@ for (const viewport of VIEWPORTS) {
       // The panel needs no scrolling and every control is fully reachable.
       const fits = await page.locator('#map-panel').evaluate((e) => e.scrollHeight <= e.clientHeight + 1);
       expect(fits, `#map-panel needs scrolling [${state}]`).toBe(true);
-      for (const sel of ['#map-ghost', '#map-back', '#map-stages [data-stage-id="mata-atlantica"]']) {
+      for (const sel of ['#map-free', '#map-ghost', '#map-back', '#map-stages [data-stage-id="mata-atlantica"]']) {
         await expect(page.locator(sel)).toBeInViewport({ ratio: 1 });
       }
-      // The label is readable: at least ~9px tall, like the rest of the compact UI.
-      const labelHeight = await page.locator('#map-ghost-value').evaluate((e) => e.getBoundingClientRect().height);
-      expect(labelHeight, `ghost label height [${state}]`).toBeGreaterThanOrEqual(9);
+      // The labels are readable: at least ~9px tall, like the rest of the compact UI.
+      for (const sel of ['#map-ghost-value', '#map-free-sub', '#map-free .map-free-name']) {
+        const h = await page.locator(sel).evaluate((e) => e.getBoundingClientRect().height);
+        expect(h, `${sel} height [${state}]`).toBeGreaterThanOrEqual(9);
+      }
+      // MODO LIVRE stays visibly distinct from the numbered race rows (EP-008-13).
+      const freeStyle = await page.locator('#map-free').evaluate((e) => {
+        const cs = getComputedStyle(e);
+        return { border: cs.borderTopColor, style: cs.borderTopStyle };
+      });
+      const stageStyle = await page.locator('#map-stages .map-stage').first()
+        .evaluate((e) => getComputedStyle(e).borderTopColor);
+      expect(freeStyle.style).toBe('solid');
+      expect(freeStyle.border, `MODO LIVRE reuses the stage-row accent [${state}]`).not.toBe(stageStyle);
       if (state === 'off') await page.locator('#map-ghost').click();
     }
     expect(errors).toEqual([]);

@@ -1,6 +1,6 @@
 # API Index — Kaleugit/race-game
 
-> **Coverage**: 29/30 backend files (97%), 0/0 frontend custom elements (0%).
+> **Coverage**: 32/33 backend files (97%), 0/0 frontend custom elements (0%).
 > Auto-generated from JSDoc `@module` / `@summary` / `@element` tags. Transition phase — files without these tags do NOT appear here.
 >
 > **If you don't find what you need:**
@@ -8,8 +8,8 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-22T19:53Z
-Total candidate files scanned: 30
+Last regenerated: 2026-09-22T22:06Z
+Total candidate files scanned: 33
 
 ## Backend modules
 
@@ -90,11 +90,18 @@ Total candidate files scanned: 30
 ### `src/stages/index.js` — stages/index
 - Stage discovery: every src/stages/*.stage.js file becomes a stage (Vite import.meta.glob).
 
+### `src/stages/livre-teste.stage.js` — stages/livre-teste
+- Hidden short free-roam stage (EP-008-13), the `mode: 'free'` twin of `teste-plano`:
+
 ### `src/stages/mata-atlantica.stage.js` — stages/mata-atlantica
 - Mata Atlântica stage data (EP-005-01, shortened in EP-008-01): the prototype opening
 
 ### `src/stages/registry.js` — stages/registry
 - Pure stage registry and stage-contract validation. No three.js, no DOM.
+- How a stage is played: `race` (default) is the 1v1 ladder race; `free` is the free-roam
+
+### `src/stages/terra-livre.stage.js` — stages/terra-livre
+- Free-roam stage data (EP-008-13): a 5 km cross-country run with no opponent — ten
 
 ### `src/stages/teste-plano.stage.js` — stages/teste-plano
 - Hidden near-flat test stage (CA-003 proof): data only, one sand and one mud zone.
@@ -121,6 +128,10 @@ Total candidate files scanned: 30
 - Race time formatting for the result screen: `formatTime` and the signed `formatDelta`.
 - Seconds with 2 decimals and an `s` suffix (`63.42s`); non-finite -> `—`.
 - Signed time difference between the player and the bot.
+
+### `src/ui/free-end.js` — ui/free-end
+- End screen of the free-roam mode (EP-008-13): no VITÓRIA/DERROTA, no opponent time and no
+- Open the free-roam end screen.
 
 ### `src/ui/garage.js` — ui/garage
 - Garage screen (RF-007/008/009/012): one carousel card (EP-008-09), one part per slide

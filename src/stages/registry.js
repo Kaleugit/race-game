@@ -4,6 +4,22 @@
  */
 import { SURFACE_TYPES, FEATURE_TYPES } from '../track/track.js';
 
+/**
+ * @summary How a stage is played: `race` (default) is the 1v1 ladder race; `free` is the free-roam
+ * run of EP-008-13 — no bot, no result, no progress, and no `bot` block in the stage data.
+ */
+export const STAGE_MODES = ['race', 'free'];
+
+/** @summary Play mode of a stage, defaulting to `race` when the data does not declare one. */
+export function stageMode(stage) {
+  return (stage && stage.mode) || 'race';
+}
+
+/** @summary True when the stage is played as free roam (EP-008-13). */
+export function isFreeRoam(stage) {
+  return stageMode(stage) === 'free';
+}
+
 function isFiniteNumber(v) {
   return typeof v === 'number' && Number.isFinite(v);
 }
@@ -20,6 +36,9 @@ export function validateStage(stage) {
     throw new Error('stage: missing string id');
   }
   const where = `stage '${stage.id}'`;
+  if (stage.mode !== undefined && !STAGE_MODES.includes(stage.mode)) {
+    throw new Error(`${where}: unknown stage.mode '${stage.mode}'`);
+  }
   const track = stage.track;
   if (!track || !isFiniteNumber(track.finishX)) {
     throw new Error(`${where}: track.finishX must be a finite number`);

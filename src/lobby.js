@@ -22,6 +22,8 @@ const CARS = [
  * lobby (also when the garage was opened from the result screen). The map also carries the pre-race
  * BOT FANTASMA toggle, saved in the profile as soon as it is flipped. `#map-back` returns to the lobby.
  * Picking an unlocked stage closes the lobby and calls `onStart(stageId, carFactory)`.
+ * `freeStage` (EP-008-13) adds the always-unlocked MODO LIVRE card to the map; it starts exactly like
+ * a stage row, and the free-roam semantics live in the game loop, not here.
  * @summary Start the lobby; returns `{ openHome, openGarage, openMap }` to reopen it after a race.
  * @param {{
  *   profile: {
@@ -30,11 +32,12 @@ const CARS = [
  *     isUnlocked: (id: string) => boolean,
  *   },
  *   stages: Array<{ id: string }>,
+ *   freeStage?: { id: string } | null,
  *   testStageId?: string | null,
  *   onStart: (stageId: string, carFactory: Function) => void,
  * }} opts
  */
-export function initLobby({ profile, stages, testStageId = null, onStart }) {
+export function initLobby({ profile, stages, freeStage = null, testStageId = null, onStart }) {
   const lobbyEl = document.getElementById('lobby');
   const canvas = document.getElementById('lobby-canvas');
 
@@ -295,6 +298,9 @@ export function initLobby({ profile, stages, testStageId = null, onStart }) {
       // Pre-race option (EP-008-11): persisted right away, so it also survives a reload.
       ghostBot: profile.getSettings().ghostBot,
       onGhostToggle: (on) => profile.saveSettings({ ghostBot: on }),
+      // MODO LIVRE (EP-008-13): always available, never part of the unlock ladder.
+      freeStage,
+      onFree: freeStage ? start : null,
     });
   }
 

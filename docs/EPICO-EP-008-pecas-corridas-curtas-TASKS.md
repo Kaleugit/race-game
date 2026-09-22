@@ -306,7 +306,7 @@
 
 ### Task 13 - Modo livre: terreno de 5000 m
 - Task ID: TASK-kaleugit-EP-008-13
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Standard
 - Domain: Conteúdo e fluxo do jogador
