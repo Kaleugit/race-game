@@ -3,7 +3,8 @@
  * @summary Game entry point: renderer, car visuals, input, race loop, HUD and the race/result flow.
  * Stage chosen on the map (src/lobby.js) or via the ?stage=<id> test shortcut; the player car uses the
  * garage saved in the profile (src/profile/profile.js): all five parts (tire, gearbox, engine, chassis,
- * turbo tank) feed resolveCarParams, the engine picks the sound variant and the tank sizes the turbo bar.
+ * turbo tank) feed resolveCarParams, the engine picks the sound variant and the tank sizes the turbo gauge.
+ * HUD gauges (speed, turbo, DIST / BOT) are drawn by src/ui/race-hud.js.
  * Car physics lives in src/physics/car-physics.js (playerCar); this file only renders its state.
  * The opponent is a second physics instance (botCar) driven by src/bot/bot-driver.js; it has no mesh,
  * only its position feeds the race bar (mini-map with the stage name).
@@ -21,6 +22,7 @@ import { BASE_PARAMS } from './physics/params.js';
 import { resolveCarParams } from './parts/presets.js';
 import { createProfile } from './profile/profile.js';
 import { showResult, hideResult } from './ui/result.js';
+import { createRaceHud } from './ui/race-hud.js';
 import { initEngineSound } from './sound.js';
 import { createBotDriver, runBotToFinish } from './bot/bot-driver.js';
 import { resolveBotParams } from './bot/bot-preset.js';
@@ -187,6 +189,8 @@ async function toggleTouch() {
 }
 
 mobileToggleEl.addEventListener('click', toggleTouch);
+// In-race buttons drop focus after a click, so Space (turbo) never re-presses them.
+for (const btn of document.querySelectorAll('.race-btn')) btn.addEventListener('click', () => btn.blur());
 document.getElementById('lobby-fullscreen').addEventListener('click', toggleTouch);
 for (const btn of touchpadEl.querySelectorAll('.tbtn[data-key]')) {
   const k = btn.dataset.key;
@@ -262,19 +266,19 @@ btnRestartEl.addEventListener('click', () => {
 const btnBackLobbyEl = document.getElementById('btn-back-lobby');
 btnBackLobbyEl.onclick = () => leaveRace((l) => l.openHome());
 
+// Race HUD gauges (EP-008-07); configured per race in resetGame, updated every frame in updateHUD.
+const raceHud = createRaceHud();
+
 // HUD notice while the bot has already crossed the line and the player is still racing.
 const botWonNoticeEl = document.createElement('div');
 botWonNoticeEl.id = 'hud-bot-won';
 botWonNoticeEl.textContent = 'BOT CHEGOU — DERROTA';
-botWonNoticeEl.style.cssText = 'display:none;color:#ff4444;margin-top:4px;';
+botWonNoticeEl.style.display = 'none';
 document.getElementById('hud').appendChild(botWonNoticeEl);
 
-// Mini-map: the race bar carries the stage name under its track.
+// Mini-map: the race bar carries the stage name under its track (styled by #race-bar-stage in index.html).
 const raceBarStageEl = document.createElement('span');
 raceBarStageEl.id = 'race-bar-stage';
-raceBarStageEl.style.cssText = 'position:absolute;top:100%;left:50%;transform:translateX(-50%);'
-  + 'margin-top:4px;font-family:"Courier New",monospace;font-size:10px;letter-spacing:2px;'
-  + 'white-space:nowrap;color:#fffbe0;text-shadow:1px 1px 0 #000;';
 document.getElementById('race-bar').appendChild(raceBarStageEl);
 
 function resetGame() {
@@ -287,6 +291,7 @@ function resetGame() {
   hudData.turboCapacity = String(playerParams.turboCapacity);
   hudData.mass = String(playerParams.mass);
   hudData.engine = garage.engine;
+  raceHud.configure({ turboCapacity: playerParams.turboCapacity, maxSpeedTurbo: playerParams.maxSpeedTurbo });
   applyCarLook(carBuilt, { color: garage.color, tire: garage.tire });
   state.bob = 0;
   state.raceStarted = false;
@@ -397,12 +402,8 @@ function finishRace(playerWon) {
   });
 }
 
-const speedEl = document.getElementById('speed');
-const distEl = document.getElementById('dist');
-const fuelEl = document.getElementById('turbobar');
 const suspEl = document.getElementById('suspstate');
 const infTurboEl = document.getElementById('infturbo');
-const botDistEl = document.getElementById('bot-dist');
 const hudDebugEl = document.getElementById('hud-debug');
 const raceBarEl = document.getElementById('race-bar');
 const raceBarPlayerEl = document.getElementById('race-bar-player');
@@ -473,32 +474,16 @@ function updateSky() {
   skyCamera.lookAt(0, 0, -8);
 }
 
-// Turbo bar: 12 cells for the default tank, scaled by the tank capacity (Pequeno 8, Grande 17 cells),
-// so a bigger tank is visibly a longer bar that drains slower.
-const TURBO_BAR_CELLS = 12;
-function fuelBarText(fuel, capacity = 1) {
-  const N = Math.max(1, Math.round(TURBO_BAR_CELLS * capacity));
-  const filled = Math.round(fuel * N);
-  return '[' + '\u2588'.repeat(filled) + '\u2591'.repeat(N - filled) + ']';
-}
-
 const posWrapEl = document.getElementById('hud-pos');
 const posValEl = document.getElementById('pos');
 
 function updateHUD() {
   const car = playerCar.state;
-  speedEl.textContent = Math.round(car.speed * 3.6 * 2.5);
-  distEl.textContent = Math.round(car.x);
-  if (fuelEl) {
-    fuelEl.textContent = fuelBarText(car.fuel, playerParams.turboCapacity);
-    fuelEl.style.color = car.turboActive ? '#ff8a3a'
-                       : car.fuel < 0.2  ? '#ff5555'
-                       : '#ffd86b';
-  }
+  raceHud.update(car);
   if (state.gridVisible && posValEl) posValEl.textContent = Math.round(car.x);
 
   if (state.raceStarted && !state.raceFinished) {
-    if (botDistEl) botDistEl.textContent = Math.round(state.botScroll);
+    raceHud.setBotDist(state.botScroll);
     const playerProgress = Math.min(car.x / track.finishX, 1);
     raceBarPlayerEl.style.left = (playerProgress * 100).toFixed(1) + '%';
   }

@@ -1,6 +1,6 @@
 # API Index — Kaleugit/race-game
 
-> **Coverage**: 25/26 backend files (96%), 0/0 frontend custom elements (0%).
+> **Coverage**: 26/27 backend files (96%), 0/0 frontend custom elements (0%).
 > Auto-generated from JSDoc `@module` / `@summary` / `@element` tags. Transition phase — files without these tags do NOT appear here.
 >
 > **If you don't find what you need:**
@@ -8,8 +8,8 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-22T16:05Z
-Total candidate files scanned: 26
+Last regenerated: 2026-09-22T16:28Z
+Total candidate files scanned: 27
 
 ## Backend modules
 
@@ -118,6 +118,12 @@ Total candidate files scanned: 26
 - Stat list (`{ key, kind: 'delta' | 'abs', value, tone }`) for a part of the given kind.
 - Build summary stats (`ACEL`, `VEL`, `TURBO`, `PESO`) for a full part selection.
 - Open the garage with the current selection and the available options.
+
+### `src/ui/race-hud.js` — ui/race-hud
+- In-race HUD: semi-transparent speed and turbo gauges plus DIST / BOT readouts.
+- Segment count of the turbo gauge for a tank capacity (12 for the default tank).
+- Speed-gauge full scale in km/h for a car: its turbo top speed rounded up to 50 km/h.
+- Builds the race HUD gauges inside #hud and returns its per-race / per-frame API.
 
 ### `src/ui/result.js` — ui/result
 - Result screen (RF-006/CA-006): VITÓRIA/DERROTA, player/bot/best times with 2 decimals
