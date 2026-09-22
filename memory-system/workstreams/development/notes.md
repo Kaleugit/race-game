@@ -180,4 +180,17 @@ Do not edit generated block manually.
 # 2026-09-22 — TASK-kaleugit-EP-008-08
 
 - ENGINES sound order is now 2.4 = higher-revving/brighter (redline 4400, timbre 1.12), 1.6 = deeper (redline 3700, timbre 0.88); 2.0 unchanged. tests/sim/parts-rf012.test.js encodes this order.
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-09
+
+- Lobby: `#lobby-play` = CORRIDA (map; `?stage=<id>` starts that stage directly), `#lobby-garage` = GARAGEM. Garage PRONTO (`#garage-confirm`) saves and returns to the lobby (from the result screen too); `#map-back` returns to the lobby.
+- Garage = one `#garage-card` carousel; `GARAGE_SLIDES` (src/ui/garage.js) = engine, gearbox, tire, chassis, tank, color; current slide in `#garage-card[data-slide]`, `#garage-cat`, `#garage-step` "n/6", `#garage-pips [aria-current="step"]`. Only the active slide is visible/clickable.
+- e2e: use drive.js `openGarageFromLobby`, `goToGarageSlide`, `pickGarage` (navigates), `confirmGarage` (asserts lobby), `openMapFromLobby`, `startStageFromMap`. Adding a garage part = new slide in index.html + GARAGE_SLIDES + drive.js GARAGE_FIELDS.
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-10
+
+- race-hud API is now `{ configure, update, setPositions(playerFirst) }` (setBotDist and #bot-dist removed); pure `playerLeads(prev, playerX, botX, finishX)` exported from src/ui/race-hud.js. Badges `#race-pos-you` / `#race-pos-bot` inside the race-bar labels, `data-leader`.
+- Countdown is 1 s total (main.js COUNTDOWN_S = 1, "VAI!" at 0.6 s). tests/e2e/race-position.spec.js uses `?stage=...&dev` + key T (infinite turbo) to make the player retake the lead deterministically.
 <!-- WORKSTREAM_NOTES:END -->
