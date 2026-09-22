@@ -125,4 +125,23 @@ Do not edit generated block manually.
 - tests/e2e/drive.js: trackErrors, openGarageFromLobby, pickGarage, confirmGarage, startStageFromMap, waitCountdown, driveToFinish (reference turbo policy, frame-aligned KeyboardEvents), resultSeconds.
 - Holding Space on an empty tank blocks the recharge; `space: fuel > 0` (one-frame release) is the reference driver's whole advantage (Mata 93.0 s -> 73.7 s). Estrada + Longa is the fastest legal Mata setup (~71 s vs bot ~79 s).
 - e2e suite ~5.4 min locally with workers 2.
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-01
+
+- Mata finishX 1400: opening 0–885 m verbatim, mud [930,1000) + [1220,1320). Cerrado finishX 1360: sand [270,440) + [1030,1180), one chapada (520 climb / 820 drop).
+- Bot difficulty unchanged (0.5 Mata, 0.6 Cerrado). CA-009 bounds 30–45 s in tests/sim/stage-duration.test.js.
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-02
+
+- Engine sound gearing: finalDrive 3.3 (was 4.5). Top gear at maxSpeedTurbo ~2620 rpm; full turbo tops out in 4th on Mata Atlântica. Engine variants (EP-008-03) can override `finalDrive`/`redlineRpm` via createEngineModel options.
+- tests/sim/engine-model.test.js keeps a LEGACY `{ finalDrive: 4.5 }` baseline for the ">= 1.3x per gear" and "fewer upshifts" checks.
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-05
+
+- BASE_PARAMS.turboReigniteFuel 0.25; car state.turboLockout (set when the tank empties while burning, cleared at >= turboReigniteFuel). Tank recharges whenever turboActive is false.
+- Bot TUNING errorRate {1.2, 0.4}, liftDuration [0.4, 0.9]; difficulty Mata 0.5, Cerrado 0.9. Difficulty has a weak/noisy effect now.
+- EP-008-03 tanks: a smaller/larger tank should keep turboReigniteFuel meaningful (fraction of capacity).
 <!-- WORKSTREAM_NOTES:END -->

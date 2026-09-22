@@ -96,11 +96,11 @@ Policy:
 | TASK-kaleugit-EP-006-04 | Full flow, mini-map and wiring in src/main.js/src/lobby.js | COMPLETED | 1 | Standard | TASK-kaleugit-EP-006-04-implement | [development] | 2026-09-22 02:57 |
 | TASK-kaleugit-EP-007-01 | Engine model (RPM, gears, shifts) | COMPLETED | 1 | Standard | TASK-kaleugit-EP-007-01-implement | [development] | 2026-09-22 00:18 |
 | TASK-kaleugit-EP-007-02 | Engine-order synthesis + wiring | COMPLETED | 1 | Standard | TASK-kaleugit-EP-007-02-implement | [development] | 2026-09-22 00:28 |
-| TASK-kaleugit-EP-008-01 | Races 50% shorter | PENDING | 1 | Standard | TASK-kaleugit-EP-008-01-implement | None | 2026-09-22 00:25 |
-| TASK-kaleugit-EP-008-02 | Longer gears (sound) | PENDING | 1 | Quick | TASK-kaleugit-EP-008-02-implement | None | 2026-09-22 00:25 |
+| TASK-kaleugit-EP-008-01 | Races 50% shorter | COMPLETED | 1 | Standard | TASK-kaleugit-EP-008-01-implement | [development] | 2026-09-22 03:39 |
+| TASK-kaleugit-EP-008-02 | Longer gears (sound) | COMPLETED | 1 | Quick | TASK-kaleugit-EP-008-02-implement | [development] | 2026-09-22 03:34 |
 | TASK-kaleugit-EP-008-03 | Engines, chassis and turbo tanks (data + physics + sound) | PENDING | 1 | Standard | TASK-kaleugit-EP-008-03-implement | None | 2026-09-22 00:25 |
 | TASK-kaleugit-EP-008-04 | Garage, profile and wiring for the new parts | PENDING | 1 | Standard | TASK-kaleugit-EP-008-04-implement | None | 2026-09-22 00:25 |
-| TASK-kaleugit-EP-008-05 | Turbo recharge fix + bot recalibration for humans | PENDING | 1 | Standard | TASK-kaleugit-EP-008-05-implement | None | 2026-09-22 00:35 |
+| TASK-kaleugit-EP-008-05 | Turbo recharge fix + bot recalibration for humans | COMPLETED | 1 | Standard | TASK-kaleugit-EP-008-05-implement | [development] | 2026-09-22 04:03 |
 | TASK-kaleugit-EP-002-03 | CA-003 proof: data-only test stage + e2e | COMPLETED | 2 | Quick | TASK-kaleugit-EP-002-03-implement | [development] | 2026-09-21 23:12 |
 | TASK-kaleugit-EP-003-03 | Tire/gearbox presets and surface grip | COMPLETED | 2 | Standard | TASK-kaleugit-EP-003-03-implement | [development] | 2026-09-22 00:01 |
 | TASK-kaleugit-EP-006-02 | Car visual: color and tires | COMPLETED | 2 | Quick | TASK-kaleugit-EP-006-02-implement | [development] | 2026-09-22 02:13 |
