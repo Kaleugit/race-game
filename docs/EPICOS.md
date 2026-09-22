@@ -170,6 +170,27 @@
 - Change Log:
   - 2026-09-21 - Épico criado a pedido do gestor (marchas pouco realistas; pitch um pouco mais grave).
 
+### EP-008 - Corridas curtas, marchas longas e peças de performance
+- Status: PLANNED
+- Domain: Conteúdo + carro (peças)
+- Objective: Encurtar as corridas em 50%, alongar as marchas do som e adicionar 3 motores, 3 chassis e 3 tanques de turbo à garagem como trade-offs.
+- Scope In:
+  - Mata Atlântica e Cerrado ~50% mais curtos (CA-009 revisado: 30–45s), preservando o caráter de cada estágio.
+  - Marchas mais longas no modelo de motor do som (cada marcha cobre mais velocidade; menos trocas).
+  - Motores (3 potências; alteram de leve o som), chassis (3 pesos) e tanques de turbo (Pequeno / Médio / Grande; atual = Médio); atuais = padrão com física idêntica.
+  - Garagem, perfil salvo e fiação das 3 peças novas.
+- Scope Out:
+  - Economia, compra ou desbloqueio de peças (tudo liberado).
+  - Novos estágios.
+- Dependencies: EP-005, EP-006, EP-007
+- Completion Signal:
+  CA-009 (30–45s) e CA-004 passam nos dois estágios; CA-010 passa (≥3% por troca, não-dominância, padrão idêntico); garagem salva e aplica as 3 peças (e2e); teste de UX humano.
+- Escalation Triggers:
+  - Alguma combinação de peças ficar estritamente superior (viola CDC-102).
+  - Encurtar a pista exigir mudança no motor de estágios.
+- Change Log:
+  - 2026-09-22 - Épico criado a pedido do gestor (corrida 50% mais curta; motores, chassis e tanques; marchas mais longas).
+
 ## Decisoes Autonomas
 - DA-001: EP-001 (infra e2e) vem antes de qualquer épico de gameplay — Criterio: CDC-001 + AGENTS.md "Non-Escalable: verification of non-UX behavior" — Racional: sem e2e, CA-001/CA-002/CA-007 ficariam FAIL; testar primeiro evita épicos que não conseguem fechar.
 - DA-002: A física por instância fica no EP-003 (carro), não no EP-002 (estágios) — Criterio: um domínio por épico (gen-epics) — Racional: o estágio só expõe altura e superfície; como o carro reage é domínio do carro.

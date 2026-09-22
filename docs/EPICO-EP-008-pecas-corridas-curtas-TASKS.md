@@ -1,0 +1,123 @@
+# EPICO-EP-008-pecas-corridas-curtas-TASKS
+
+## Metadata
+- Epic ID: EP-008
+- Epic Title: Corridas curtas, marchas longas e peças de performance
+- Last Updated: 2026-09-22
+- Owner: Architect
+- Status: APPROVED
+
+## Epic Context
+- Objective: corridas 50% mais curtas, marchas mais longas no som e 3 motores / 3 chassis / 3 tanques de turbo na garagem.
+- Scope Boundaries: dados dos estágios, modelo de motor do som, presets de peças + física, garagem/perfil/fiação.
+- Key Dependencies: EP-005 (estágios), EP-006 (garagem/perfil), EP-007 (som).
+
+## Approved Task List
+
+### Task 01 - Corridas 50% mais curtas
+- Task ID: TASK-kaleugit-EP-008-01
+- Status: PENDING
+- Priority: 1
+- Execution Mode: Standard
+- Domain: Conteúdo (level design)
+- Description:
+  - Encurtar `src/stages/mata-atlantica.stage.js` (2600 m) e `src/stages/cerrado.stage.js` (2800 m) em ~50%, mantendo os trechos mais característicos de cada bioma (Mata: abertura original, serra, atoleiro; Cerrado: uma chapada grande, areia).
+  - Atualizar os limites de CA-009 em `tests/sim/stage-duration.test.js` para 30–45s.
+  - Recalibrar a dificuldade do bot se preciso para manter CA-004 (Cerrado continua um pouco mais difícil = razão bot/referência menor que a da Mata).
+  - Não mexer em `tests/e2e/*` (a EP-006-05 está alterando esses arquivos em paralelo; corridas mais curtas só deixam os timeouts com mais folga).
+- Depends On: TASK-kaleugit-EP-005-02
+- Canonical File: memory-system/tasks/TASK-kaleugit-EP-008-01.md
+- Suggested Branch: TASK-kaleugit-EP-008-01-implement
+- Input Context (max 5 files):
+  - src/stages/mata-atlantica.stage.js
+  - src/stages/cerrado.stage.js
+  - tests/sim/stage-duration.test.js
+  - tests/sim/bot.test.js
+- Done Criteria:
+  - CA-009 (30–45s) e CA-004 passam nos dois estágios em `npm run test:sim`.
+  - Só arquivos de estágio e testes de simulação mudam em `src/`/`tests/`.
+- Escalation Conditions:
+  - To human: nenhum previsto.
+  - To orchestrator: encurtar exigir mudança no motor de estágios.
+
+### Task 02 - Marchas mais longas no som
+- Task ID: TASK-kaleugit-EP-008-02
+- Status: PENDING
+- Priority: 1
+- Execution Mode: Quick
+- Domain: Áudio (modelo de motor)
+- Description:
+  - Em `src/audio/engine-model.js`, alongar todas as marchas: cada marcha cobre pelo menos ~30% mais velocidade que hoje (ex.: reduzir `finalDrive` e/ou espaçar relações), mantendo RPM em [idle, corte] e a queda proporcional na troca.
+  - Atualizar `tests/sim/engine-model.test.js` com o novo critério (velocidade da 1ª troca e faixa por marcha maiores que as atuais).
+- Depends On: TASK-kaleugit-EP-007-02
+- Canonical File: memory-system/tasks/TASK-kaleugit-EP-008-02.md
+- Suggested Branch: TASK-kaleugit-EP-008-02-implement
+- Input Context (max 5 files):
+  - src/audio/engine-model.js
+  - tests/sim/engine-model.test.js
+- Done Criteria:
+  - Cada faixa de velocidade por marcha ≥ 1,3× a atual (teste); RPM em [800, 4000]; troca = razão das relações (±5%).
+- Escalation Conditions:
+  - To human: tom reprovado no gate de UX.
+  - To orchestrator: nenhuma.
+
+### Task 03 - Motores, chassis e tanques de turbo (dados + física + som)
+- Task ID: TASK-kaleugit-EP-008-03
+- Status: PENDING
+- Priority: 1
+- Execution Mode: Standard
+- Domain: Carro (peças)
+- Description:
+  - Em `src/parts/presets.js`: `ENGINES` (3 potências), `CHASSIS` (3 pesos), `TANKS` (`pequeno`/`medio`/`grande`), com `DEFAULT_PARTS` estendido (atuais = padrão) e `resolveCarParams` aplicando-os; cada peça é trade-off (ex.: mais HP = mais aceleração/velocidade mas mais peso; chassi leve = acelera mais mas é menos estável no ar/pousos; tanque grande = mais turbo mas mais peso).
+  - Em `src/physics/params.js` / `car-physics.js`: parâmetros novos (massa, capacidade do tanque) com o padrão idêntico ao atual (goldens 1e-9 continuam verdes).
+  - Motor altera de leve o som: variante no modelo/síntese (ex.: RPM de corte, timbre ou faixa) via parâmetro vindo do preset.
+  - Testes: CA-010 (≥3% por troca, não-dominância CDC-102, padrão = física atual).
+- Depends On: TASK-kaleugit-EP-008-02
+- Canonical File: memory-system/tasks/TASK-kaleugit-EP-008-03.md
+- Suggested Branch: TASK-kaleugit-EP-008-03-implement
+- Input Context (max 5 files):
+  - src/parts/presets.js
+  - src/physics/params.js
+  - src/physics/car-physics.js
+  - src/audio/engine-model.js
+  - tests/sim/parts.test.js
+- Done Criteria:
+  - CA-010 em `npm run test:sim`; goldens EP-003-01 inalterados e verdes.
+- Escalation Conditions:
+  - To human: nenhum previsto.
+  - To orchestrator: não-dominância impossível sem mudar pneus/câmbio.
+
+### Task 04 - Garagem, perfil e fiação das peças novas
+- Task ID: TASK-kaleugit-EP-008-04
+- Status: PENDING
+- Priority: 1
+- Execution Mode: Standard
+- Domain: Interface e fluxo do jogador
+- Description:
+  - `src/ui/garage.js` + `index.html`: seletores de motor, chassi e tanque com rótulos de trade-off derivados dos presets.
+  - `src/profile/profile.js`: salvar/ler as 3 peças (sem migração destrutiva de `race_profile_v1`; valores ausentes = padrão).
+  - `src/main.js`: aplicar as peças na física e o motor no som a cada corrida; HUD de turbo refletindo a capacidade do tanque.
+  - e2e: escolhas das 3 peças sobrevivem ao reload e chegam à corrida.
+- Depends On: TASK-kaleugit-EP-008-03, TASK-kaleugit-EP-006-05
+- Canonical File: memory-system/tasks/TASK-kaleugit-EP-008-04.md
+- Suggested Branch: TASK-kaleugit-EP-008-04-implement
+- Input Context (max 5 files):
+  - src/ui/garage.js
+  - src/profile/profile.js
+  - src/main.js
+  - index.html
+  - src/parts/presets.js
+- Done Criteria:
+  - `npm test` e `npm run test:sim` verdes; e2e das peças passa; perfil antigo sem as peças novas carrega com os padrões.
+- Escalation Conditions:
+  - To human: layout da garagem não caber em mobile landscape.
+  - To orchestrator: conflito com a EP-006-05.
+
+## Planning Notes
+- Default policy: create `planning/report` on demand as tasks move to execution.
+- Each task must be self-contained: the canonical task file + listed input context must be sufficient for execution without implicit knowledge from prior tasks.
+
+## Decisoes Autonomas
+- DA-001: Tasks 01 e 02 rodam em paralelo (arquivos disjuntos) — Criterio: CDC-005 — Racional: estágios vs. modelo de motor.
+- DA-002: Task 03 depois da 02 — Criterio: um dono por arquivo — Racional: ambas mexem em `src/audio/engine-model.js`.
+- DA-003: Peças atuais = padrão, com física idêntica — Criterio: CDC-006 + goldens do EP-003 — Racional: quem não mexer na garagem não sente diferença.

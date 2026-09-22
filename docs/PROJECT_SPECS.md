@@ -1,6 +1,6 @@
 # PROJECT_SPECS — race-game
 
-*Last updated: 2026-09-21*
+*Last updated: 2026-09-22*
 
 Fonte de verdade funcional deste projeto. Origem: `BRIEFING.md` (ciclo atual) e `docs/briefing.md` (visão de produto do MVP). Preenchido por `skills/bootstrap`.
 
@@ -23,15 +23,14 @@ Fonte de verdade funcional deste projeto. Origem: `BRIEFING.md` (ciclo atual) e 
 - Bot com IA que dirige um carro real com a mesma física do jogador (inputs simulados), visível só no mini-mapa.
 - Auto-desvira após ~1,5s de cabeça para baixo (jogador e bot).
 - Tela de resultado com tempo do jogador, do bot e diferença.
-- Garagem: cor (~10 cores, visual), pneus (Estrada/Misto/Off-road, visual + física), câmbio (Curta/Padrão/Longa, automático).
-- Estágio Mata Atlântica polido (hazards, 60–90s).
+- Garagem: cor (~10 cores, visual), pneus (Estrada/Misto/Off-road, visual + física), câmbio (Curta/Padrão/Longa, automático), motor (3 potências, som levemente diferente), chassi (3 pesos) e tanque do turbo (Pequeno/Médio/Grande).
+- Estágio Mata Atlântica polido (hazards, 30–45s).
 - Estágio Cerrado novo (fundo `public/img/cerrado.jpg`, relevo próprio, hazard de areia/terra vermelha solta).
 
 ### Fora de escopo
 
 - Multiplayer, matchmaking, Supabase, contas, apostas, economia/moeda, XP.
 - Refactor de determinismo/lockstep (fase multiplayer).
-- Upgrades de motor/turbo/chassi (a estrutura de peças deve deixar espaço).
 - Biomas além de Mata Atlântica e Cerrado; troca manual de marcha; recordes/estrelas.
 
 ## 3. Perfis e níveis de acesso
@@ -50,6 +49,7 @@ Fonte de verdade funcional deste projeto. Origem: `BRIEFING.md` (ciclo atual) e 
 - RF-008: Pneus alteram aderência vs. velocidade final com interação por terreno (off-road agarra melhor na areia). — Estado: PENDENTE
 - RF-009: Câmbio altera aceleração vs. velocidade final (curta = mais aceleração, longa = mais velocidade final), com troca automática. — Estado: PENDENTE
 - RF-010: Estágio Mata Atlântica polido, com hazards posicionados à mão. — Estado: PENDENTE
+- RF-012: Garagem com 3 motores (variam HP e, de leve, o som do motor), 3 chassis (variam peso) e 3 tanques de combustível do turbo (Pequeno / Médio / Grande; o atual é o Médio). Todas as peças liberadas e sempre como trade-off (CDC-102). — Estado: PENDENTE
 - RF-011: Estágio Cerrado com fundo `public/img/cerrado.jpg`, relevo distinto e hazard de areia/terra vermelha solta que muda a tração. — Estado: PENDENTE
 
 ## 5. Requisitos não funcionais
@@ -70,7 +70,8 @@ Fonte de verdade funcional deste projeto. Origem: `BRIEFING.md` (ciclo atual) e 
 - CA-006: (RF-006) A diferença exibida é igual a `tempoJogador − tempoBot` formatada com sinal e 2 casas decimais.
 - CA-007: (RF-007) Escolhas de cor/pneu/câmbio sobrevivem a um reload; o bot não herda as escolhas do jogador.
 - CA-008: (RF-008, RF-009) Com input automatizado idêntico, trocar pneu ou câmbio muda o tempo de corrida ou a velocidade máxima medida em ≥ 3%; no Cerrado, pneu Off-road é mais rápido que Estrada no trecho de areia.
-- CA-009: (RF-010, RF-011) O tempo de corrida com input de referência (acelerar + turbo, correções mínimas) fica entre 60 e 90s em cada estágio.
+- CA-010: (RF-012) Com input automatizado idêntico, cada troca de motor, chassi ou tanque muda o tempo, a velocidade máxima ou o tempo de turbo em ≥ 3%; nenhuma combinação de peças é estritamente superior em todos os terrenos e métricas (CDC-102); motor/chassi/tanque padrão (atuais) mantêm a física atual idêntica.
+- CA-009: (RF-010, RF-011) O tempo de corrida com input de referência (acelerar + turbo, correções mínimas) fica entre 30 e 45s em cada estágio (revisado em 2026-09-22: corridas 50% mais curtas, decisão do gestor; antes 60–90s).
 
 ## 7. Restrições e premissas
 
@@ -126,3 +127,4 @@ Overrides específicos do projeto:
 - **DA-004** — Alvo de performance em Android de entrada fica TBD até um épico de perf/tuning; neste bootstrap, RNF-002 não bloqueia planejamento. — Critério: CDC-005 — Racional: não há dispositivo de referência no briefing; decisão reversível.
 - **DA-005** — Determinismo (fixed timestep, PRNG semeado) fica fora do ciclo apesar de `docs/execution-plan.md` exigi-lo antes de tudo; o plano de execução passa a valer só para a fase multiplayer. CDC-106 limita decisões que o dificultem. — Critério: explicit human decision (`BRIEFING.md` § Fora de escopo) — Racional: o ciclo atual adiou explicitamente o refactor.
 - **DA-006** — Carro do ciclo = Bandeirante atual (único); a estrutura de dados deve aceitar outros carros depois. — Critério: CDC-005, CDC-106 — Racional: `BRIEFING.md` não pede novo carro; `docs/briefing.md` cita Besouro como starter do MVP multiplayer, fora deste ciclo.
+- **DA-007** — Corridas 50% mais curtas (CA-009 passa a 30–45s) e peças de motor/chassi/tanque entram neste ciclo (RF-012), sem economia: tudo liberado na garagem. — Critério: explicit human decision (gestor, 2026-09-22) — Racional: pedido direto; o pilar sem pay-to-win continua valendo via CDC-102.
