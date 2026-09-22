@@ -168,6 +168,30 @@
 - Escalation Conditions:
   - To human: não haver espaço sem sobreposição em mobile landscape.
 
+### Task 07 - HUD da corrida padronizado + gauges de velocidade e turbo
+- Task ID: TASK-kaleugit-EP-008-07
+- Status: PENDING
+- Priority: 1
+- Execution Mode: Standard
+- Domain: Interface e fluxo do jogador
+- Description:
+  - Pedido do gestor (teste de UX, 2026-09-22): na tela de corrida, VEL, DIST, TURBO, barra do BOT, comandos e botões devem seguir a mesma fonte e tamanhos dos itens das telas iniciais (lobby/garagem, após a Task 06).
+  - Velocidade e turbo viram gauges (mostradores) com transparência; o gauge de turbo continua refletindo a capacidade do tanque (Pequeno/Médio/Grande).
+  - Testar em desktop e mobile landscape (controles touch não podem ser cobertos pelos gauges).
+- Depends On: TASK-kaleugit-EP-008-06
+- Canonical File: memory-system/tasks/TASK-kaleugit-EP-008-07.md
+- Suggested Branch: TASK-kaleugit-EP-008-07-implement
+- Input Context (max 5 files):
+  - index.html
+  - src/main.js
+  - src/lobby.js
+  - tests/e2e/parts.spec.js
+  - tests/e2e/drive.js
+- Done Criteria:
+  - `npm test` e `npm run test:sim` verdes; e2e prova que gauges e HUD não se sobrepõem aos controles touch e à barra de corrida em 1280x720, 1920x1080, 640x360 e 740x360; aprovação visual do gestor.
+- Escalation Conditions:
+  - To human: não caber sem sobreposição em mobile landscape.
+
 ## Planning Notes
 - Default policy: create `planning/report` on demand as tasks move to execution.
 - Each task must be self-contained: the canonical task file + listed input context must be sufficient for execution without implicit knowledge from prior tasks.
