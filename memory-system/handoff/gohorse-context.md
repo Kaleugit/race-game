@@ -150,3 +150,17 @@
 - Numbers: Mata ref 43.02s, bot median 46.25s (44.65–51.3), ratio 1.075; Cerrado ref 42.93s, bot median 45.45s (44.00–48.9), ratio 1.059. Human-rate 0.1s taps beat bot median by 6.3% / 4.4%. bot.test.js has a human-rate margin >= 3% check (Cerrado tight at 4.4%).
 - EP-008-03 tanks: fuel stays 0..1 normalized; tank capacity should scale TURBO_DEPLETE/TURBO_RECHARGE (and keep turboReigniteFuel as fraction); re-check CA-004 human-rate margin if default turbo changes. Default ("medio") must keep physics identical.
 - Measurement tool: scratchpad/tune5.mjs <stage> [difficulty].
+
+## EP-008-03 (merged #29)
+- presets.js: ENGINES e16/e20/e24 (labels 1.6/2.0/2.4, each has .sound + .timbre), CHASSIS leve/medio/pesado, TANKS pequeno/medio/grande (PT-BR labels). DEFAULT_PARTS = { tire:'misto', gearbox:'padrao', engine:'e20', chassis:'medio', tank:'medio' }. resolveCarParams(base, {tire,gearbox,engine,chassis,tank}) — missing parts = defaults; unknown ids THROW (profile must sanitize).
+- BASE_PARAMS.mass (divides accel/air torque/landing rebound) and BASE_PARAMS.turboCapacity (divides burn/recharge; fuel stays 0..1). Resolved params carry turboCapacity -> turbo HUD can show tank size from it.
+- Sound: sound.update(dt, { ..., engine }) rebuilds the engine model on change; createEngineModel({ engine }). main.js does NOT pass engine yet (EP-008-04).
+- Profile/garage/main.js untouched: profile stores only color/tire/gearbox; tests/sim/profile.test.js DEFAULT_GARAGE pinned to color/tire/gearbox — EP-008-04 extends it (contract extension, not loosening).
+- Turbo per tank (hold): default 3.02 s, Pequeno 2.12 s, Grande 4.22 s. Mata Up+Space: default 43.02 s, 2.4 41.70, Leve 42.25.
+
+## EP-008-04 (PR #30)
+- Garage has 5 part rows (PNEU, MOTOR, CÂMBIO, CHASSI, TANQUE DE TURBO); selectors [data-engine]/[data-chassis]/[data-tank] in #garage-engines/#garage-chassis/#garage-tanks; tradeoff labels computed in src/ui/garage.js (engine ACEL = accelMult/mass, net).
+- profile.getGarage() returns { color, tire, gearbox, engine, chassis, tank }; unknown/missing ids -> DEFAULT_PARTS (Object.hasOwn); race_profile_v1 stays version 1, old profiles not rewritten on load.
+- main.js: playerParams resolved each resetGame; engineSound.update gets engine; #turbobar cells = round(12 x turboCapacity) (8/12/17); #hud dataset engine/turboCapacity/mass for e2e.
+- Garage CSS tiers: >860px tall 1 column; <=860px 2 columns; <=500px compact (per-button labels hidden). Fit e2e at 640x360 and 740x360.
+- npm test = 12 specs (~3.3 min). UX to check: panel covers part of lobby car at 1280x720 (all of it on phones), turbo bar per tank, engine sound variants.

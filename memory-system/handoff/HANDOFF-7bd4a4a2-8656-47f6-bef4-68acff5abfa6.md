@@ -4,6 +4,8 @@ Resume point for the next session. Read this file first, then `memory-system/han
 
 ## 1. Where we are
 
+> **Update 2026-09-22 12:00:** EP-008-03 (#29) and EP-008-04 (#30) merged. All code for EP-001..EP-008 is on main. Next step: the manager's final UX pass (§4).
+
 - Bootstrap gate: `READY_FOR_EXECUTION`. Epics EP-001..EP-008 in `docs/EPICOS.md`.
 - main at `bd6e74e` (after PR #28). All work below is merged unless marked otherwise.
 - **All code for EP-001..EP-007 is merged.** No epic is `DONE` yet: the manager tests UX of all epics once, at the end (see §4), and only then epics are marked DONE and the single manual production deploy happens.
@@ -17,7 +19,7 @@ Resume point for the next session. Read this file first, then `memory-system/han
 | EP-005 content | merged | Mata Atlântica + Cerrado |
 | EP-006 screens/garage/progress | merged | full flow Lobby→Garagem→Mapa→Corrida→Resultado; profile `race_profile_v1` |
 | EP-007 engine sound | merged | RPM model + engine-order synthesis, lower pitch |
-| EP-008 short races / long gears / parts | **in progress** | see §2 |
+| EP-008 short races / long gears / parts | merged | all 5 tasks merged (#26–#30) |
 
 ## 2. EP-008 status (order: 01, 02 → 05 → 03 → 04)
 
@@ -72,7 +74,6 @@ After UX OK: mark each epic `Status: DONE` in `docs/EPICOS.md` (ep-check final G
 
 ## 7. Open items
 
-- EP-008-03 merge (PR #29) and EP-008-04.
 - Final UX pass (§4) → epics DONE → single manual production deploy.
 - TD-001, TD-002 (see `memory-system/tech-debt.md`).
 - Upstream (agentes-oda boilerplate) issues/PRs recommended by the architect reviews (Windows fixes, telemetry opt-out, validate-epic-ids empty list, CI skill links) — needs the boilerplate repo URL (no `upstream` remote configured).
