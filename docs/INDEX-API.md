@@ -1,6 +1,6 @@
 # API Index — Kaleugit/race-game
 
-> **Coverage**: 16/18 backend files (89%), 0/0 frontend custom elements (0%).
+> **Coverage**: 17/19 backend files (89%), 0/0 frontend custom elements (0%).
 > Auto-generated from JSDoc `@module` / `@summary` / `@element` tags. Transition phase — files without these tags do NOT appear here.
 >
 > **If you don't find what you need:**
@@ -8,8 +8,8 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-22T01:06Z
-Total candidate files scanned: 18
+Last regenerated: 2026-09-22T01:34Z
+Total candidate files scanned: 19
 
 ## Backend modules
 
@@ -56,6 +56,9 @@ Total candidate files scanned: 18
 ### `src/sound.js` — sound
 - Web Audio engine sound synthesized from engine orders (EP-007).
 - Build the engine sound: `{ start, update, stop }`.
+
+### `src/stages/cerrado.stage.js` — stages/cerrado
+- Cerrado stage data (EP-005-02): open savanna on red earth — long fast flats, two
 
 ### `src/stages/index.js` — stages/index
 - Stage discovery: every src/stages/*.stage.js file becomes a stage (Vite import.meta.glob).
