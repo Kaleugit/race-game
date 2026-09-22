@@ -2,7 +2,8 @@
  * @module main
  * @summary Game entry point: renderer, car visuals, input, race loop, HUD and the race/result flow.
  * Stage chosen on the map (src/lobby.js) or via the ?stage=<id> test shortcut; the player car uses the
- * garage saved in the profile (src/profile/profile.js).
+ * garage saved in the profile (src/profile/profile.js): all five parts (tire, gearbox, engine, chassis,
+ * turbo tank) feed resolveCarParams, the engine picks the sound variant and the tank sizes the turbo bar.
  * Car physics lives in src/physics/car-physics.js (playerCar); this file only renders its state.
  * The opponent is a second physics instance (botCar) driven by src/bot/bot-driver.js; it has no mesh,
  * only its position feeds the race bar (mini-map with the stage name).
@@ -102,6 +103,7 @@ let raceIndex = 0; // bot seed = session race counter (epic DA-005)
 // Local profile: saved garage + unlocked stages + best times.
 const profile = createProfile(undefined, listStages());
 let garage = profile.getGarage(); // snapshot taken at every race start (resetGame)
+let playerParams = null; // resolved params of the current race (garage parts over BASE_PARAMS)
 let menuOpen = true; // lobby/garage/map on screen: the race scene is not stepped nor rendered
 
 function setStage(id) {
@@ -278,7 +280,13 @@ document.getElementById('race-bar').appendChild(raceBarStageEl);
 function resetGame() {
   // Player car from the saved garage (params + look) at every race start (RF-008/009).
   garage = profile.getGarage();
-  playerCar = createCarPhysics({ track, params: resolveCarParams(BASE_PARAMS, garage) });
+  playerParams = resolveCarParams(BASE_PARAMS, garage);
+  playerCar = createCarPhysics({ track, params: playerParams });
+  // The HUD exposes the resolved parts (read by the parts e2e): tank size, total mass, engine sound.
+  const hudData = document.getElementById('hud').dataset;
+  hudData.turboCapacity = String(playerParams.turboCapacity);
+  hudData.mass = String(playerParams.mass);
+  hudData.engine = garage.engine;
   applyCarLook(carBuilt, { color: garage.color, tire: garage.tire });
   state.bob = 0;
   state.raceStarted = false;
@@ -465,8 +473,11 @@ function updateSky() {
   skyCamera.lookAt(0, 0, -8);
 }
 
-function fuelBarText(fuel) {
-  const N = 12;
+// Turbo bar: 12 cells for the default tank, scaled by the tank capacity (Pequeno 8, Grande 17 cells),
+// so a bigger tank is visibly a longer bar that drains slower.
+const TURBO_BAR_CELLS = 12;
+function fuelBarText(fuel, capacity = 1) {
+  const N = Math.max(1, Math.round(TURBO_BAR_CELLS * capacity));
   const filled = Math.round(fuel * N);
   return '[' + '\u2588'.repeat(filled) + '\u2591'.repeat(N - filled) + ']';
 }
@@ -479,7 +490,7 @@ function updateHUD() {
   speedEl.textContent = Math.round(car.speed * 3.6 * 2.5);
   distEl.textContent = Math.round(car.x);
   if (fuelEl) {
-    fuelEl.textContent = fuelBarText(car.fuel);
+    fuelEl.textContent = fuelBarText(car.fuel, playerParams.turboCapacity);
     fuelEl.style.color = car.turboActive ? '#ff8a3a'
                        : car.fuel < 0.2  ? '#ff5555'
                        : '#ffd86b';
@@ -534,7 +545,7 @@ function tick(now) {
   const smokeIntensity = (car.turboActive && keys.up) ? 3 : keys.up ? 2 : 1;
   const isTurbulent = car.airborne || Math.abs(car.angVel) > 2.0;
   carBuilt.updateSmoke(dt, smokeIntensity, car.speed, isTurbulent);
-  engineSound.update(dt, { speed: car.speed, throttle: keys.up, airborne: car.airborne, turboActive: car.turboActive, gearboxPreset: garage.gearbox });
+  engineSound.update(dt, { speed: car.speed, throttle: keys.up, airborne: car.airborne, turboActive: car.turboActive, gearboxPreset: garage.gearbox, engine: garage.engine });
   updateCamera(dt);
   updateScrollVisuals(dt);
   updateSky();

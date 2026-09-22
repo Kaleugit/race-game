@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { makeCar, applyCarLook } from './car.js';
 import { CAR_COLORS } from './parts/colors.js';
-import { TIRES, GEARBOXES } from './parts/presets.js';
+import { TIRES, GEARBOXES, ENGINES, CHASSIS, TANKS } from './parts/presets.js';
 import { showGarage, hideGarage } from './ui/garage.js';
 import { showStageMap, hideStageMap } from './ui/stage-map.js';
 
@@ -252,6 +252,9 @@ export function initLobby({ profile, stages, testStageId = null, onStart }) {
       colors: CAR_COLORS,
       tires: TIRES,
       gearboxes: GEARBOXES,
+      engines: ENGINES,
+      chassis: CHASSIS,
+      tanks: TANKS,
       onChange: ({ color, tire }) => applyCarLook(builtCar, { color, tire }),
       onConfirm: (sel) => {
         profile.saveGarage(sel);
