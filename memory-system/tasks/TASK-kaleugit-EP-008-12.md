@@ -8,17 +8,18 @@
 - Branch: TASK-kaleugit-EP-008-12-implement
 - Workstreams: [development]
 - Execution Mode: Quick
-- Last Updated: 2026-09-22 15:01
+- Last Updated: 2026-09-22 19:37
 - Started: 2026-09-22 17:45
-- Completed: 2026-09-22 15:01
+- Completed: 2026-09-22 19:37
 - Report: memory-system/task-docs/TASK-kaleugit-EP-008-12-implement-report-2026-09-22.md
 - prior-art: stage surface zones + `createTrack(stage).surfaceAt` (EP-002-01), zone overlay meshes driven by `userData.from - scroll` in src/track/track-scene.js (EP-002-02), generic-over-`listStages()` sim tests (EP-005-01), flat-shaded low-poly meshes of the finish portal (EP-002-02)
 - Evidence: PASS — `npm run test:sim` 123/123 (new hazard-signs.test.js; physics goldens and the height fixture unchanged); `npm test` 22/22 (new hazard-sign.spec.js proves the sign renders 20 m before the sand and before the mud, and that the same screen band is empty where no hazard is ahead); `./scripts/validate-changed.sh` PASS; validate-all N/A locally (TD-001/TD-002), CI runs it
 - UX Gate: pending human (batched at epic end) — screenshots memory-system/task-docs/TASK-kaleugit-EP-008-12-*.png
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 - Delivery PR: #36
-- Delivery Status: PR_OPEN_MANUAL_MERGE
+- Delivery Status: MERGED
 
+- Delivery Merged At: 2026-09-22 19:37
 ## Autonomous Decisions
 - DA-001: A hazard is a surface zone whose type differs from the stage's default surface (mud/sand on a dirt stage); terrain shape (`track.features`: bell/valley/plateau/wave/asym) is NOT a hazard — Criteria: manager asked for "sand or mud or any hazard"; only surface zones change traction (`grip`/`surfaceDrag`) — Rationale: hills and jumps are the racing line, not a trap; the rule is data-driven, so a future stage whose default surface is sand and whose exception is mud is handled without code changes.
 - DA-002: Dedupe rule — hazard zones separated by less than 20 m are merged into one run and get a single sign at `runStart - 20`; a sign that would land before x = 0 is dropped — Criteria: "if two hazards are closer than 20 m, avoid stacking duplicate signs" — Rationale: the second sign would otherwise stand inside the first hazard, warning about something the player is already in; signs are therefore always >= 20 m apart.
