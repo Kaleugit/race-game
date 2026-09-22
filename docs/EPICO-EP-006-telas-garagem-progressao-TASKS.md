@@ -99,7 +99,7 @@
 
 ### Task 04 - Fluxo completo, mini-mapa e fiação no `src/main.js`/`src/lobby.js`
 - Task ID: TASK-kaleugit-EP-006-04
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Standard
 - Domain: Interface (fluxo e integração)

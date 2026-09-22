@@ -1,11 +1,32 @@
+/**
+ * @module lobby
+ * @summary Lobby 3D car preview + menu flow: JOGAR -> Garagem (live look preview) -> Mapa -> onStart(stageId).
+ * Reopenable (home, garage or map) from the result screen without reloading the page.
+ */
 import * as THREE from 'three';
-import { makeCar } from './car.js';
+import { makeCar, applyCarLook } from './car.js';
+import { CAR_COLORS } from './parts/colors.js';
+import { TIRES, GEARBOXES } from './parts/presets.js';
+import { showGarage, hideGarage } from './ui/garage.js';
+import { showStageMap, hideStageMap } from './ui/stage-map.js';
 
 const CARS = [
   { name: 'BANDEIRANTE', factory: makeCar },
 ];
 
-export function initLobby(onPlay) {
+/**
+ * `#lobby-play` opens the garage (or, with `testStageId` from `?stage=<id>`, starts that stage
+ * directly). Garage confirm saves the choice in the profile and opens the map; picking an unlocked
+ * stage closes the lobby and calls `onStart(stageId, carFactory)`.
+ * @summary Start the lobby; returns `{ openHome, openGarage, openMap }` to reopen it after a race.
+ * @param {{
+ *   profile: { getGarage: () => object, saveGarage: (sel: object) => object, isUnlocked: (id: string) => boolean },
+ *   stages: Array<{ id: string }>,
+ *   testStageId?: string | null,
+ *   onStart: (stageId: string, carFactory: Function) => void,
+ * }} opts
+ */
+export function initLobby({ profile, stages, testStageId = null, onStart }) {
   const lobbyEl = document.getElementById('lobby');
   const canvas = document.getElementById('lobby-canvas');
 
@@ -38,6 +59,8 @@ export function initLobby(onPlay) {
   function spawnCar() {
     if (currentCarGroup) scene.remove(currentCarGroup);
     builtCar = CARS[0].factory();
+    const { color, tire } = profile.getGarage();
+    applyCarLook(builtCar, { color, tire });
     currentCarGroup = builtCar.group;
     scene.add(currentCarGroup);
   }
@@ -47,6 +70,7 @@ export function initLobby(onPlay) {
   function resize() {
     const w = lobbyEl.clientWidth;
     const h = lobbyEl.clientHeight;
+    if (!w || !h) return; // lobby hidden during the race
     renderer.setSize(w, h);
     aspect = w / h;
     camera.left   = -aspect * VIEW_H;
@@ -183,12 +207,80 @@ export function initLobby(onPlay) {
   // also try immediately (works if autoplay policy allows)
   music.play().then(() => { musicStarted = true; }).catch(() => {});
 
+  // --- menu flow (RF-001): lobby -> garage -> map -> race ---
+  function show() {
+    if (lobbyEl.style.display === 'none') {
+      lobbyEl.style.display = '';
+      resize();
+      if (musicStarted) music.play().catch(() => {});
+    }
+    if (rafId == null) {
+      lastTime = performance.now();
+      rafId = requestAnimationFrame(animate);
+    }
+  }
+
+  function close() {
+    music.pause();
+    if (rafId != null) cancelAnimationFrame(rafId);
+    rafId = null;
+    hideGarage();
+    hideStageMap();
+    lobbyUi.hidden = false;
+    lobbyEl.style.display = 'none';
+  }
+
+  function start(stageId) {
+    close();
+    onStart(stageId, CARS[0].factory);
+  }
+
+  function openHome() {
+    show();
+    hideGarage();
+    hideStageMap();
+    lobbyUi.hidden = false;
+  }
+
+  function openGarage() {
+    show();
+    if (isZoomed) exitZoom();
+    hideStageMap();
+    lobbyUi.hidden = true;
+    showGarage({
+      selection: profile.getGarage(),
+      colors: CAR_COLORS,
+      tires: TIRES,
+      gearboxes: GEARBOXES,
+      onChange: ({ color, tire }) => applyCarLook(builtCar, { color, tire }),
+      onConfirm: (sel) => {
+        profile.saveGarage(sel);
+        openMap();
+      },
+    });
+  }
+
+  function openMap() {
+    show();
+    hideGarage();
+    lobbyUi.hidden = true;
+    // Reset the preview to the saved choice (the garage may have been left mid-edit).
+    const { color, tire } = profile.getGarage();
+    applyCarLook(builtCar, { color, tire });
+    showStageMap({
+      stages,
+      isUnlocked: (id) => profile.isUnlocked(id),
+      onSelect: start,
+      onBack: openGarage,
+    });
+  }
+
   const playBtn = document.getElementById('lobby-play');
   playBtn.addEventListener('click', () => {
-    music.pause();
-    cancelAnimationFrame(rafId);
-    window.removeEventListener('resize', resize);
-    lobbyEl.style.display = 'none';
-    onPlay(CARS[0].factory);
+    // ?stage=<id> test shortcut: straight to the countdown on that stage (e2e specs).
+    if (testStageId) start(testStageId);
+    else openGarage();
   });
+
+  return { openHome, openGarage, openMap };
 }

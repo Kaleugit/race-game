@@ -17,8 +17,10 @@ test('estágio só com dados: ?stage=teste-plano -> corrida -> resultado', async
   await expect(countdown).not.toHaveClass(/\bshow\b/, { timeout: 15_000 });
 
   await page.keyboard.down('ArrowUp');
+  await page.keyboard.down('Space');
   const end = page.locator('#end-overlay');
   await expect(end).toHaveClass(/\bshow\b/, { timeout: 60_000 });
+  await page.keyboard.up('Space');
   await page.keyboard.up('ArrowUp');
 
   await expect(page.locator('#end-result')).toHaveText(/^(VITÓRIA|DERROTA)$/);

@@ -1,6 +1,6 @@
 # API Index — Kaleugit/race-game
 
-> **Coverage**: 24/26 backend files (92%), 0/0 frontend custom elements (0%).
+> **Coverage**: 25/26 backend files (96%), 0/0 frontend custom elements (0%).
 > Auto-generated from JSDoc `@module` / `@summary` / `@element` tags. Transition phase — files without these tags do NOT appear here.
 >
 > **If you don't find what you need:**
@@ -8,7 +8,7 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-22T02:26Z
+Last regenerated: 2026-09-22T02:50Z
 Total candidate files scanned: 26
 
 ## Backend modules
@@ -37,8 +37,12 @@ Total candidate files scanned: 26
 - Bandeirante car meshes (procedural and GLB), smoke, springs, hitbox debug, garage look.
 - Procedural Bandeirante mesh; optional `{ color, tire }` garage look.
 
+### `src/lobby.js` — lobby
+- Lobby 3D car preview + menu flow: JOGAR -> Garagem (live look preview) -> Mapa -> onStart(stageId).
+- Start the lobby; returns `{ openHome, openGarage, openMap }` to reopen it after a race.
+
 ### `src/main.js` — main
-- Game entry point: renderer, car visuals, input, race loop, HUD; stage selected via ?stage=<id>.
+- Game entry point: renderer, car visuals, input, race loop, HUD and the race/result flow.
 
 ### `src/parts/colors.js` — parts/colors
 - The 10 fixed garage body colors (RF-007, visual only) and the default color id.
