@@ -8,18 +8,19 @@
 - Branch: TASK-kaleugit-EP-003-03-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 20:57
+- Last Updated: 2026-09-22 00:01
 - Started: 2026-09-21 20:42
-- Completed: 2026-09-21 20:57
+- Completed: 2026-09-22 00:00
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-003-03-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-003-03-implement-report-2026-09-21.md
 - prior-art: src/physics/params.js — BASE_PARAMS extended with grip/surfaceDrag; src/track/track.js surfaceAt/SURFACE_TYPES reused; no existing parts/preset code (src/parts/ is new)
 - Evidence: PASS — `npm run test:sim` 37/37 (11 new in tests/sim/parts.test.js: identity deep-equal, CA-008 >= 3% per swap (min 5.0%), Off-road 7.68 s vs Estrada 12.70 s on the sand stretch, CDC-102 non-dominance for every tire/gearbox pair + negative control; 3 EP-003-01 goldens unchanged); `npm test` local failure reproduces on unmodified main (low headless FPS), CI authoritative
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 - Delivery PR: #10
-- Delivery Status: PR_OPEN_MANUAL_MERGE
+- Delivery Status: MERGED
 - UX Gate: pending human (batched at epic end) — tire/gearbox differences perceptible; Misto/Padrão keeps the current feel
 
+- Delivery Merged At: 2026-09-22 00:00
 ## Autonomous Decisions
 - DA-001: Tire `grip` is absolute (replaces params.grip) and BASE_PARAMS carries `grip = { dirt: 1, mud: 0.8, sand: 0.75 }` = Misto — Criteria: epic "misto + padrao são identidade" + CDC-102 — Rationale: a Misto grip of 1 everywhere would make Misto dominate Off-road (equal sand grip, higher top speed); keeping Misto's values in BASE_PARAMS keeps `resolveCarParams(BASE_PARAMS, DEFAULT_PARTS)` deep-equal to BASE_PARAMS. Real stages are unaffected (mata-atlantica has no physical zones).
 - DA-002: `surfaceDrag` is a speed-proportional coefficient (1/s): `speed -= speed * surfaceDrag * dt` on the ground (`{ dirt: 0, mud: 0.3, sand: 0.35 }`) — Criteria: epic "arrasto extra por superfície, em dados" + KISS — Rationale: calibration showed a constant extra drag stalls Misto/Estrada to 0 on long sand; the proportional form yields a per-tire terminal speed (never a stall).
