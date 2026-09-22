@@ -1,21 +1,25 @@
 /**
  * @module main
- * @summary Game entry point: renderer, car visuals, input, race loop, HUD; stage selected via ?stage=<id>.
+ * @summary Game entry point: renderer, car visuals, input, race loop, HUD and the race/result flow.
+ * Stage chosen on the map (src/lobby.js) or via the ?stage=<id> test shortcut; the player car uses the
+ * garage saved in the profile (src/profile/profile.js).
  * Car physics lives in src/physics/car-physics.js (playerCar); this file only renders its state.
  * The opponent is a second physics instance (botCar) driven by src/bot/bot-driver.js; it has no mesh,
- * only its position feeds the race bar.
+ * only its position feeds the race bar (mini-map with the stage name).
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { makeSkyTexture, makeMountainTexture, makeHillTexture } from './textures.js';
-import { getDefaultStage, getStage } from './stages/index.js';
+import { getDefaultStage, getStage, listStages } from './stages/index.js';
 import { createTrack } from './track/track.js';
 import { createTrackScene } from './track/track-scene.js';
 import { initLobby } from './lobby.js';
-import { makeCar, makeCarGLB, WHEEL_RADIUS, SUSP_REST, DEBUG_CRASH_HITBOX } from './car.js';
+import { makeCar, applyCarLook, SUSP_REST } from './car.js';
 import { createCarPhysics } from './physics/car-physics.js';
 import { BASE_PARAMS } from './physics/params.js';
-import { DEFAULT_PARTS, resolveCarParams } from './parts/presets.js';
+import { resolveCarParams } from './parts/presets.js';
+import { createProfile } from './profile/profile.js';
+import { showResult, hideResult } from './ui/result.js';
 import { initEngineSound } from './sound.js';
 import { createBotDriver, runBotToFinish } from './bot/bot-driver.js';
 import { resolveBotParams } from './bot/bot-preset.js';
@@ -82,7 +86,7 @@ grid.position.set(0, 0, 0);
 grid.visible = false;
 scene.add(grid);
 
-// Stage selection: ?stage=<id> (unknown or absent id -> default stage).
+// Test shortcut: ?stage=<id> makes JOGAR skip garage/map (unknown id -> default stage + warning).
 function stageIdFromUrl() {
   return new URLSearchParams(location.search).get('stage');
 }
@@ -95,6 +99,10 @@ let currentStage = null;
 let botCar = null;
 let botDriver = null;
 let raceIndex = 0; // bot seed = session race counter (epic DA-005)
+// Local profile: saved garage + unlocked stages + best times.
+const profile = createProfile(undefined, listStages());
+let garage = profile.getGarage(); // snapshot taken at every race start (resetGame)
+let menuOpen = true; // lobby/garage/map on screen: the race scene is not stepped nor rendered
 
 function setStage(id) {
   let stage = id ? getStage(id) : null;
@@ -105,8 +113,8 @@ function setStage(id) {
   if (trackScene) trackScene.dispose();
   track = createTrack(stage);
   trackScene = createTrackScene({ scene, skyScene, stage, track });
-  playerCar = createCarPhysics({ track, params: resolveCarParams(BASE_PARAMS, DEFAULT_PARTS) });
   currentStage = stage;
+  raceBarStageEl.textContent = String(stage.name ?? stage.id).toUpperCase();
   return stage;
 }
 
@@ -242,30 +250,36 @@ const engineSound = initEngineSound();
 
 const countdownOverlayEl = document.getElementById('countdown-overlay');
 const countdownNumEl = document.getElementById('countdown-num');
-const endOverlayEl = document.getElementById('end-overlay');
-const endResultEl = document.getElementById('end-result');
-const endPlayerTimeEl = document.getElementById('end-player-time');
-const endBotTimeEl = document.getElementById('end-bot-time');
-const endBestTimeEl = document.getElementById('end-best-time');
-const endPlayAgainBtn = document.getElementById('end-play-again');
-
-endPlayAgainBtn.addEventListener('click', () => {
-  endOverlayEl.classList.remove('show');
-  startCountdown();
-});
-
-document.getElementById('end-lobby-btn').addEventListener('click', () => {
-  location.reload();
-});
-
 const btnRestartEl = document.getElementById('btn-restart');
 btnRestartEl.addEventListener('click', () => {
-  endOverlayEl.classList.remove('show');
+  hideResult();
   startCountdown();
 });
 
+// In-race LOBBY button: back to the lobby home without reloading (overrides the inline handler).
+const btnBackLobbyEl = document.getElementById('btn-back-lobby');
+btnBackLobbyEl.onclick = () => leaveRace((l) => l.openHome());
+
+// HUD notice while the bot has already crossed the line and the player is still racing.
+const botWonNoticeEl = document.createElement('div');
+botWonNoticeEl.id = 'hud-bot-won';
+botWonNoticeEl.textContent = 'BOT CHEGOU — DERROTA';
+botWonNoticeEl.style.cssText = 'display:none;color:#ff4444;margin-top:4px;';
+document.getElementById('hud').appendChild(botWonNoticeEl);
+
+// Mini-map: the race bar carries the stage name under its track.
+const raceBarStageEl = document.createElement('span');
+raceBarStageEl.id = 'race-bar-stage';
+raceBarStageEl.style.cssText = 'position:absolute;top:100%;left:50%;transform:translateX(-50%);'
+  + 'margin-top:4px;font-family:"Courier New",monospace;font-size:10px;letter-spacing:2px;'
+  + 'white-space:nowrap;color:#fffbe0;text-shadow:1px 1px 0 #000;';
+document.getElementById('race-bar').appendChild(raceBarStageEl);
+
 function resetGame() {
-  playerCar.reset();
+  // Player car from the saved garage (params + look) at every race start (RF-008/009).
+  garage = profile.getGarage();
+  playerCar = createCarPhysics({ track, params: resolveCarParams(BASE_PARAMS, garage) });
+  applyCarLook(carBuilt, { color: garage.color, tire: garage.tire });
   state.bob = 0;
   state.raceStarted = false;
   state.raceFinished = false;
@@ -277,13 +291,37 @@ function resetGame() {
   state.botFinishTime = null;
   renderBotBar();
   state.botWon = false;
+  botWonNoticeEl.style.display = 'none';
   state.inputFrozen = true;
   carPivot.rotation.z = 0;
   carPivot.position.set(0, CAR_HALF_HEIGHT, 0);
   bodyGroup.position.y = 0;
   flame.visible = false;
-  endOverlayEl.classList.remove('show');
+  hideResult();
   if (btnRestartEl) btnRestartEl.style.display = 'none';
+}
+
+// Stage chosen on the map (or via ?stage=): build the track and start the countdown.
+function startRace(stageId) {
+  setStage(stageId);
+  menuOpen = false;
+  last = performance.now();
+  startCountdown();
+}
+
+// Leave the race scene for the lobby screens (result MAPA/GARAGEM, in-race LOBBY).
+function leaveRace(open) {
+  state.raceStarted = false;
+  state.inputFrozen = true;
+  engineSound.stop();
+  countdownOverlayEl.classList.remove('show');
+  hideResult();
+  raceBarEl.classList.remove('show');
+  btnBackLobbyEl.style.display = 'none';
+  btnRestartEl.style.display = 'none';
+  botWonNoticeEl.style.display = 'none';
+  menuOpen = true;
+  open(lobby);
 }
 
 let countdownTimer = 0;
@@ -313,56 +351,42 @@ function updateCountdown(dt) {
     countdownOverlayEl.classList.remove('show');
     state.inputFrozen = false;
     state.raceStarted = true;
-    document.getElementById('btn-back-lobby').style.display = 'block';
+    btnBackLobbyEl.style.display = 'block';
     btnRestartEl.style.display = 'block';
     raceBarEl.classList.add('show');
   }
 }
 
-function showDefeatScreen() {
+// Bot crossed first: HUD notice only; the result opens when the player crosses the line.
+function showBotWonNotice() {
   state.botWon = true;
-  endBotTimeEl.textContent = state.botFinishTime != null ? state.botFinishTime.toFixed(1) + 's' : '—';
-  endPlayerTimeEl.textContent = state.raceTime.toFixed(1) + 's';
-  const bestRaw = localStorage.getItem('race_best_time');
-  const best = bestRaw ? parseFloat(bestRaw) : null;
-  endBestTimeEl.textContent = best ? best.toFixed(1) + 's' : '—';
-  endBestTimeEl.className = 't-val';
-  endResultEl.textContent = 'DERROTA';
-  endResultEl.className = 'derrota';
-  endOverlayEl.classList.add('show');
-  // player keeps racing — DO NOT freeze inputs or set raceFinished
+  botWonNoticeEl.style.display = '';
 }
 
-function showEndScreen(playerWon) {
+// Player crossed the line: record the win in the profile and open the result screen.
+function finishRace(playerWon) {
   state.raceFinished = true;
   state.inputFrozen = true;
-  endBotTimeEl.textContent = state.botFinishTime != null ? state.botFinishTime.toFixed(1) + 's' : '—';
-  endPlayerTimeEl.textContent = state.raceTime.toFixed(1) + 's';
-
-  const bestRaw = localStorage.getItem('race_best_time');
-  const best = bestRaw ? parseFloat(bestRaw) : null;
-  const isBestNew = !best || state.raceTime < best;
-
-  if (playerWon) {
-    if (isBestNew) {
-      localStorage.setItem('race_best_time', state.raceTime.toFixed(3));
-      endBestTimeEl.textContent = state.raceTime.toFixed(1) + 's';
-      endBestTimeEl.className = 't-best-new';
-    } else {
-      endBestTimeEl.textContent = best.toFixed(1) + 's';
-      endBestTimeEl.className = 't-val';
-    }
-    endResultEl.textContent = 'VITÓRIA';
-    endResultEl.className = 'vitoria';
-  } else {
-    endBestTimeEl.textContent = best ? best.toFixed(1) + 's' : '—';
-    endBestTimeEl.className = 't-val';
-    endResultEl.textContent = 'DERROTA';
-    endResultEl.className = 'derrota';
-  }
-
   engineSound.stop();
-  endOverlayEl.classList.add('show');
+  botWonNoticeEl.style.display = 'none';
+  const stageId = currentStage.id;
+  let bestTime = profile.getBest(stageId);
+  let isNewBest = false;
+  if (playerWon) {
+    const rec = profile.recordWin(stageId, state.raceTime);
+    bestTime = rec.best;
+    isNewBest = rec.isNewBest;
+  }
+  showResult({
+    won: playerWon,
+    playerTime: state.raceTime,
+    botTime: state.botFinishTime,
+    bestTime,
+    isNewBest,
+    onRematch: () => startCountdown(), // same stage, new bot seed
+    onMap: () => leaveRace((l) => l.openMap()),
+    onGarage: () => leaveRace((l) => l.openGarage()),
+  });
 }
 
 const speedEl = document.getElementById('speed');
@@ -473,6 +497,7 @@ let last = performance.now();
 function tick(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
+  if (menuOpen) { requestAnimationFrame(tick); return; }
 
   updateCountdown(dt);
 
@@ -486,11 +511,7 @@ function tick(now) {
     }
 
     if (state.botScroll >= track.finishX && playerCar.state.x < track.finishX && !state.botWon) {
-      showDefeatScreen();
-    }
-
-    if (state.botWon && !state.raceFinished) {
-      endPlayerTimeEl.textContent = state.raceTime.toFixed(1) + 's';
+      showBotWonNotice();
     }
 
     if (playerCar.state.x >= track.finishX) {
@@ -498,7 +519,7 @@ function tick(now) {
         // Player finished first: simulate only the bot to the line for its real time (epic DA-002).
         state.botFinishTime = runBotToFinish({ car: botCar, driver: botDriver, track, startTime: state.raceTime });
       }
-      showEndScreen(!state.botWon);
+      finishRace(!state.botWon);
     }
   }
 
@@ -513,7 +534,7 @@ function tick(now) {
   const smokeIntensity = (car.turboActive && keys.up) ? 3 : keys.up ? 2 : 1;
   const isTurbulent = car.airborne || Math.abs(car.angVel) > 2.0;
   carBuilt.updateSmoke(dt, smokeIntensity, car.speed, isTurbulent);
-  engineSound.update(dt, { speed: car.speed, throttle: keys.up, airborne: car.airborne, turboActive: car.turboActive, gearboxPreset: DEFAULT_PARTS.gearbox });
+  engineSound.update(dt, { speed: car.speed, throttle: keys.up, airborne: car.airborne, turboActive: car.turboActive, gearboxPreset: garage.gearbox });
   updateCamera(dt);
   updateScrollVisuals(dt);
   updateSky();
@@ -528,23 +549,26 @@ function tick(now) {
   renderer.autoClear = true;
   requestAnimationFrame(tick);
 }
-initLobby((carFactory) => {
-  if (carFactory !== makeCar) {
-    carPivot.remove(carBuilt.group);
-    carBuilt = carFactory();
-    flame = carBuilt.flame;
-    wheels = carBuilt.wheels;
-    bodyGroup = carBuilt.bodyGroup;
-    springs = carBuilt.springs;
-    carHeadlight = carBuilt.headlight;
-    hitboxDebug = carBuilt.hitboxDebug;
-    carPivot.add(carBuilt.group);
-  }
-  setStage(stageIdFromUrl());
-  last = performance.now();
-  startCountdown();
-  requestAnimationFrame(tick);
+const lobby = initLobby({
+  profile,
+  stages: listStages(),
+  testStageId: stageIdFromUrl(),
+  onStart: (stageId, carFactory) => {
+    if (carFactory !== makeCar) {
+      carPivot.remove(carBuilt.group);
+      carBuilt = carFactory();
+      flame = carBuilt.flame;
+      wheels = carBuilt.wheels;
+      bodyGroup = carBuilt.bodyGroup;
+      springs = carBuilt.springs;
+      carHeadlight = carBuilt.headlight;
+      hitboxDebug = carBuilt.hitboxDebug;
+      carPivot.add(carBuilt.group);
+    }
+    startRace(stageId);
+  },
 });
+requestAnimationFrame(tick);
 
 window.addEventListener('resize', () => {
   aspect = window.innerWidth / window.innerHeight;
