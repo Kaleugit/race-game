@@ -143,6 +143,31 @@
   - To human: layout da garagem não caber em mobile landscape.
   - To orchestrator: conflito com a EP-006-05.
 
+### Task 06 - Redesign do painel de peças da garagem
+- Task ID: TASK-kaleugit-EP-008-06
+- Status: PENDING
+- Priority: 1
+- Execution Mode: Standard
+- Domain: Interface e fluxo do jogador
+- Description:
+  - Pedido do gestor (teste de UX, 2026-09-22): o painel de escolha de peças está feio e se sobrepõe ao carro, ao fundo da garagem e ao botão TELA CHEIA.
+  - A cena da garagem (carro, fundo, botão) fica como está; só o painel de peças é redesenhado (layout, hierarquia, estética), usando as skills de design disponíveis (design-taste-frontend, redesign-existing-projects).
+  - Sem sobreposição ao carro nem ao botão TELA CHEIA em desktop (1280x720, 1920x1080) e mobile landscape (640x360, 740x360).
+  - Mantém os contratos da EP-008-04 (seletores data-*, perfil, fiação) e os e2e existentes.
+- Depends On: TASK-kaleugit-EP-008-04
+- Canonical File: memory-system/tasks/TASK-kaleugit-EP-008-06.md
+- Suggested Branch: TASK-kaleugit-EP-008-06-implement
+- Input Context (max 5 files):
+  - index.html
+  - src/ui/garage.js
+  - src/lobby.js
+  - src/parts/presets.js
+  - tests/e2e/parts.spec.js
+- Done Criteria:
+  - `npm test` e `npm run test:sim` verdes; e2e prova ausência de sobreposição com o carro e o botão TELA CHEIA nas resoluções citadas; aprovação visual do gestor.
+- Escalation Conditions:
+  - To human: não haver espaço sem sobreposição em mobile landscape.
+
 ## Planning Notes
 - Default policy: create `planning/report` on demand as tasks move to execution.
 - Each task must be self-contained: the canonical task file + listed input context must be sufficient for execution without implicit knowledge from prior tasks.
