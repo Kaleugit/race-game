@@ -107,6 +107,8 @@ Policy:
 | TASK-kaleugit-EP-008-09 | Lobby com CORRIDA/GARAGEM + garagem em carrossel | PENDING | 1 | Standard | TASK-kaleugit-EP-008-09-implement | None | 2026-09-22 14:10 |
 | TASK-kaleugit-EP-008-10 | HUD: só distância do jogador + posição 1º/2º; contagem de 1 s | PENDING | 1 | Quick | TASK-kaleugit-EP-008-10-implement | None | 2026-09-22 14:10 |
 | TASK-kaleugit-EP-008-11 | Bot fantasma opcional | PENDING | 1 | Standard | TASK-kaleugit-EP-008-11-implement | None | 2026-09-22 14:10 |
+| TASK-kaleugit-EP-008-12 | Placa de aviso (!) 20 m antes de cada hazard | PENDING | 1 | Quick | TASK-kaleugit-EP-008-12-implement | None | 2026-09-22 14:10 |
+| TASK-kaleugit-EP-008-13 | Modo livre: terreno de 5000 m | PENDING | 1 | Standard | TASK-kaleugit-EP-008-13-implement | None | 2026-09-22 14:10 |
 | TASK-kaleugit-EP-002-03 | CA-003 proof: data-only test stage + e2e | COMPLETED | 2 | Quick | TASK-kaleugit-EP-002-03-implement | [development] | 2026-09-21 23:12 |
 | TASK-kaleugit-EP-003-03 | Tire/gearbox presets and surface grip | COMPLETED | 2 | Standard | TASK-kaleugit-EP-003-03-implement | [development] | 2026-09-22 00:01 |
 | TASK-kaleugit-EP-006-02 | Car visual: color and tires | COMPLETED | 2 | Quick | TASK-kaleugit-EP-006-02-implement | [development] | 2026-09-22 02:13 |
