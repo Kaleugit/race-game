@@ -16,7 +16,7 @@
 
 ### Task 01 - Corridas 50% mais curtas
 - Task ID: TASK-kaleugit-EP-008-01
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Standard
 - Domain: Conteúdo (level design)
