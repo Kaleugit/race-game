@@ -8,17 +8,17 @@
 - Branch: TASK-kaleugit-EP-006-03-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 23:15
+- Last Updated: 2026-09-21 23:14
 - Started: 2026-09-21 23:00
-- Completed: 2026-09-21 23:15
+- Completed: 2026-09-21 23:14
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-006-03-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-006-03-implement-report-2026-09-21.md
 - prior-art: index.html (#end-overlay / #lobby-play HUD button style: Courier New, #ffd86b borders, 2px 2px 0 #000 shadow); src/main.js:243-360 (current end screen fill and #end-lobby-btn binding, left intact); src/parts/colors.js + src/parts/presets.js (data shapes rendered by the garage)
 - Evidence: PASS — tests/sim/format.test.js 7/7 (formatDelta(10, 8.66) === '+1.34s', formatDelta(8, 8.8) === '-0.80s', formatDelta(5, 5) === '+0.00s', never '-0.00s'); `npm run test:sim` 80/80; `grep -nE "from '\.\./main|physics|profile" src/ui/*.js` empty; `npm run build` PASS; `npm test` 4/4 (overlays hidden by default, current flow unchanged); Playwright render at 1280x720 and 740x360 (touchpad shown): garage/map/result fit, callbacks fire (onChange/onConfirm, locked stage ignores click, data-seconds + delta set), no console errors
 - UX Gate: pending human (batched at epic end) — layout of the three screens on desktop and mobile landscape with touch controls
 - Delivery Handoff: DONE (owner: skills/delivery)
-- Delivery PR: pending
-- Delivery Status: PENDING
+- Delivery PR: #23
+- Delivery Status: PR_OPEN_MANUAL_MERGE
 
 ## Autonomous Decisions
 - DA-001: `#end-lobby-btn` kept in index.html with `hidden` instead of removed — Criteria: orchestrator instruction + CDC-005 (do not break the running flow) — Rationale: src/main.js:257 calls `document.getElementById('end-lobby-btn').addEventListener`; removing it would throw at load. EP-006-04 removes the binding, then the element.
@@ -28,3 +28,4 @@
 - DA-005: `#end-delta`, `#end-map`, `#end-garage` start `hidden`; showResult reveals the delta and each button only when its callback is given; handlers assigned via `onclick` (not stacked) — Criteria: orchestrator instruction (current flow + 4 e2e unchanged) — Rationale: main.js is not wired yet.
 - DA-006: Extra exports beyond the listed API: `hideResult`, `tireTradeoff`, `gearboxTradeoff`, optional `onBack` (#map-back) and `isNewBest` in showResult; helper module src/ui/dom.js — Criteria: KISS + EP-006-04 needs (Mapa -> back to Garagem, best-time highlight) — Rationale: small, optional, no change for existing code.
 - DA-007: No persona consults — Criteria: runbook (speed over ceremony) — Rationale: fully specified UI shapes; verified by render.
+- Delivery Merged At: Pending
