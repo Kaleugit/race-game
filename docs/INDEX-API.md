@@ -1,6 +1,6 @@
 # API Index — Kaleugit/race-game
 
-> **Coverage**: 26/27 backend files (96%), 0/0 frontend custom elements (0%).
+> **Coverage**: 27/28 backend files (96%), 0/0 frontend custom elements (0%).
 > Auto-generated from JSDoc `@module` / `@summary` / `@element` tags. Transition phase — files without these tags do NOT appear here.
 >
 > **If you don't find what you need:**
@@ -8,8 +8,8 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-22T18:06Z
-Total candidate files scanned: 27
+Last regenerated: 2026-09-22T19:46Z
+Total candidate files scanned: 28
 
 ## Backend modules
 
@@ -28,6 +28,10 @@ Total candidate files scanned: 27
 ### `src/bot/bot-preset.js` — bot/bot-preset
 - The bot's own part preset (RF-007: the bot never inherits the player's garage choice).
 - Bot car params for a stage: `resolveCarParams(BASE_PARAMS, stage.bot.parts ?? BOT_DEFAULT_PARTS)`.
+
+### `src/bot/ghost-car.js` — bot/ghost-car
+- Optional translucent "ghost" of the opponent (EP-008-11): the same Bandeirante mesh,
+- Create the bot ghost: `{ setEnabled, update, dispose }`.
 
 ### `src/bot/prng.js` — bot/prng
 - Seeded pseudo-random generator (mulberry32) for the bot's errors (CDC-106: no
@@ -68,7 +72,7 @@ Total candidate files scanned: 27
 
 ### `src/profile/profile.js` — profile/profile
 - Local player profile (RF-003, RF-007): garage choice and stage progress persisted under
-- Build the profile API `{ getGarage, saveGarage, getUnlocked, isUnlocked, getBest, recordWin }`.
+- Build the profile API `{ getGarage, saveGarage, getSettings, saveSettings, getUnlocked, isUnlocked, getBest, recordWin }`.
 
 ### `src/sound.js` — sound
 - Web Audio engine sound synthesized from engine orders (EP-007).

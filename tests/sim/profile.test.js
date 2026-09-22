@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { BASE_PARAMS } from '../../src/physics/params.js';
 import { DEFAULT_PARTS, resolveCarParams } from '../../src/parts/presets.js';
 import { CAR_COLORS, DEFAULT_COLOR, getCarColor } from '../../src/parts/colors.js';
-import { createProfile, PROFILE_KEY, LEGACY_BEST_KEY } from '../../src/profile/profile.js';
+import { createProfile, PROFILE_KEY, LEGACY_BEST_KEY, DEFAULT_SETTINGS } from '../../src/profile/profile.js';
 import { BOT_DEFAULT_PARTS, resolveBotParams } from '../../src/bot/bot-preset.js';
 import { loadStages } from './load-stages.js';
 
@@ -32,6 +32,10 @@ const DEFAULT_GARAGE = {
   chassis: DEFAULT_PARTS.chassis,
   tank: DEFAULT_PARTS.tank,
 };
+
+// Race options stored beside the garage (EP-008-11). Spelled out here so a new option has to be
+// added on purpose, never by copying the implementation's own object.
+const DEFAULT_SETTINGS_SHAPE = { ghostBot: false };
 
 test('visible stage order is mata-atlantica then cerrado', () => {
   assert.deepEqual(STAGES.map((s) => s.id), ['mata-atlantica', 'cerrado']);
@@ -68,13 +72,14 @@ test('recordWin unlocks the next stage and persists across profile instances', (
   assert.deepEqual(again.recordWin('mata-atlantica', 80), { best: 74.2, isNewBest: false, unlockedId: null });
 });
 
-test('stored JSON shape: version, garage.upgrades slot, progress', () => {
+test('stored JSON shape: version, garage.upgrades slot, progress, settings', () => {
   const storage = memoryStorage();
   createProfile(storage, STAGES).recordWin('mata-atlantica', 70);
   assert.deepEqual(JSON.parse(storage.getItem(PROFILE_KEY)), {
     version: 1,
     garage: { ...DEFAULT_GARAGE, upgrades: {} },
     progress: { unlocked: ['mata-atlantica', 'cerrado'], best: { 'mata-atlantica': 70 } },
+    settings: DEFAULT_SETTINGS_SHAPE,
   });
 });
 
@@ -182,6 +187,59 @@ test('EP-008-04: old profile without engine/chassis/tank loads the defaults, non
   const stored = JSON.parse(storage.getItem(PROFILE_KEY));
   assert.deepEqual(stored.progress, old.progress);
   assert.deepEqual(stored.garage, { ...garage, engine: 'e24', chassis: 'leve', tank: 'pequeno', upgrades: { engine: 2 } });
+});
+
+test('EP-008-11: ghost bot option defaults to off and survives a new profile instance', () => {
+  assert.deepEqual(DEFAULT_SETTINGS, DEFAULT_SETTINGS_SHAPE);
+  assert.equal(Object.isFrozen(DEFAULT_SETTINGS), true);
+  const storage = memoryStorage();
+  // Default: the bot is shown on the race bar only (current behaviour).
+  assert.deepEqual(createProfile(storage, STAGES).getSettings(), { ghostBot: false });
+  assert.deepEqual(createProfile(storage, STAGES).saveSettings({ ghostBot: true }), { ghostBot: true });
+  assert.deepEqual(createProfile(storage, STAGES).getSettings(), { ghostBot: true });
+  assert.deepEqual(JSON.parse(storage.getItem(PROFILE_KEY)).settings, { ghostBot: true });
+  // Turning it off again persists too, and the garage/progress are untouched by settings writes.
+  const p = createProfile(storage, STAGES);
+  p.recordWin('mata-atlantica', 41.5);
+  p.saveSettings({ ghostBot: false });
+  const stored = JSON.parse(storage.getItem(PROFILE_KEY));
+  assert.deepEqual(stored.settings, { ghostBot: false });
+  assert.deepEqual(stored.garage, { ...DEFAULT_GARAGE, upgrades: {} });
+  assert.equal(stored.progress.best['mata-atlantica'], 41.5);
+});
+
+test('EP-008-11: profiles without settings load the default, non-destructively', () => {
+  const old = {
+    version: 1,
+    garage: { ...DEFAULT_GARAGE, upgrades: { engine: 2 } },
+    progress: { unlocked: ['mata-atlantica', 'cerrado'], best: { 'mata-atlantica': 44.5 } },
+  };
+  const storage = memoryStorage({ [PROFILE_KEY]: JSON.stringify(old) });
+  const p = createProfile(storage, STAGES);
+  assert.deepEqual(p.getSettings(), { ghostBot: false });
+  // Reading alone does not rewrite the stored profile (no migration).
+  assert.deepEqual(JSON.parse(storage.getItem(PROFILE_KEY)), old);
+  // Saving the option keeps garage, upgrades and progress exactly as they were.
+  p.saveSettings({ ghostBot: true });
+  const stored = JSON.parse(storage.getItem(PROFILE_KEY));
+  assert.deepEqual(stored.garage, old.garage);
+  assert.deepEqual(stored.progress, old.progress);
+  assert.deepEqual(stored.settings, { ghostBot: true });
+});
+
+test('EP-008-11: invalid or unknown settings fall back to the default without throwing', () => {
+  const corrupted = ['x', 1, null, [], { ghostBot: 'sim' }, { ghostBot: 1 }, { ghostBot: null }];
+  for (const settings of corrupted) {
+    const storage = memoryStorage({ [PROFILE_KEY]: JSON.stringify({ version: 1, settings }) });
+    assert.deepEqual(createProfile(storage, STAGES).getSettings(), { ghostBot: false }, JSON.stringify(settings));
+  }
+  const storage = memoryStorage();
+  const p = createProfile(storage, STAGES);
+  // Unknown keys are dropped and a bad value resets that field only.
+  assert.deepEqual(p.saveSettings({ ghostBot: true, nitro: true }), { ghostBot: true });
+  assert.deepEqual(p.saveSettings({ ghostBot: 'talvez' }), { ghostBot: false });
+  assert.deepEqual(p.saveSettings(undefined), { ghostBot: false });
+  assert.deepEqual(JSON.parse(storage.getItem(PROFILE_KEY)).settings, { ghostBot: false });
 });
 
 test('EP-008-04: every stored part combination feeds resolveCarParams without throwing', () => {

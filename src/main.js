@@ -6,8 +6,9 @@
  * turbo tank) feed resolveCarParams, the engine picks the sound variant and the tank sizes the turbo gauge.
  * HUD gauges (speed, turbo, DIST) and the race-bar 1º/2º badges are drawn by src/ui/race-hud.js.
  * Car physics lives in src/physics/car-physics.js (playerCar); this file only renders its state.
- * The opponent is a second physics instance (botCar) driven by src/bot/bot-driver.js; it has no mesh,
- * only its position feeds the race bar (mini-map with the stage name).
+ * The opponent is a second physics instance (botCar) driven by src/bot/bot-driver.js; its position
+ * feeds the race bar (mini-map with the stage name) and, when the BOT FANTASMA option of the map
+ * screen is on, a translucent ghost mesh (src/bot/ghost-car.js) that only reads the bot state.
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -25,7 +26,8 @@ import { showResult, hideResult } from './ui/result.js';
 import { createRaceHud, playerLeads } from './ui/race-hud.js';
 import { initEngineSound } from './sound.js';
 import { createBotDriver, runBotToFinish } from './bot/bot-driver.js';
-import { resolveBotParams } from './bot/bot-preset.js';
+import { resolveBotParams, BOT_DEFAULT_PARTS } from './bot/bot-preset.js';
+import { createGhostCar } from './bot/ghost-car.js';
 
 const DEV_MODE = location.search.includes('dev');
 
@@ -102,6 +104,8 @@ let currentStage = null;
 let botCar = null;
 let botDriver = null;
 let raceIndex = 0; // bot seed = session race counter (epic DA-005)
+// Optional ghost mesh of the bot (EP-008-11): built on the first race that turns the option on.
+let ghostCar = null;
 // Local profile: saved garage + unlocked stages + best times.
 const profile = createProfile(undefined, listStages());
 let garage = profile.getGarage(); // snapshot taken at every race start (resetGame)
@@ -282,6 +286,20 @@ const raceBarStageEl = document.createElement('span');
 raceBarStageEl.id = 'race-bar-stage';
 document.getElementById('race-bar').appendChild(raceBarStageEl);
 
+// BOT FANTASMA (EP-008-11): the ghost mesh is built on the first race that enables the option (never
+// while it is off) and then only shown/hidden, so no race pays for a mesh it does not draw. It uses
+// the bot tire look of the stage that built it; every stage runs BOT_DEFAULT_PARTS today.
+function setUpGhost() {
+  const on = profile.getSettings().ghostBot;
+  if (on && !ghostCar) {
+    const tire = (currentStage.bot?.parts ?? BOT_DEFAULT_PARTS).tire;
+    ghostCar = createGhostCar({ scene, look: { tire } });
+  }
+  ghostCar?.setEnabled(on);
+  // Same convention as the resolved parts: the HUD exposes the option so the e2e can read it.
+  document.getElementById('hud').dataset.ghost = on ? 'on' : 'off';
+}
+
 function resetGame() {
   // Player car from the saved garage (params + look) at every race start (RF-008/009).
   garage = profile.getGarage();
@@ -305,6 +323,7 @@ function resetGame() {
   state.botFinishTime = null;
   state.playerFirst = true; // grid order until someone is ahead (EP-008-10)
   raceHud.setPositions(true);
+  setUpGhost();
   renderBotBar();
   state.botWon = false;
   botWonNoticeEl.style.display = 'none';
@@ -527,6 +546,8 @@ function tick(now) {
   renderTurbo();
   renderSuspension();
   updateCarVisual(dt);
+  // Ghost opponent: reads botCar.state only (no collision, no physics); culled off-screen.
+  ghostCar?.update(botCar.state, car.x, dt, camera.right);
   const smokeIntensity = (car.turboActive && keys.up) ? 3 : keys.up ? 2 : 1;
   const isTurbulent = car.airborne || Math.abs(car.angVel) > 2.0;
   carBuilt.updateSmoke(dt, smokeIntensity, car.speed, isTurbulent);

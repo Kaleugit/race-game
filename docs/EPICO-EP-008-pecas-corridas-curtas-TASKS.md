@@ -260,7 +260,7 @@
 
 ### Task 11 - Bot fantasma opcional
 - Task ID: TASK-kaleugit-EP-008-11
-- Status: PENDING
+- Status: IN_PROGRESS
 - Priority: 1
 - Execution Mode: Standard
 - Domain: Interface e fluxo do jogador
