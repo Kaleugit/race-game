@@ -194,7 +194,7 @@
 
 ### Task 08 - Trocar o som dos motores 1.6 e 2.4
 - Task ID: TASK-kaleugit-EP-008-08
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Quick
 - Domain: Som
