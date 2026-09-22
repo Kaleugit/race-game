@@ -8,18 +8,19 @@
 - Branch: TASK-kaleugit-EP-008-06-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-22 12:35
+- Last Updated: 2026-09-22 16:06
 - Started: 2026-09-22 12:05
-- Completed: 2026-09-22 12:35
+- Completed: 2026-09-22 16:06
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-008-06-implement-planning-2026-09-22.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-008-06-implement-report-2026-09-22.md
 - prior-art: garage rows/selectors and trade-off labels from EP-008-04 (kept), tests/e2e/drive.js helpers (EP-006-05), lobby camera/pointer code in src/lobby.js (EP-006-04)
 - Evidence: PASS — `npm run test:sim` 104/104; `npm test` 16/16 (new garage-layout.spec.js: no dock intersects the car pixels or TELA CHEIA, no scroll, at 1280x720/1920x1080/640x360/740x360); `./scripts/validate-changed.sh` PASS; validate-all N/A locally (TD-001/TD-002), CI runs it
 - UX Gate: pending human (batched at epic end) — garage docks look/feel; before/after screenshots in memory-system/task-docs/TASK-kaleugit-EP-008-06-*.png
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 - Delivery PR: #32
-- Delivery Status: PR_OPEN_MANUAL_MERGE
+- Delivery Status: MERGED
 
+- Delivery Merged At: 2026-09-22 16:06
 ## Autonomous Decisions
 - DA-001: Two docks (left top: MOTOR/CÂMBIO/PNEU + DESEMPENHO; right bottom: CHASSI/TANQUE/COR + CONFIRMAR) instead of one panel or category tabs — Criteria: no overlap with car/TELA CHEIA at 640x360, and the existing pickGarage helper clicks every row without opening tabs — Rationale: one side has only ~190 x 284 px on 640x360; splitting fits with no scroll and keeps every option one tap away.
 - DA-002: Dock width from the viewport (50vw - 34vh - gutters) — Criteria: measured car box (~60vh side-on, up to ~67vh rotated) — Rationale: clears the car even when the player drag-rotates it.
