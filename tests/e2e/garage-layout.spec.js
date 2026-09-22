@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { openGarageFromLobby } from './drive.js';
+import { openGarageFromLobby, goToGarageSlide } from './drive.js';
+import { GARAGE_SLIDES } from '../../src/ui/garage.js';
 
-// EP-008-06: the garage docks (#garage-panel, #garage-side) never cover the lobby car nor the
-// TELA CHEIA button, on desktop and mobile landscape, and every control is reachable without
-// scrolling. The car's on-screen box is measured from its real pixels: the page is re-rendered with
+// EP-008-06 / EP-008-09: the garage carousel card (#garage-card) never covers the lobby car nor the
+// TELA CHEIA button, on desktop and mobile landscape, on EVERY slide of the carousel, and every
+// control (arrows, the slide's options, PRONTO) is reachable without scrolling. The car's on-screen box is measured from its real pixels: the page is re-rendered with
 // only the transparent WebGL canvas visible and the opaque pixels are bounded.
 const VIEWPORTS = [
   { width: 1280, height: 720 },
@@ -11,7 +12,7 @@ const VIEWPORTS = [
   { width: 640, height: 360 },
   { width: 740, height: 360 },
 ];
-const DOCKS = ['#garage-panel', '#garage-side'];
+const DOCKS = ['#garage-card'];
 
 const rectOf = (locator) => locator.evaluate((e) => {
   const r = e.getBoundingClientRect();
@@ -64,23 +65,29 @@ for (const viewport of VIEWPORTS) {
 
     const fullscreen = await rectOf(page.locator('#lobby-fullscreen-wrap'));
     const docks = [];
-    for (const sel of DOCKS) {
-      const dock = page.locator(sel);
-      await expect(dock).toBeVisible();
-      const rect = await rectOf(dock);
-      // Inside the viewport, and no scroll needed to reach any control (CONFIRMAR included).
-      expect(rect.left).toBeGreaterThanOrEqual(0);
-      expect(rect.top).toBeGreaterThanOrEqual(0);
-      expect(rect.right).toBeLessThanOrEqual(viewport.width);
-      expect(rect.bottom).toBeLessThanOrEqual(viewport.height);
-      const fits = await dock.evaluate((e) => e.scrollHeight <= e.clientHeight + 1 && e.scrollWidth <= e.clientWidth + 1);
-      expect(fits, `${sel} needs scrolling`).toBe(true);
-      expect(intersects(rect, fullscreen), `${sel} covers TELA CHEIA`).toBe(false);
-      docks.push({ sel, rect });
+    for (const slide of GARAGE_SLIDES) {
+      await goToGarageSlide(page, slide);
+      for (const sel of DOCKS) {
+        const dock = page.locator(sel);
+        await expect(dock).toBeVisible();
+        const rect = await rectOf(dock);
+        // Inside the viewport, and no scroll needed to reach any control (PRONTO included).
+        expect(rect.left).toBeGreaterThanOrEqual(0);
+        expect(rect.top).toBeGreaterThanOrEqual(0);
+        expect(rect.right).toBeLessThanOrEqual(viewport.width);
+        expect(rect.bottom).toBeLessThanOrEqual(viewport.height);
+        const fits = await dock.evaluate((e) => e.scrollHeight <= e.clientHeight + 1 && e.scrollWidth <= e.clientWidth + 1);
+        expect(fits, `${sel} needs scrolling`).toBe(true);
+        expect(intersects(rect, fullscreen), `${sel} covers TELA CHEIA`).toBe(false);
+        docks.push({ sel: `${sel} [${slide}]`, rect });
+      }
+      const confirm = await rectOf(page.locator('#garage-confirm'));
+      expect(confirm.bottom).toBeLessThanOrEqual(viewport.height);
+      await expect(page.locator('#garage-confirm')).toBeInViewport({ ratio: 1 });
+      for (const ctl of ['#garage-prev', '#garage-next']) await expect(page.locator(ctl)).toBeInViewport({ ratio: 1 });
+      const opts = page.locator(`.garage-slide[data-slide="${slide}"] button`);
+      for (let i = 0; i < await opts.count(); i++) await expect(opts.nth(i)).toBeInViewport({ ratio: 1 });
     }
-    const confirm = await rectOf(page.locator('#garage-confirm'));
-    expect(confirm.bottom).toBeLessThanOrEqual(viewport.height);
-    await expect(page.locator('#garage-confirm')).toBeInViewport({ ratio: 1 });
 
     const car = await carScreenBox(page);
     // The car really rendered (side view is ~0.58 x viewport height long).

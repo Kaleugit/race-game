@@ -8,7 +8,7 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-22T17:15Z
+Last regenerated: 2026-09-22T18:06Z
 Total candidate files scanned: 27
 
 ## Backend modules
@@ -38,7 +38,7 @@ Total candidate files scanned: 27
 - Procedural Bandeirante mesh; optional `{ color, tire }` garage look.
 
 ### `src/lobby.js` — lobby
-- Lobby 3D car preview + menu flow: JOGAR -> Garagem (live look preview) -> Mapa -> onStart(stageId).
+- Lobby 3D car preview + menu flow (EP-008-09): CORRIDA -> Mapa -> onStart(stageId), and
 - Start the lobby; returns `{ openHome, openGarage, openMap }` to reopen it after a race.
 
 ### `src/main.js` — main
@@ -109,7 +109,7 @@ Total candidate files scanned: 27
 - Signed time difference between the player and the bot.
 
 ### `src/ui/garage.js` — ui/garage
-- Garage screen (RF-007/008/009/012): color swatches, tire, gearbox, engine, chassis and
+- Garage screen (RF-007/008/009/012): one carousel card (EP-008-09), one part per slide
 - Trade-off label for a tire preset: top speed change + grip per surface.
 - Trade-off label for a gearbox preset: acceleration x top speed.
 - Trade-off label for an engine preset.
@@ -117,7 +117,7 @@ Total candidate files scanned: 27
 - Trade-off label for a turbo tank preset: turbo time per full tank x weight.
 - Stat list (`{ key, kind: 'delta' | 'abs', value, tone }`) for a part of the given kind.
 - Build summary stats (`ACEL`, `VEL`, `TURBO`, `PESO`) for a full part selection.
-- Open the garage with the current selection and the available options.
+- Open the garage carousel with the current selection and the available options.
 
 ### `src/ui/race-hud.js` — ui/race-hud
 - In-race HUD: semi-transparent speed and turbo gauges, the player's DIST readout and 1º/2º positions.

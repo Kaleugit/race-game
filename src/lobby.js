@@ -1,7 +1,8 @@
 /**
  * @module lobby
- * @summary Lobby 3D car preview + menu flow: JOGAR -> Garagem (live look preview) -> Mapa -> onStart(stageId).
- * Reopenable (home, garage or map) from the result screen without reloading the page.
+ * @summary Lobby 3D car preview + menu flow (EP-008-09): CORRIDA -> Mapa -> onStart(stageId), and
+ * GARAGEM -> garage carousel (live look preview) -> PRONTO saves -> back to the lobby. Reopenable
+ * (home, garage or map) from the result screen without reloading the page.
  */
 import * as THREE from 'three';
 import { makeCar, applyCarLook } from './car.js';
@@ -15,9 +16,11 @@ const CARS = [
 ];
 
 /**
- * `#lobby-play` opens the garage (or, with `testStageId` from `?stage=<id>`, starts that stage
- * directly). Garage confirm saves the choice in the profile and opens the map; picking an unlocked
- * stage closes the lobby and calls `onStart(stageId, carFactory)`.
+ * `#lobby-play` (CORRIDA) opens the stage map (or, with `testStageId` from `?stage=<id>`, starts
+ * that stage directly) and the race uses the garage saved in the profile. `#lobby-garage`
+ * (GARAGEM) opens the garage carousel; PRONTO saves the choice in the profile and returns to the
+ * lobby (also when the garage was opened from the result screen). `#map-back` returns to the lobby.
+ * Picking an unlocked stage closes the lobby and calls `onStart(stageId, carFactory)`.
  * @summary Start the lobby; returns `{ openHome, openGarage, openMap }` to reopen it after a race.
  * @param {{
  *   profile: { getGarage: () => object, saveGarage: (sel: object) => object, isUnlocked: (id: string) => boolean },
@@ -246,6 +249,9 @@ export function initLobby({ profile, stages, testStageId = null, onStart }) {
     hideGarage();
     hideStageMap();
     lobbyUi.hidden = false;
+    // Back from the garage / map: the lobby car shows the saved look.
+    const { color, tire } = profile.getGarage();
+    applyCarLook(builtCar, { color, tire });
   }
 
   function openGarage() {
@@ -264,7 +270,7 @@ export function initLobby({ profile, stages, testStageId = null, onStart }) {
       onChange: ({ color, tire }) => applyCarLook(builtCar, { color, tire }),
       onConfirm: (sel) => {
         profile.saveGarage(sel);
-        openMap();
+        openHome();
       },
     });
   }
@@ -280,16 +286,18 @@ export function initLobby({ profile, stages, testStageId = null, onStart }) {
       stages,
       isUnlocked: (id) => profile.isUnlocked(id),
       onSelect: start,
-      onBack: openGarage,
+      onBack: openHome,
     });
   }
 
-  const playBtn = document.getElementById('lobby-play');
-  playBtn.addEventListener('click', () => {
-    // ?stage=<id> test shortcut: straight to the countdown on that stage (e2e specs).
+  // CORRIDA: stage map -> race with the saved garage. ?stage=<id> test shortcut: straight to the
+  // countdown on that stage (e2e specs).
+  document.getElementById('lobby-play').addEventListener('click', () => {
     if (testStageId) start(testStageId);
-    else openGarage();
+    else openMap();
   });
+  // GARAGEM: the carousel; PRONTO saves and comes back here.
+  document.getElementById('lobby-garage').addEventListener('click', () => openGarage());
 
   return { openHome, openGarage, openMap };
 }

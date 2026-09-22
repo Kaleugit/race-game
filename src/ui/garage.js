@@ -1,8 +1,8 @@
 /**
  * @module ui/garage
- * @summary Garage screen (RF-007/008/009/012): color swatches, tire, gearbox, engine, chassis and
- * turbo tank choice with trade-off stat bars and a build summary, and a confirm button. Receives
- * data + callbacks only (no game-logic or storage imports).
+ * @summary Garage screen (RF-007/008/009/012): one carousel card (EP-008-09), one part per slide
+ * (engine, gearbox, tire, chassis, turbo tank, color) with trade-off stat bars, a compact build
+ * summary and a PRONTO button. Receives data + callbacks only (no game-logic or storage imports).
  */
 import { byId, el, setOverlay, toList } from './dom.js';
 
@@ -171,17 +171,31 @@ const PART_SECTIONS = [
   { key: 'tank', containerId: 'garage-tanks', dataKey: 'tank', listKey: 'tanks', tradeoff: tankTradeoff },
 ];
 
+// Carousel order (EP-008-09): one slide per part, `data-slide` in index.html.
+export const GARAGE_SLIDES = Object.freeze(['engine', 'gearbox', 'tire', 'chassis', 'tank', 'color']);
+
+// Horizontal swipe on the card that switches slides (touch / pen), in CSS px.
+const SWIPE_MIN = 40;
+
+let keyHandler = null;
+let swallowClick = false;
+let clickGuardOn = false;
+
 /**
- * Renders and opens `#garage-overlay` (`[data-color-id]` swatches and `[data-tire]`,
- * `[data-gearbox]`, `[data-engine]`, `[data-chassis]`, `[data-tank]` buttons). The overlay is two
- * docks that leave the lobby car visible: `#garage-panel` (engine, gearbox, tire, build summary)
- * and `#garage-side` (chassis, tank, color, confirm). Every option button carries its trade-off
- * label (`.opt-trade`, screen-reader text); each row's `.garage-sel-trade` shows the selected
- * option's stats as bars (the hovered / focused option while pointing at it) and `#garage-summary`
- * the whole-car deltas. Clicking an option updates the selection and calls `onChange(selection)`
- * (e.g. live preview on the lobby car); `#garage-confirm` calls `onConfirm(selection)`. The caller
- * decides what comes next (save, hide, open the map).
- * @summary Open the garage with the current selection and the available options.
+ * Renders and opens `#garage-overlay`: ONE carousel card (`#garage-card`) beside the lobby car
+ * with one part per slide (`.garage-slide[data-slide]`, order `GARAGE_SLIDES`: engine, gearbox,
+ * tire, chassis, tank, color). `#garage-prev` / `#garage-next` (and ArrowLeft / ArrowRight, and a
+ * horizontal swipe on the card) cycle the slides, wrapping around; `#garage-pips` has one button
+ * per part (`aria-current="step"` on the current one, click jumps) and `#garage-step` shows
+ * "n/6". Only the active slide is visible (`.active`); the others stay in the DOM with their
+ * `[data-color-id]` / `[data-tire]` / `[data-gearbox]` / `[data-engine]` / `[data-chassis]` /
+ * `[data-tank]` buttons and `aria-pressed` state, but are not clickable until shown.
+ * Every option button carries its trade-off label (`.opt-trade`, screen-reader text); each part
+ * slide's `.garage-sel-trade` shows the selected option's stats as bars (the hovered / focused
+ * option while pointing at it) and `#garage-summary` the whole-car deltas. Clicking an option
+ * updates the selection and calls `onChange(selection)` (e.g. live preview on the lobby car);
+ * `#garage-confirm` (PRONTO) calls `onConfirm(selection)`. The caller decides what comes next.
+ * @summary Open the garage carousel with the current selection and the available options.
  * @param {{
  *   selection: { color: string, tire: string, gearbox: string, engine: string, chassis: string, tank: string },
  *   colors: Array<{ id: string, label: string, hex: number }>,
@@ -190,12 +204,14 @@ const PART_SECTIONS = [
  *   engines: Record<string, object> | object[],
  *   chassis: Record<string, object> | object[],
  *   tanks: Record<string, object> | object[],
+ *   startSlide?: string,
  *   onChange?: (sel: object) => void,
  *   onConfirm?: (sel: object) => void,
  * }} opts
  */
-export function showGarage({ selection, colors, onChange, onConfirm, ...lists }) {
+export function showGarage({ selection, colors, onChange, onConfirm, startSlide = GARAGE_SLIDES[0], ...lists }) {
   const overlay = byId('garage-overlay');
+  const card = byId('garage-card');
   const colorsEl = byId('garage-colors');
   const colorNameEl = byId('garage-color-name');
   const sel = { ...selection };
@@ -258,7 +274,7 @@ export function showGarage({ selection, colors, onChange, onConfirm, ...lists })
           el('span', { className: 'opt-trade', text: s.tradeoff(item) }),
         );
         b.addEventListener('click', () => pick(s.key, item.id));
-        // Compare before picking: pointing at (or focusing) an option previews its stats in the row.
+        // Compare before picking: pointing at (or focusing) an option previews its stats in the slide.
         const back = () => showStats(s, selected(s));
         b.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') showStats(s, item); });
         b.addEventListener('pointerleave', back);
@@ -269,13 +285,90 @@ export function showGarage({ selection, colors, onChange, onConfirm, ...lists })
     );
   }
 
+  // --- carousel ---
+  const slides = GARAGE_SLIDES.map((id) => card.querySelector(`.garage-slide[data-slide="${id}"]`));
+  const catEl = byId('garage-cat');
+  const stepEl = byId('garage-step');
+  const pipsEl = byId('garage-pips');
+  let index = Math.max(0, GARAGE_SLIDES.indexOf(startSlide));
+  const pips = slides.map((slide, i) => {
+    const b = el('button', { className: 'garage-pip', data: { slide: GARAGE_SLIDES[i] } });
+    b.type = 'button';
+    b.setAttribute('aria-label', slide.dataset.name);
+    b.title = slide.dataset.name;
+    b.addEventListener('click', () => go(i));
+    return b;
+  });
+  pipsEl.replaceChildren(...pips);
+
+  function go(next, dir = 0) {
+    const n = slides.length;
+    const target = ((next % n) + n) % n;
+    const direction = dir || Math.sign(target - index);
+    index = target;
+    slides.forEach((slide, i) => {
+      const on = i === index;
+      slide.classList.remove('from-next', 'from-prev');
+      slide.classList.toggle('active', on);
+      slide.setAttribute('aria-hidden', on ? 'false' : 'true');
+      if (on && direction) {
+        void slide.offsetWidth; // restart the entry animation
+        slide.classList.add(direction > 0 ? 'from-next' : 'from-prev');
+      }
+    });
+    pips.forEach((p, i) => { if (i === index) p.setAttribute('aria-current', 'step'); else p.removeAttribute('aria-current'); });
+    catEl.textContent = slides[index].dataset.name;
+    stepEl.textContent = `${index + 1}/${n}`;
+    card.dataset.slide = GARAGE_SLIDES[index];
+  }
+  const step = (d) => go(index + d, d);
+
+  byId('garage-prev').onclick = () => step(-1);
+  byId('garage-next').onclick = () => step(1);
+
+  // Keyboard: left / right switch parts while the garage is open.
+  if (keyHandler) window.removeEventListener('keydown', keyHandler);
+  keyHandler = (e) => {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
+  };
+  window.addEventListener('keydown', keyHandler);
+
+  // Swipe (touch / pen): a mostly horizontal drag of SWIPE_MIN px on the card switches parts.
+  let swipe = null;
+  card.onpointerdown = (e) => { swipe = e.pointerType === 'mouse' ? null : { x: e.clientX, y: e.clientY }; };
+  card.onpointerup = (e) => {
+    if (!swipe) return;
+    const dx = e.clientX - swipe.x;
+    const dy = e.clientY - swipe.y;
+    swipe = null;
+    if (Math.abs(dx) >= SWIPE_MIN && Math.abs(dx) > 1.5 * Math.abs(dy)) {
+      step(dx < 0 ? 1 : -1);
+      swallowClick = true; // the swipe ended on an option: do not pick it too
+      setTimeout(() => { swallowClick = false; }, 0);
+    }
+  };
+  card.onpointercancel = () => { swipe = null; };
+  if (!clickGuardOn) {
+    clickGuardOn = true;
+    card.addEventListener('click', (e) => {
+      if (!swallowClick) return;
+      swallowClick = false;
+      e.stopPropagation();
+      e.preventDefault();
+    }, true);
+  }
+
   byId('garage-confirm').onclick = () => onConfirm?.({ ...sel });
 
   refresh();
+  go(index);
   setOverlay(overlay, true);
 }
 
-/** @summary Close `#garage-overlay`. */
+/** @summary Close `#garage-overlay` (and stop its keyboard navigation). */
 export function hideGarage() {
+  if (keyHandler) window.removeEventListener('keydown', keyHandler);
+  keyHandler = null;
   setOverlay(byId('garage-overlay'), false);
 }
