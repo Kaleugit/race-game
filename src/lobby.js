@@ -137,8 +137,12 @@ export function initLobby({ profile, stages, testStageId = null, onStart }) {
   }
 
   let pointerOnCar = false;
+  // Only a press that starts on the canvas rotates the car (a plain mouse move over the page or the
+  // garage docks used to spin it, pushing its silhouette under the docks).
+  let pointerHeld = false;
 
   canvas.addEventListener('pointerdown', (e) => {
+    pointerHeld = true;
     isDragging = false;
     lastPointerX = e.clientX;
     pointerDownX = e.clientX;
@@ -146,6 +150,7 @@ export function initLobby({ profile, stages, testStageId = null, onStart }) {
     pointerOnCar = hitsCar(e.clientX, e.clientY);
   });
   window.addEventListener('pointermove', (e) => {
+    if (!pointerHeld) return;
     const dx = e.clientX - pointerDownX;
     const dy = e.clientY - pointerDownY;
     if (Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD) isDragging = true;
@@ -156,14 +161,15 @@ export function initLobby({ profile, stages, testStageId = null, onStart }) {
   window.addEventListener('pointerup', () => {
     const wasDrag = isDragging;
     const onCar = pointerOnCar;
+    pointerHeld = false;
     isDragging = false;
     pointerOnCar = false;
     if (!wasDrag) {
       if (isZoomed) exitZoom();
-      else if (onCar) enterZoom();
+      else if (onCar && !lobbyUi.hidden) enterZoom(); // no zoom under the garage / map docks
     }
   });
-  window.addEventListener('pointercancel', () => { isDragging = false; pointerOnCar = false; });
+  window.addEventListener('pointercancel', () => { pointerHeld = false; isDragging = false; pointerOnCar = false; });
 
   let rafId = null;
   let lastTime = performance.now();

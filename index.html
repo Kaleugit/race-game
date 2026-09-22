@@ -352,42 +352,131 @@
         transition: background 0.15s, color 0.15s, border-color 0.15s;
       }
       .screen-primary:hover { background: rgba(255,216,107,0.18); border-color: #ff8a3a; color: #ffd86b; }
-      /* Garage is a right-side panel so the lobby car stays visible for the live preview. */
-      #garage-overlay { justify-content: flex-end; align-items: center; pointer-events: none; }
+      /* Garage (EP-008-06): two docks beside the lobby car, which stays visible for the live preview.
+         The car renders centred, ~60vh long side-on and at most ~67vh
+         across when the player drag-rotates it (orthographic camera, fixed VIEW_H), so each dock
+         gets 50vw - 34vh minus the gutters. Left dock: engine / gearbox / tire / build summary (top-left, clear
+         of the mute button). Right dock: chassis / tank / color / confirm (bottom-right, below TELA
+         CHEIA). tests/e2e/garage-layout.spec.js measures both docks against the car's pixels. */
+      #garage-overlay {
+        --gut: 16px;
+        --dock-w: min(420px, calc(50vw - 34vh - 2 * var(--gut)));
+        pointer-events: none; text-shadow: 1px 1px 0 #000;
+      }
+      .garage-dock {
+        position: absolute; pointer-events: auto;
+        width: var(--dock-w);
+        display: flex; flex-direction: column; gap: 1.1em;
+        padding: 1.1em 1.2em 1.2em;
+        font-size: clamp(9px, 1.7vh, 16px);
+        background: linear-gradient(180deg, rgba(16,11,24,0.9) 0%, rgba(8,5,12,0.86) 100%);
+        border: 1px solid rgba(255,216,107,0.2);
+        border-top: 2px solid #ffd86b;
+        box-shadow: 0 14px 36px rgba(5,2,8,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
+        -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+        overflow: auto;
+      }
       #garage-panel {
-        pointer-events: auto;
-        width: min(440px, 56vw);
-        margin-right: calc(12px + env(safe-area-inset-right, 0px));
+        top: var(--gut); left: calc(var(--gut) + env(safe-area-inset-left, 0px));
+        max-height: calc(100% - var(--gut) - 68px);
       }
-      .garage-label { font-size: 13px; letter-spacing: 4px; color: #cfd6ff; margin-bottom: 8px; }
-      #garage-color-name { color: #ffd86b; margin-left: 8px; }
-      #garage-colors { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; }
-      #garage-colors .swatch {
-        height: 32px;
-        border: 2px solid rgba(255,255,255,0.3);
-        box-shadow: 2px 2px 0 #000; cursor: pointer;
+      #garage-side {
+        right: calc(var(--gut) + env(safe-area-inset-right, 0px)); bottom: var(--gut);
+        max-height: calc(100% - 104px - var(--gut));
       }
-      #garage-colors .swatch.selected { border-color: #ffd86b; box-shadow: 0 0 0 2px #000, 0 0 12px #ffd86b; }
-      .garage-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .garage-title {
+        font-size: 1.9em; font-weight: 700; letter-spacing: 0.32em; line-height: 1;
+        color: #ffd86b; text-shadow: 2px 2px 0 #000;
+      }
+      #garage-parts, #garage-side-parts { display: flex; flex-direction: column; gap: 1.1em; }
+      .garage-section { display: flex; flex-direction: column; gap: 0.5em; }
+      .garage-label {
+        font-size: 0.9em; font-weight: 700; letter-spacing: 0.18em; line-height: 1.2;
+        color: #b3badf; white-space: nowrap;
+      }
+      #garage-color-name { color: #ffd86b; margin-left: 0.6em; }
+      /* Segmented control: the three options of one part, selected = gold. */
+      .garage-opts {
+        display: grid; grid-template-columns: repeat(3, 1fr);
+        border: 1px solid #4a5070; background: rgba(0,0,0,0.35);
+      }
       .garage-opt {
-        display: flex; flex-direction: column; gap: 4px; align-items: flex-start;
-        font-family: 'Courier New', monospace; text-align: left;
-        color: #fffbe0; background: rgba(0,0,0,0.45);
-        border: 1px solid #4a5070;
-        padding: 8px; cursor: pointer;
+        position: relative;
+        font-family: 'Courier New', monospace; font-size: 1.05em; font-weight: 700;
+        letter-spacing: 0.06em; line-height: 1.1; white-space: nowrap;
+        color: #e9e4c8; background: transparent;
+        border: 0; border-left: 1px solid #3a3f5a;
+        padding: 0.62em 0.2em; cursor: pointer; text-align: center;
         text-shadow: 1px 1px 0 #000;
+        transition: background 0.15s, color 0.15s, box-shadow 0.15s;
       }
-      .garage-opt:hover { border-color: #8890bb; }
-      .garage-opt.selected { border-color: #ffd86b; background: rgba(255,216,107,0.14); }
-      .garage-opt .opt-name { font-size: 14px; letter-spacing: 2px; color: #ffd86b; }
-      .garage-opt .opt-trade { font-size: 10px; line-height: 1.35; color: #cfd6ff; }
-      #garage-confirm { align-self: stretch; }
-      /* Five part rows (EP-008): one column on tall screens, two columns (wider panel) otherwise. */
-      #garage-parts { display: grid; grid-template-columns: 1fr; gap: 14px; }
-      .garage-sel-trade { display: none; font-size: 9px; line-height: 1.3; color: #cfd6ff; margin-top: 3px; min-height: 2.6em; }
-      @media (max-height: 860px) {
-        #garage-panel { width: min(620px, calc(100vw - 24px - env(safe-area-inset-right, 0px))); }
-        #garage-parts { grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+      .garage-opt:first-child { border-left: 0; }
+      .garage-opt:hover:not(.selected) {
+        background: rgba(255,255,255,0.05); color: #fffbe0;
+        outline: 1px dashed rgba(255,216,107,0.6); outline-offset: -4px;
+      }
+      .garage-opt:active { transform: translateY(1px); }
+      .garage-opt.selected {
+        color: #ffd86b; background: rgba(255,216,107,0.17);
+        box-shadow: inset 0 0 0 1px #ffd86b, inset 0 -3px 0 #ffd86b;
+      }
+      .garage-opt:focus-visible, #garage-colors .swatch:focus-visible, #garage-confirm:focus-visible {
+        outline: 2px solid #fffbe0; outline-offset: 2px;
+      }
+      /* Full trade-off sentence per option, for screen readers (the rows show it as stat bars). */
+      .garage-opt .opt-trade {
+        position: absolute; width: 1px; height: 1px; overflow: hidden;
+        clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+      }
+      /* Stat bars: deltas diverge from the centre tick, grip fills from the left. */
+      .garage-stats {
+        display: grid; grid-template-columns: 1fr; gap: 0.3em;
+        font-size: 0.86em; line-height: 1.25;
+      }
+      .stat { display: grid; grid-template-columns: 5.4em 1fr 4em; align-items: center; gap: 0.8em; }
+      .stat-k { color: #b3badf; letter-spacing: 0.08em; white-space: nowrap; }
+      .stat[data-tone="zero"] { opacity: 0.45; }
+      .stat-v { text-align: right; font-weight: 700; color: #e9e4c8; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .stat-bar { position: relative; height: 0.42em; }
+      .stat-bar::after {
+        content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+        background: rgba(255,255,255,0.13);
+      }
+      .stat-bar:not(.abs)::before {
+        content: ''; position: absolute; left: 50%; top: -0.25em; bottom: -0.25em; width: 1px;
+        background: rgba(255,255,255,0.35);
+      }
+      .stat-bar i { position: absolute; top: 0; bottom: 0; z-index: 1; background: #9aa1c8; }
+      .stat[data-tone="good"] i { background: #6fdc8c; }
+      .stat[data-tone="good"] .stat-v { color: #8ff0a8; }
+      .stat[data-tone="bad"] i { background: #ff8a5a; }
+      .stat[data-tone="bad"] .stat-v { color: #ffa47a; }
+      .stat[data-tone="abs"] i { background: rgba(207,214,255,0.5); top: 0.08em; bottom: 0.08em; }
+      .garage-sel-trade.preview .stat-k { color: #ffd86b; }
+      .garage-summary { padding-top: 1em; border-top: 1px solid rgba(255,216,107,0.18); }
+      .garage-summary .garage-label { color: #ffd86b; }
+      .garage-summary .garage-stats { font-size: 0.95em; }
+      .garage-summary .stat-bar { height: 0.6em; }
+      .garage-summary .stat-v { color: #fffbe0; }
+      #garage-colors { display: grid; grid-template-columns: repeat(10, 1fr); gap: 0.45em; }
+      #garage-colors .swatch {
+        aspect-ratio: 1; border: 0; cursor: pointer;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.28), 1px 1px 0 #000;
+        transition: transform 0.12s, box-shadow 0.12s;
+      }
+      #garage-colors .swatch:hover { transform: translateY(-1px); }
+      #garage-colors .swatch.selected { box-shadow: 0 0 0 2px #0b0710, 0 0 0 4px #ffd86b; }
+      #garage-confirm {
+        width: 100%; margin-top: 0.2em;
+        font-size: 1.3em; font-weight: 700; letter-spacing: 0.4em; line-height: 1;
+        padding: 0.85em 0.5em 0.85em 0.9em;
+        color: #1a1206; background: #ffd86b; border: 0;
+        text-shadow: none; box-shadow: 0 3px 0 #b8892a;
+      }
+      #garage-confirm:hover { background: #ffe38f; color: #1a1206; }
+      #garage-confirm:active { transform: translateY(2px); box-shadow: 0 1px 0 #b8892a; }
+      @media (prefers-reduced-motion: reduce) {
+        .garage-opt, #garage-colors .swatch { transition: none; }
       }
       #map-overlay { align-items: center; justify-content: center; background: rgba(5,2,8,0.72); }
       #map-panel { width: min(560px, calc(100vw - 24px)); align-items: stretch; }
@@ -412,15 +501,21 @@
       @media (max-height: 500px) {
         .screen-panel { gap: 8px; padding: 10px 14px; }
         .screen-title { font-size: 20px; letter-spacing: 6px; }
-        .garage-label { font-size: 11px; margin-bottom: 4px; }
-        .garage-opt .opt-name { font-size: 12px; }
-        .garage-opt .opt-trade { display: none; }
-        /* Short landscape: per-button labels give way to one line with the selected option's label. */
-        .garage-sel-trade { display: block; }
-        #garage-panel .screen-title { display: none; }
-        #garage-parts { gap: 6px 12px; }
-        .garage-opt { padding: 4px 6px; }
-        #garage-colors .swatch { height: 24px; }
+        /* Garage docks: tighter gutters, no title, stats as key + value (bars hidden). */
+        #garage-overlay { --gut: 8px; }
+        .garage-dock { padding: 0.7em 0.8em 0.8em; gap: 0.7em; }
+        .garage-title { display: none; }
+        #garage-parts, #garage-side-parts { gap: 0.7em; }
+        .garage-section { gap: 0.35em; }
+        .garage-opt { padding: 0.5em 0.1em; letter-spacing: 0; min-height: 26px; }
+        .garage-stats { grid-template-columns: 1fr 1fr; gap: 0.15em 0.8em; font-size: 1em; }
+        .stat { grid-template-columns: auto auto; justify-content: start; gap: 0.45em; }
+        .stat-bar { display: none; }
+        .garage-summary { padding-top: 0.6em; }
+        #garage-colors { gap: 3px; }
+        #garage-colors .swatch { aspect-ratio: auto; min-height: 22px; }
+        #garage-colors .swatch.selected { box-shadow: 0 0 0 1px #0b0710, 0 0 0 2px #ffd86b; }
+        #garage-confirm { font-size: 1.2em; padding: 0.7em 0.5em 0.7em 0.9em; }
         .screen-primary { font-size: 15px; padding: 8px 20px; }
         .map-stage { padding: 8px 12px; }
         .map-stage .map-name { font-size: 15px; }
@@ -513,41 +608,50 @@
       <!-- Legacy: src/main.js still binds this id until EP-006-04 rewires the result flow. -->
     </div>
     <div id="garage-overlay" class="screen-overlay" aria-hidden="true">
-      <div id="garage-panel" class="screen-panel">
-        <div class="screen-title">GARAGEM</div>
-        <div class="garage-section">
-          <div class="garage-label">COR <span id="garage-color-name"></span></div>
-          <div id="garage-colors"></div>
-        </div>
+      <!-- Two docks beside the lobby car (EP-008-06); the power path on the left, body + finish on the right. -->
+      <section id="garage-panel" class="garage-dock" aria-labelledby="garage-title">
+        <h2 id="garage-title" class="garage-title">GARAGEM</h2>
         <div id="garage-parts">
-          <div class="garage-section">
-            <div class="garage-label">PNEU</div>
-            <div id="garage-tires" class="garage-opts"></div>
-            <div class="garage-sel-trade"></div>
-          </div>
-          <div class="garage-section">
+          <div class="garage-section" role="group" aria-label="Motor">
             <div class="garage-label">MOTOR</div>
             <div id="garage-engines" class="garage-opts"></div>
-            <div class="garage-sel-trade"></div>
+            <div class="garage-sel-trade garage-stats"></div>
           </div>
-          <div class="garage-section">
+          <div class="garage-section" role="group" aria-label="C&acirc;mbio">
             <div class="garage-label">C&Acirc;MBIO</div>
             <div id="garage-gearboxes" class="garage-opts"></div>
-            <div class="garage-sel-trade"></div>
+            <div class="garage-sel-trade garage-stats"></div>
           </div>
-          <div class="garage-section">
+          <div class="garage-section" role="group" aria-label="Pneu">
+            <div class="garage-label">PNEU</div>
+            <div id="garage-tires" class="garage-opts"></div>
+            <div class="garage-sel-trade garage-stats"></div>
+          </div>
+        </div>
+        <div class="garage-section garage-summary">
+          <div class="garage-label">DESEMPENHO</div>
+          <div id="garage-summary" class="garage-stats"></div>
+        </div>
+      </section>
+      <section id="garage-side" class="garage-dock" aria-label="Carroceria e cor">
+        <div id="garage-side-parts">
+          <div class="garage-section" role="group" aria-label="Chassi">
             <div class="garage-label">CHASSI</div>
             <div id="garage-chassis" class="garage-opts"></div>
-            <div class="garage-sel-trade"></div>
+            <div class="garage-sel-trade garage-stats"></div>
           </div>
-          <div class="garage-section">
+          <div class="garage-section" role="group" aria-label="Tanque de turbo">
             <div class="garage-label">TANQUE DE TURBO</div>
             <div id="garage-tanks" class="garage-opts"></div>
-            <div class="garage-sel-trade"></div>
+            <div class="garage-sel-trade garage-stats"></div>
+          </div>
+          <div class="garage-section">
+            <div class="garage-label">COR <span id="garage-color-name"></span></div>
+            <div id="garage-colors"></div>
           </div>
         </div>
         <button id="garage-confirm" class="screen-primary" type="button">CONFIRMAR</button>
-      </div>
+      </section>
     </div>
     <div id="map-overlay" class="screen-overlay" aria-hidden="true">
       <div id="map-panel" class="screen-panel">

@@ -8,7 +8,7 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-22T15:22Z
+Last regenerated: 2026-09-22T16:05Z
 Total candidate files scanned: 26
 
 ## Backend modules
@@ -115,6 +115,8 @@ Total candidate files scanned: 26
 - Trade-off label for an engine preset.
 - Trade-off label for a chassis preset.
 - Trade-off label for a turbo tank preset: turbo time per full tank x weight.
+- Stat list (`{ key, kind: 'delta' | 'abs', value, tone }`) for a part of the given kind.
+- Build summary stats (`ACEL`, `VEL`, `TURBO`, `PESO`) for a full part selection.
 - Open the garage with the current selection and the available options.
 
 ### `src/ui/result.js` — ui/result
