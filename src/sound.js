@@ -6,7 +6,7 @@
  * tracks RPM and load, a light combustion-noise layer amplitude-modulated at the firing frequency,
  * turbo hiss/whine while the turbo is on and a blow-off when it is released.
  * The RF-012 engine preset changes the model's RPM range (ENGINES[id].sound) and the synth
- * brightness (ENGINES[id].timbre): 1.6 brighter and higher-revving, 2.4 deeper.
+ * brightness (ENGINES[id].timbre): 2.4 brighter and higher-revving, 1.6 deeper (EP-008-08).
  */
 import { createEngineModel, ENGINE_DEFAULTS } from './audio/engine-model.js';
 import { ENGINES } from './parts/presets.js';

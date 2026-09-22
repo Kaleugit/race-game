@@ -43,8 +43,8 @@ export const GEARBOXES = Object.freeze({
  * Engines (RF-012): more HP = more acceleration and top speed, but a heavier engine (mass) that
  * also burns the turbo faster (`turboBurnMult` on TURBO_DEPLETE = less turbo time per tank).
  * `sound` overrides createEngineModel options (src/audio/engine-model.js) and `timbre` scales the
- * synth brightness (src/sound.js): the 1.6 revs higher and sounds brighter, the 2.4 revs lower and
- * sounds deeper. 2.0 is the original engine (all multipliers 1, no sound override).
+ * synth brightness (src/sound.js): the 1.6 revs lower and sounds deeper, the 2.4 revs higher and
+ * sounds brighter (sounds swapped by the manager, EP-008-08). 2.0 is the original engine (all multipliers 1, no sound override).
  * @summary Engine presets keyed by id (`e16`, `e20`, `e24`).
  */
 export const ENGINES = Object.freeze({
@@ -54,8 +54,8 @@ export const ENGINES = Object.freeze({
     topSpeedMult: 0.95,
     mass: 0.9,
     turboBurnMult: 0.85,
-    sound: Object.freeze({ idleRpm: 850, redlineRpm: 4400, upshiftRpm: 3950, downshiftRpm: 1650, launchRpm: 1950 }),
-    timbre: 1.12,
+    sound: Object.freeze({ idleRpm: 750, redlineRpm: 3700, upshiftRpm: 3300, downshiftRpm: 1400, launchRpm: 1700 }),
+    timbre: 0.88,
   }),
   e20: Object.freeze({
     label: '2.0',
@@ -72,8 +72,8 @@ export const ENGINES = Object.freeze({
     topSpeedMult: 1.06,
     mass: 1.1,
     turboBurnMult: 1.18,
-    sound: Object.freeze({ idleRpm: 750, redlineRpm: 3700, upshiftRpm: 3300, downshiftRpm: 1400, launchRpm: 1700 }),
-    timbre: 0.88,
+    sound: Object.freeze({ idleRpm: 850, redlineRpm: 4400, upshiftRpm: 3950, downshiftRpm: 1650, launchRpm: 1950 }),
+    timbre: 1.12,
   }),
 });
 

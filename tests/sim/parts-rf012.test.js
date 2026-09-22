@@ -247,10 +247,10 @@ test('engine preset slightly changes the engine sound model; default engine = EN
   assert.deepEqual(createEngineModel({ engine: 'e20', gearboxPreset: 'padrao' }).config, { ...ENGINE_DEFAULTS });
   assert.throws(() => createEngineModel({ engine: 'v8' }), /unknown engine/);
   const cfg = (id) => createEngineModel({ engine: id }).config;
-  // Smaller engine revs higher and sounds brighter; bigger one revs lower and sounds deeper.
-  assert.ok(cfg('e16').idleRpm > cfg('e20').idleRpm && cfg('e20').idleRpm > cfg('e24').idleRpm);
-  assert.ok(cfg('e16').redlineRpm > cfg('e20').redlineRpm && cfg('e20').redlineRpm > cfg('e24').redlineRpm);
-  assert.ok(ENGINES.e16.timbre > 1 && ENGINES.e24.timbre < 1);
+  // EP-008-08 (manager): sounds swapped — the 2.4 revs higher and sounds brighter, the 1.6 deeper.
+  assert.ok(cfg('e24').idleRpm > cfg('e20').idleRpm && cfg('e20').idleRpm > cfg('e16').idleRpm);
+  assert.ok(cfg('e24').redlineRpm > cfg('e20').redlineRpm && cfg('e20').redlineRpm > cfg('e16').redlineRpm);
+  assert.ok(ENGINES.e24.timbre > 1 && ENGINES.e16.timbre < 1);
   // Slight: every override within 15% of the default.
   for (const id of ['e16', 'e24']) {
     for (const [k, v] of Object.entries(ENGINES[id].sound)) {
@@ -286,5 +286,6 @@ test('engine preset slightly changes the engine sound model; default engine = EN
       if (m.update(DT, { speed, throttle: 1, airborne: false }).gear > 1) { firstShift[engine] = speed; break; }
     }
   }
-  assert.ok(firstShift.e16 > firstShift.e20 && firstShift.e20 > firstShift.e24, JSON.stringify(firstShift));
+  // EP-008-08: sounds swapped, so the 2.4 now shifts latest and the 1.6 earliest.
+  assert.ok(firstShift.e24 > firstShift.e20 && firstShift.e20 > firstShift.e16, JSON.stringify(firstShift));
 });
