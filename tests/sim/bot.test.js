@@ -1,4 +1,4 @@
-// RF-004 bot AI: CA-004 (Mata Atlântica, 10 seeds), CA-005 for the bot, reproducibility (CDC-106),
+// RF-004 bot AI: CA-004 (every listed stage, 10 seeds), CA-005 for the bot, reproducibility (CDC-106),
 // stall recovery on the steep climb with normal inputs, and the bot part preset (RF-007 / CA-007).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -59,12 +59,13 @@ test('decide returns the player input shape with locked false', () => {
   assert.equal(input.up, true);
 });
 
-test('CA-004 (Mata Atlântica): seeds 1..10 all finish within 180s, within ±15% of the median, slower than the reference driver', () => {
-  const ref = runRace({ stage: mata, driver: createReferenceDriver(createTrack(mata)) });
+// CA-004 per stage (epic EP-005 DA-001): every stage of listStages() is covered without a new test.
+for (const stage of registry.listStages()) test(`CA-004 (${stage.id}): seeds 1..10 all finish within 180s, within ±15% of the median, slower than the reference driver`, () => {
+  const ref = runRace({ stage, driver: createReferenceDriver(createTrack(stage)) });
   assert.equal(ref.finished, true, 'reference driver must finish');
   const times = [];
   for (let seed = 1; seed <= 10; seed++) {
-    const r = botRace(mata, seed);
+    const r = botRace(stage, seed);
     assert.equal(r.finished, true, `seed ${seed} did not finish (x ${r.samples.at(-1).x})`);
     assert.ok(r.finishTime <= 180, `seed ${seed}: ${r.finishTime}`);
     times.push(r.finishTime);

@@ -137,7 +137,7 @@ test('CDC-102: no gearbox is dominant (each pair: each wins somewhere), for ever
   }
 });
 
-test('default parts keep the real stages unchanged: mata-atlantica has no physical zones', async () => {
+test('default parts keep the real stages unchanged: Misto+Padrão on mata-atlantica (with mud zones) equals BASE_PARAMS', async () => {
   const mata = (await loadStages()).getStage('mata-atlantica');
   const a = race(mata, params('misto', 'padrao'));
   const b = race(mata, BASE_PARAMS);

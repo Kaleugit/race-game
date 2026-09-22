@@ -6,6 +6,7 @@ import { createCarPhysics } from '../../src/physics/car-physics.js';
 import { BASE_PARAMS } from '../../src/physics/params.js';
 import { loadStages } from './load-stages.js';
 import { runRace } from './harness.js';
+import mataLegacy from './fixtures/mata-atlantica-legacy.stage.js';
 
 const registry = await loadStages();
 const mata = registry.getStage('mata-atlantica');
@@ -96,6 +97,8 @@ test('locked input ignores throttle/turbo (countdown)', () => {
 // Golden values recorded from the ORIGINAL physics (src/main.js @ 54003dd: updateTurbo, updateSpeed,
 // updatePhysics, checkChassisHitbox, updateRotation, updateSuspension, text-extracted and run in Node
 // with three.js objects stubbed), dt = 1/60, mata-atlantica. The extraction was bit-exact frame by frame.
+// They run on the frozen pre-EP-005 Mata Atlântica (fixtures/mata-atlantica-legacy.stage.js), the track
+// they were recorded on, so they keep guarding physics equivalence after the real stage was redesigned.
 const GOLDEN = {
   throttle: {
     frames: 1416, finishTime: 23.59999999999994, maxSpeed: 29.50364324808708, sum: 459016.16660206637,
@@ -132,8 +135,8 @@ const GOLDEN = {
 const DRIVERS = { throttle, turbo, mixed };
 
 for (const [name, g] of Object.entries(GOLDEN)) {
-  test(`golden: '${name}' on mata-atlantica matches the pre-extraction physics`, () => {
-    const r = runRace({ stage: mata, driver: DRIVERS[name], initialState: g.initialState });
+  test(`golden: '${name}' on the legacy mata-atlantica matches the pre-extraction physics`, () => {
+    const r = runRace({ stage: mataLegacy, driver: DRIVERS[name], initialState: g.initialState });
     const close = (a, b, label) => assert.ok(Math.abs(a - b) <= 1e-9, `${label}: ${a} vs ${b}`);
     assert.equal(r.crashed, false);
     assert.equal(r.finished, true);
