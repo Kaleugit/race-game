@@ -8,18 +8,19 @@
 - Branch: TASK-kaleugit-EP-008-03-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-22 01:20
+- Last Updated: 2026-09-22 14:31
 - Started: 2026-09-22 01:00
-- Completed: 2026-09-22 01:20
+- Completed: 2026-09-22 14:30
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-008-03-implement-planning-2026-09-22.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-008-03-implement-report-2026-09-22.md
 - prior-art: src/parts/presets.js TIRES/GEARBOXES + resolveCarParams (EP-003-03) extended; tests/sim/parts.test.js scorecard/assertNoDominance pattern reused and extended with turbo-time and landing-stability metrics; createEngineModel options (EP-007-01) used for the engine sound variant
 - Evidence: PASS — CA-010 swaps (sand fixture time/top speed, turbo time) 1.6 -4.9% top speed / +17% turbo, 2.4 +6.0% / -15.5%, Leve -9.1% time, Pesado +11.9%, Pequeno -30% turbo, Grande +40%; CDC-102 per-part non-dominance in all 243 builds; defaults bit-identical; goldens unchanged; `npm run test:sim` 102/102; `./scripts/validate-changed.sh` PASS; `npm test` 9/9
 - UX Gate: pending human (batched at epic end) — engine sound variants (EP-008-04 wires them), feel of mass/tank trade-offs
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 - Delivery PR: #29
-- Delivery Status: PR_OPEN_MANUAL_MERGE
+- Delivery Status: MERGED
 
+- Delivery Merged At: 2026-09-22 14:30
 ## Autonomous Decisions
 - DA-001: Mass as one relative param dividing thrust accel, air torque and landing rebound; tank as turboCapacity dividing burn/recharge — Criteria: task (new physics params mass + tank capacity, default identical) — Rationale: x/1 is exact, so defaults are bit-identical; one param gives engine/chassis/tank weight a consistent meaning.
 - DA-002: CA-010 non-dominance checked per part in every context of the other parts (243 builds) + no universal best build — Criteria: CDC-102 / CA-010 — Rationale: full Pareto non-dominance across multi-part changes is impossible with substitutable weight (323/58806 ordered pairs); parts are all free (DA-007), so a weaker build is a choice, not pay-to-win.
