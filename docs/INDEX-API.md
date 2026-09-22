@@ -1,6 +1,6 @@
 # API Index — Kaleugit/race-game
 
-> **Coverage**: 13/15 backend files (87%), 0/0 frontend custom elements (0%).
+> **Coverage**: 16/18 backend files (89%), 0/0 frontend custom elements (0%).
 > Auto-generated from JSDoc `@module` / `@summary` / `@element` tags. Transition phase — files without these tags do NOT appear here.
 >
 > **If you don't find what you need:**
@@ -8,8 +8,8 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-22T00:22Z
-Total candidate files scanned: 15
+Last regenerated: 2026-09-22T00:36Z
+Total candidate files scanned: 18
 
 ## Backend modules
 
@@ -18,6 +18,20 @@ Total candidate files scanned: 15
 - Default engine/gearbox configuration.
 - Scale gear ratios by the EP-003 gearbox preset (`curta`, `padrao`, `longa`).
 - Build a pure engine model: `{ update(dt, input), reset(), gearRatios }`.
+
+### `src/bot/bot-driver.js` — bot/bot-driver
+- Bot AI (RF-004): turns the bot car's state into the same input the player produces
+- Bot controller: `createBotDriver({ track, difficulty, seed })` -> `{ decide(carState, dt) }`.
+- Next input for the bot car: `{ up, down, left, right, space, locked: false }`.
+- Simulate the bot to the finish line; returns its finish time (s) or null past `maxTime`.
+
+### `src/bot/bot-preset.js` — bot/bot-preset
+- The bot's own part preset (RF-007: the bot never inherits the player's garage choice).
+- Bot car params for a stage: `resolveCarParams(BASE_PARAMS, stage.bot.parts ?? BOT_DEFAULT_PARTS)`.
+
+### `src/bot/prng.js` — bot/prng
+- Seeded pseudo-random generator (mulberry32) for the bot's errors (CDC-106: no
+- Seeded PRNG: `createPrng(seed)` -> `() => number` in [0, 1).
 
 ### `src/car.js` — car
 - Bandeirante car meshes (procedural and GLB), smoke, springs, hitbox debug.
