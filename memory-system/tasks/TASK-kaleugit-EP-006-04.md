@@ -8,17 +8,17 @@
 - Branch: TASK-kaleugit-EP-006-04-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 23:55
+- Last Updated: 2026-09-21 23:54
 - Started: 2026-09-21 23:10
-- Completed: 2026-09-21 23:55
+- Completed: 2026-09-21 23:54
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-006-04-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-006-04-implement-report-2026-09-21.md
 - prior-art: src/main.js (EP-002-02 setStage(id) + dispose, EP-004-02 bot/race-bar wiring, showEndScreen being replaced); src/lobby.js (lobby render loop/music, reused and made reopenable); src/ui/{garage,stage-map,result}.js + src/profile/profile.js + applyCarLook in src/car.js (EP-006-01/02/03 APIs consumed as-is)
 - Evidence: PASS — `grep -nE "showGarage|showStageMap" src/lobby.js` and `grep -nE "showResult|recordWin|getGarage" src/main.js` show the flow calls; `grep -n "location.reload\|race_best_time" src/main.js` empty; `npm run test:sim` green; `npm run build` PASS; `npm test` 4/4; scratch Playwright run over rematch / result -> garage -> map -> back -> race / in-race LOBBY with no console errors
 - UX Gate: pending human (batched at epic end) — full flow on desktop and mobile landscape
-- Delivery Handoff: PENDING
-- Delivery PR: Pending
-- Delivery Status: PR_OPEN
+- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery PR: #24
+- Delivery Status: PR_OPEN_MANUAL_MERGE
 
 ## Autonomous Decisions
 - DA-001: HUD defeat notice (`#hud-bot-won`) and stage label (`#race-bar-stage`) are created from src/main.js instead of index.html markup — Criteria: epic ownership (index.html belongs to EP-006-03; editing it is an escalation) + orchestrator scope (index.html only to remove #end-lobby-btn) — Rationale: no new screen/text beyond RF-001, no index.html ownership conflict.
@@ -28,3 +28,4 @@
 - DA-005: The race loop keeps its requestAnimationFrame but skips stepping/rendering while the lobby screens are open (`menuOpen`) — Criteria: performance (one WebGL scene rendered at a time) — Rationale: same as before the first race.
 - DA-006: 8 files touched (above the 6-file escalation threshold): 4 are e2e specs whose waits the task itself asks to adjust, plus docs/INDEX-API.md — Criteria: orchestrator instruction (spec updates allowed when the flow requires it) — Rationale: code change stays in main.js/lobby.js/index.html.
 - DA-007: No persona consults — Criteria: runbook (speed over ceremony) — Rationale: all APIs were specified by EP-006-01/02/03.
+- Delivery Merged At: Pending
