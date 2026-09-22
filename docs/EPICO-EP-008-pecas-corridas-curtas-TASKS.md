@@ -237,7 +237,7 @@
 
 ### Task 10 - HUD: só distância do jogador + posição 1º/2º; contagem de 1 s
 - Task ID: TASK-kaleugit-EP-008-10
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Quick
 - Domain: Interface e fluxo do jogador

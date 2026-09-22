@@ -1,11 +1,13 @@
 /**
  * @module ui/race-hud
- * @summary In-race HUD: semi-transparent speed and turbo gauges plus DIST / BOT readouts.
+ * @summary In-race HUD: semi-transparent speed and turbo gauges, the player's DIST readout and 1º/2º positions.
  * Builds the SVG gauges inside the static #hud markup of index.html (EP-008-07). The speed gauge is a
  * 240° arc with a needle and a digital km/h readout (#speed); the turbo gauge is a segmented arc with
  * round(12 x turboCapacity) segments of constant size, so a bigger tank is a visibly longer arc
  * (Pequeno 8, Médio 12, Grande 17). Per-frame updates only touch text, one transform, one
  * stroke-dashoffset and segment classes, and only when the shown value changes (no layout reads).
+ * EP-008-10: the bot distance readout is gone; the race bar labels carry each racer's position
+ * (#race-pos-you / #race-pos-bot, "1º" / "2º"; the leader's badge has data-leader="true").
  */
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -57,17 +59,38 @@ export function speedGaugeMax(maxSpeedTurbo) {
 }
 
 /**
+ * @summary Race order after a frame: true when the player is 1º. Further along the track (x) leads;
+ * a tie keeps the previous order; once a racer crosses finishX its position is locked (the first to
+ * cross keeps 1º, also after both are past the line).
+ * @param {boolean} prevPlayerFirst order shown on the previous frame (true at the start: grid order)
+ * @param {number} playerX player car x (m)
+ * @param {number} botX bot car x (m)
+ * @param {number} finishX track finish line x (m)
+ * @returns {boolean}
+ */
+export function playerLeads(prevPlayerFirst, playerX, botX, finishX) {
+  const playerDone = playerX >= finishX;
+  const botDone = botX >= finishX;
+  if (playerDone && botDone) return prevPlayerFirst;
+  if (playerDone || botDone) return playerDone;
+  if (playerX > botX) return true;
+  if (botX > playerX) return false;
+  return prevPlayerFirst;
+}
+
+/**
  * @summary Builds the race HUD gauges inside #hud and returns its per-race / per-frame API.
  * @param {Document} [doc]
  * @returns {{ configure(opts: { turboCapacity: number, maxSpeedTurbo: number }): void,
  *   update(s: { speed: number, x: number, fuel: number, turboActive: boolean, turboLockout: boolean }): void,
- *   setBotDist(m: number): void }}
+ *   setPositions(playerFirst: boolean): void }}
  */
 export function createRaceHud(doc = document) {
   const speedSvg = doc.getElementById('speed-gauge');
   const turboSvg = doc.getElementById('turbo-gauge');
   const distEl = doc.getElementById('dist');
-  const botDistEl = doc.getElementById('bot-dist');
+  const posYouEl = doc.getElementById('race-pos-you');
+  const posBotEl = doc.getElementById('race-pos-bot');
 
   // Speed gauge: face, track, fill arc (pathLength 100 -> dashoffset = 100 - pct), ticks, needle, readout.
   el('circle', { class: 'g-face', cx: 50, cy: 50, r: 48.5 }, speedSvg);
@@ -93,7 +116,7 @@ export function createRaceHud(doc = document) {
 
   let segs = [];
   let maxKmh = 400;
-  const last = { kmh: -1, dist: -1, bot: -1, filled: -1, pct: -1, mode: '', turbo: null };
+  const last = { kmh: -1, dist: -1, first: null, filled: -1, pct: -1, mode: '', turbo: null };
 
   function configure({ turboCapacity = 1, maxSpeedTurbo }) {
     maxKmh = speedGaugeMax(maxSpeedTurbo);
@@ -162,10 +185,15 @@ export function createRaceHud(doc = document) {
     if (pct !== last.pct) { last.pct = pct; turboPct.textContent = String(pct); }
   }
 
-  function setBotDist(m) {
-    const v = Math.round(m);
-    if (v !== last.bot) { last.bot = v; botDistEl.textContent = String(v); }
+  // Race-bar position badges; the DOM is touched only when the order flips.
+  function setPositions(playerFirst) {
+    if (playerFirst === last.first) return;
+    last.first = playerFirst;
+    posYouEl.textContent = playerFirst ? '1º' : '2º';
+    posBotEl.textContent = playerFirst ? '2º' : '1º';
+    posYouEl.dataset.leader = String(playerFirst);
+    posBotEl.dataset.leader = String(!playerFirst);
   }
 
-  return { configure, update, setBotDist };
+  return { configure, update, setPositions };
 }
