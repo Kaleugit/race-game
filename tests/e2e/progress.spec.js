@@ -3,8 +3,8 @@ import { trackErrors, openGarageFromLobby, pickGarage, confirmGarage, startStage
 
 // CA-002: beating Mata Atlântica unlocks Cerrado on the map, and it survives a reload.
 // A fresh Playwright context has an empty localStorage (clean profile). The win is a real race
-// through the UI: garage Estrada + Longa (fastest legal Mata setup in the sim, ~71 s) and the
-// reference turbo policy of driveToFinish (see drive.js); the bot on Mata is ~77–82 s.
+// through the UI: garage Estrada + Longa (fastest legal Mata setup in the sim, ~40.0 s holding
+// ArrowUp + Space, the driveToFinish policy in drive.js); the bot on Mata is ~44.6–51.3 s (EP-008-05).
 test('CA-002: vencer a Mata Atlântica desbloqueia o Cerrado e persiste após reload', async ({ page }) => {
   test.setTimeout(240_000);
   const errors = trackErrors(page);

@@ -66,5 +66,5 @@ export default {
     mudLayer: false,
     palette: { ground: 0x5a2616, zones: { sand: 0xd9b27a } },
   },
-  bot: { difficulty: 0.6 },
+  bot: { difficulty: 0.9 },
 };

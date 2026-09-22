@@ -38,6 +38,8 @@ export function createCarPhysics({ track, params }) {
     state.prevTrackH = 0;
     state.fuel = 1.0;
     state.turboActive = false;
+    // Set when the tank runs empty while burning; turbo cannot re-ignite until fuel >= p.turboReigniteFuel.
+    state.turboLockout = false;
     // Upside down (cos(rot - slope angle) < 0) at the end of the last frame (informational).
     state.overturned = false;
     // Seconds spent upside down on the ground; auto-right at p.autoRightDelay.
@@ -54,6 +56,9 @@ export function createCarPhysics({ track, params }) {
     return Math.cos(state.rot - slopeAngleAt(state.x)) < 0;
   }
 
+  // The tank recharges whenever the turbo is not burning (Space held or not). After the tank runs
+  // empty the turbo stays off until it holds p.turboReigniteFuel (hysteresis), so tapping Space
+  // cannot squeeze turbo out of an empty tank: no input pattern gets more turbo than holding Space.
   function updateTurbo(dt, input) {
     if (input.locked) {
       state.turboActive = false;
@@ -61,13 +66,18 @@ export function createCarPhysics({ track, params }) {
     }
     if (state.infiniteTurbo) {
       state.fuel = 1;
+      state.turboLockout = false;
       state.turboActive = input.space;
-    } else if (input.space && state.fuel > 0) {
+      return;
+    }
+    if (state.turboLockout && state.fuel >= p.turboReigniteFuel) state.turboLockout = false;
+    if (input.space && state.fuel > 0 && !state.turboLockout) {
       state.turboActive = true;
       state.fuel = Math.max(0, state.fuel - p.TURBO_DEPLETE * dt);
+      if (state.fuel <= 0) state.turboLockout = true;
     } else {
       state.turboActive = false;
-      if (!input.space) state.fuel = Math.min(1, state.fuel + p.TURBO_RECHARGE * dt);
+      state.fuel = Math.min(1, state.fuel + p.TURBO_RECHARGE * dt);
     }
   }
 

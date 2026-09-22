@@ -89,7 +89,7 @@
 
 ### Task 05 - Turbo: recarga com espaço segurado + histerese; bot recalibrado para humanos
 - Task ID: TASK-kaleugit-EP-008-05
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Standard
 - Domain: Carro (física do turbo) + Bot (calibração)
