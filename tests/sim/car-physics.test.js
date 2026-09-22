@@ -94,6 +94,48 @@ test('locked input ignores throttle/turbo (countdown)', () => {
   assert.ok(Math.abs(car.state.speed) < 0.5, `speed ${car.state.speed}`);
 });
 
+// EP-008-05 turbo mechanic: the tank recharges whenever the turbo is not burning (Space held or not),
+// and after running empty the turbo re-ignites only at BASE_PARAMS.turboReigniteFuel (hysteresis).
+test('turbo: holding Space on an empty tank recharges it; no re-ignition below turboReigniteFuel', () => {
+  const car = createCarPhysics({ track: createTrack(plano), params: BASE_PARAMS });
+  const hold = { up: true, space: true, locked: false };
+  let frames = 0;
+  while (car.state.fuel > 0 && frames < 1000) { car.step(1 / 60, hold); frames++; }
+  assert.equal(car.state.fuel, 0, 'tank must run empty while holding Space');
+  assert.equal(car.state.turboLockout, true);
+  const reigniteFrames = Math.ceil(BASE_PARAMS.turboReigniteFuel / (BASE_PARAMS.TURBO_RECHARGE / 60));
+  for (let i = 0; i < reigniteFrames - 2; i++) {
+    car.step(1 / 60, hold);
+    assert.equal(car.state.turboActive, false, `frame ${i}: turbo must stay off below the re-ignite fuel`);
+  }
+  assert.ok(car.state.fuel > 0.9 * BASE_PARAMS.turboReigniteFuel, `fuel ${car.state.fuel} must recharge with Space held`);
+  for (let i = 0; i < 4; i++) car.step(1 / 60, hold);
+  assert.equal(car.state.turboActive, true, 're-ignites once the tank holds turboReigniteFuel');
+  assert.equal(car.state.turboLockout, false);
+});
+
+test('turbo: tapping Space (every frame or 0.1 s) gives no more turbo than holding it', () => {
+  const track = createTrack(plano);
+  const run = (space) => {
+    const car = createCarPhysics({ track, params: BASE_PARAMS });
+    let on = 0;
+    for (let i = 0; i < 20 * 60; i++) {
+      car.step(1 / 60, { up: true, space: space(i), locked: false });
+      if (car.state.turboActive) on++;
+    }
+    // Turbo frames spent plus the frames still left in the tank: the whole turbo the pattern earned.
+    return { on, turbo: on + car.state.fuel / (BASE_PARAMS.TURBO_DEPLETE / 60), x: car.state.x };
+  };
+  const held = run(() => true);
+  // 20 s of holding: one full tank (3 s) plus the recharge-limited refills.
+  assert.ok(held.on > 3 * 60, `held turbo frames ${held.on}`);
+  for (const [name, space] of [['frame', (i) => i % 2 === 0], ['0.1s', (i) => Math.floor(i / 6) % 2 === 0]]) {
+    const r = run(space);
+    assert.ok(r.turbo <= held.turbo + 1e-6, `${name}: ${r.turbo} turbo frames (spent + in tank) vs held ${held.turbo}`);
+    assert.ok(r.x <= held.x + 1e-9, `${name}: ${r.x} m vs held ${held.x} m`);
+  }
+});
+
 // Golden values recorded from the ORIGINAL physics (src/main.js @ 54003dd: updateTurbo, updateSpeed,
 // updatePhysics, checkChassisHitbox, updateRotation, updateSuspension, text-extracted and run in Node
 // with three.js objects stubbed), dt = 1/60, mata-atlantica. The extraction was bit-exact frame by frame.

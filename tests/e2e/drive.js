@@ -50,25 +50,19 @@ export async function waitCountdown(page) {
 /**
  * Drives the player car to the finish line and waits for the result screen.
  *
- * Policy = the reference driver of the calibration (tests/sim/reference-driver.js): throttle always,
- * turbo "while there is fuel". Holding Space on an empty tank blocks the recharge (car-physics
- * updateTurbo), which is why a plain ArrowUp+Space hold is ~93 s on Mata Atlântica while the
- * reference is ~74 s. The driver holds Space until the HUD turbo bar (#turbobar) shows no full
- * block, then toggles Space on every animation frame (release = one frame of recharge, press = one
- * frame of turbo), the frame-level equivalent of `space: fuel > 0`. Air corrections are not needed:
- * in the headless sim this input alone reproduces the reference time (73.7 s on Mata, misto/padrão).
+ * Policy = the reference driver of the calibration (tests/sim/reference-driver.js), the natural
+ * human input: ArrowUp and Space both held for the whole race. Since EP-008-05 the turbo tank
+ * recharges whenever the turbo is not burning (Space held or not) and re-ignites only after a
+ * minimum refill (car-physics updateTurbo), so no tapping pattern beats holding. Air corrections are
+ * not needed: in the headless sim holding both keys reproduces the reference time.
  *
- * The keys are dispatched as KeyboardEvents on `window` from a requestAnimationFrame loop inside the
- * page so the Space toggle is frame-aligned (Playwright's CDP keyboard cannot hit every frame).
- * The loop stops and releases every key when #end-overlay opens.
+ * The keys are dispatched as KeyboardEvents on `window` (the game's real listeners). A
+ * requestAnimationFrame loop releases both keys when #end-overlay opens.
  */
 export async function driveToFinish(page, { timeout = 150_000 } = {}) {
   await page.evaluate(() => {
     const fire = (type, key, code) => window.dispatchEvent(new KeyboardEvent(type, { key, code, bubbles: true }));
-    const bar = document.getElementById('turbobar');
     const end = document.getElementById('end-overlay');
-    let feathering = false;
-    let space = true;
     fire('keydown', 'ArrowUp', 'ArrowUp');
     fire('keydown', ' ', 'Space');
     const step = () => {
@@ -76,11 +70,6 @@ export async function driveToFinish(page, { timeout = 150_000 } = {}) {
         fire('keyup', ' ', 'Space');
         fire('keyup', 'ArrowUp', 'ArrowUp');
         return;
-      }
-      if (!feathering && !bar.textContent.includes('█')) feathering = true;
-      if (feathering) {
-        space = !space;
-        fire(space ? 'keydown' : 'keyup', ' ', 'Space');
       }
       requestAnimationFrame(step);
     };

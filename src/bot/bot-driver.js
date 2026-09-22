@@ -10,10 +10,12 @@ import { BASE_PARAMS } from '../physics/params.js';
 // Tuning knobs. "easy"/"hard" values are interpolated by difficulty (0 = easy, 1 = hard).
 const TUNING = Object.freeze({
   // Error episodes started per second of driving (throttle lift, turbo hesitation, turbo dump).
-  errorRate: { easy: 0.8, hard: 0.2 },
+  // EP-008-05 raised the rates and lift lengths: with the turbo budget-limited for everyone, a turbo
+  // hesitation only saves fuel for later, so throttle lifts are what make the bot beatable.
+  errorRate: { easy: 1.2, hard: 0.4 },
   // Throttle lift duration range (s). The turbo button keeps following the turbo policy, so a lift
   // with fuel is turbo without throttle (a much lower top speed) — a real, costly input mistake.
-  liftDuration: [0.25, 0.6],
+  liftDuration: [0.4, 0.9],
   // Turbo hesitation duration range (s): the bot does not use turbo although it could.
   turboHoldDuration: [0.8, 2.2],
   // Delay (s) between leaving the ground and the first air correction (scaled by 0.6..1.4).

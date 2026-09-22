@@ -39,6 +39,8 @@ export const BASE_PARAMS = Object.freeze({
   GRAVITY: 23.4,
   TURBO_DEPLETE: 1 / 3.0,
   TURBO_RECHARGE: 1 / 6.0,
+  // Turbo hysteresis: after the tank runs empty, fuel (0..1) needed before the turbo re-ignites.
+  turboReigniteFuel: 0.25,
   GROUND_LEAN: 0.198,
   AIR_TORQUE: 9.0,
   BOUNCE_MIN_AIRTIME: 1.0,

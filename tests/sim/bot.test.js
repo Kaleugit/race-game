@@ -79,6 +79,24 @@ for (const stage of registry.listStages()) test(`CA-004 (${stage.id}): seeds 1..
   assert.ok(new Set(times.map((t) => t.toFixed(3))).size > 1, 'seeds must produce different races');
 });
 
+// EP-008-05: human-rate input policies (DEFAULT_PARTS == BASE_PARAMS) beat the bot median by a margin:
+// holding ArrowUp + Space with no air corrections, and tapping Space 0.1 s on / 0.1 s off with the
+// reference air corrections.
+const HUMAN_MARGIN = 0.03;
+for (const stage of registry.listStages()) test(`CA-004 (${stage.id}): human-rate policies (hold, 0.1 s taps) beat the bot median by >= ${HUMAN_MARGIN * 100}%`, () => {
+  const ref = createReferenceDriver(createTrack(stage));
+  const policies = {
+    hold: () => ({ up: true, space: true }),
+    tap: (s, t) => ({ ...ref(s, t), space: Math.floor(t / 0.1 + 1e-9) % 2 === 0 }),
+  };
+  const med = median(Array.from({ length: 10 }, (_, i) => botRace(stage, i + 1).finishTime));
+  for (const [name, driver] of Object.entries(policies)) {
+    const r = runRace({ stage, driver });
+    assert.equal(r.finished, true, `${name} must finish`);
+    assert.ok(r.finishTime <= med * (1 - HUMAN_MARGIN), `${name}: ${r.finishTime.toFixed(2)}s vs bot median ${med.toFixed(2)}s`);
+  }
+});
+
 test('CDC-106: same seed -> same finish time and same run', () => {
   const a = botRace(mata, 7);
   const b = botRace(mata, 7);
