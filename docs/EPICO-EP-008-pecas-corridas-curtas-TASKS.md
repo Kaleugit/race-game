@@ -42,7 +42,7 @@
 
 ### Task 02 - Marchas mais longas no som
 - Task ID: TASK-kaleugit-EP-008-02
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Quick
 - Domain: Áudio (modelo de motor)
@@ -72,7 +72,7 @@
   - Em `src/physics/params.js` / `car-physics.js`: parâmetros novos (massa, capacidade do tanque) com o padrão idêntico ao atual (goldens 1e-9 continuam verdes).
   - Motor altera de leve o som: variante no modelo/síntese (ex.: RPM de corte, timbre ou faixa) via parâmetro vindo do preset.
   - Testes: CA-010 (≥3% por troca, não-dominância CDC-102, padrão = física atual).
-- Depends On: TASK-kaleugit-EP-008-02
+- Depends On: TASK-kaleugit-EP-008-05
 - Canonical File: memory-system/tasks/TASK-kaleugit-EP-008-03.md
 - Suggested Branch: TASK-kaleugit-EP-008-03-implement
 - Input Context (max 5 files):
@@ -86,6 +86,36 @@
 - Escalation Conditions:
   - To human: nenhum previsto.
   - To orchestrator: não-dominância impossível sem mudar pneus/câmbio.
+
+### Task 05 - Turbo: recarga com espaço segurado + histerese; bot recalibrado para humanos
+- Task ID: TASK-kaleugit-EP-008-05
+- Status: PENDING
+- Priority: 1
+- Execution Mode: Standard
+- Domain: Carro (física do turbo) + Bot (calibração)
+- Description:
+  - Bug achado na EP-006-05: em `updateTurbo` (`src/physics/car-physics.js`) o tanque não recarrega enquanto `space` está segurado, e o turbo acende com qualquer resto de combustível; alternar o espaço a cada quadro (60 Hz, inumano) mantém o turbo ~50% do tempo com tanque vazio. O motorista de referência depende disso, então o bot está calibrado contra um jogador impossível (humano: ~83–85s na Mata vs bot ~79s).
+  - Corrigir: recarregar sempre que o turbo não estiver ativo (inclusive com espaço segurado) e exigir um mínimo de combustível para reacender depois de esvaziar (histerese, parâmetro em `BASE_PARAMS`).
+  - Referência (`tests/sim/reference-driver.js`) passa a segurar o espaço; medir também um perfil "humano" (toques 0,1 s/0,1 s) e garantir que ambos vencem o bot.
+  - Recalibrar `bot.difficulty` por estágio e/ou `TUNING` do bot para CA-004 (bot mais lento que a referência humana, Cerrado um pouco mais difícil).
+  - Atualizar `tests/e2e/drive.js` para segurar espaço (política humana) e manter os e2e verdes.
+  - Goldens do EP-003-01: se algum caso usa espaço segurado com tanque vazio, o valor muda por causa do bug corrigido — regravar a partir do código novo explicando exatamente qual caso mudou; tolerância 1e-9 mantida.
+- Depends On: TASK-kaleugit-EP-008-01, TASK-kaleugit-EP-008-02
+- Canonical File: memory-system/tasks/TASK-kaleugit-EP-008-05.md
+- Suggested Branch: TASK-kaleugit-EP-008-05-implement
+- Input Context (max 5 files):
+  - src/physics/car-physics.js
+  - src/physics/params.js
+  - src/bot/bot-driver.js
+  - tests/sim/reference-driver.js
+  - tests/e2e/drive.js
+- Done Criteria:
+  - Teste: segurar espaço com tanque vazio recarrega; alternar a cada quadro não dá mais turbo que segurar.
+  - CA-004 e CA-009 nos dois estágios com a referência segurando espaço; perfil de toques humanos também vence o bot.
+  - `npm test` e `npm run test:sim` verdes.
+- Escalation Conditions:
+  - To human: nenhum previsto (correção de bug de mecânica).
+  - To orchestrator: recalibração exigir mudar a física além do turbo.
 
 ### Task 04 - Garagem, perfil e fiação das peças novas
 - Task ID: TASK-kaleugit-EP-008-04
@@ -121,3 +151,4 @@
 - DA-001: Tasks 01 e 02 rodam em paralelo (arquivos disjuntos) — Criterio: CDC-005 — Racional: estágios vs. modelo de motor.
 - DA-002: Task 03 depois da 02 — Criterio: um dono por arquivo — Racional: ambas mexem em `src/audio/engine-model.js`.
 - DA-003: Peças atuais = padrão, com física idêntica — Criterio: CDC-006 + goldens do EP-003 — Racional: quem não mexer na garagem não sente diferença.
+- DA-004: Task 05 (bug do turbo + recalibração do bot) antes da 03 — Criterio: INTEGRITY (causa raiz) + CA-004 "vencível por jogador habilidoso" — Racional: a referência atual depende de uma exploração de 60 Hz impossível para humanos; a 03 mexe no mesmo arquivo de física e nos tanques.
