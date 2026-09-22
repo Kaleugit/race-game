@@ -8,7 +8,7 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-22T00:44Z
+Last regenerated: 2026-09-22T01:06Z
 Total candidate files scanned: 18
 
 ## Backend modules
@@ -61,7 +61,7 @@ Total candidate files scanned: 18
 - Stage discovery: every src/stages/*.stage.js file becomes a stage (Vite import.meta.glob).
 
 ### `src/stages/mata-atlantica.stage.js` — stages/mata-atlantica
-- Mata Atlântica stage data, migrated verbatim from the pre-migration src/main.js
+- Mata Atlântica stage data (EP-005-01): the prototype opening (0–830 m, verbatim from the
 
 ### `src/stages/registry.js` — stages/registry
 - Pure stage registry and stage-contract validation. No three.js, no DOM.

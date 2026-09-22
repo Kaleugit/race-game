@@ -17,7 +17,7 @@
 
 ### Task 01 - Mata Atlântica polida (60–90s, hazards à mão) + teste de duração
 - Task ID: TASK-kaleugit-EP-005-01
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Standard
 - Domain: Conteúdo (level design — Mata Atlântica)

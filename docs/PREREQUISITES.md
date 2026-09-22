@@ -28,6 +28,7 @@ Revisado em 2026-09-21 pelo `skills/bootstrap`.
 
 ## Conhecimento de domínio
 - [ ] Tempo de referência de um "jogador habilidoso" por estágio (usado em CA-004 para calibrar o bot) — pode ser medido pelo agente com input de referência e validado pelo Kaleu no teste de UX. Não bloqueia o planejamento.
+  - Mata Atlântica (EP-005-01, medido pelo agente com `tests/sim/reference-driver.js` + `DEFAULT_PARTS`, dt 1/60): **73,7 s** (pista de 2600 m). Bot `difficulty` 0,5: mediana 79,4 s (76,9–81,6 s, seeds 1..10); só `ArrowUp`: 94,9 s. **Pendente de validação do Kaleu** no teste de UX do EP-005.
 - [ ] Dispositivo Android de entrada de referência para RNF-002 (ver DA-004). Não bloqueia o planejamento.
 
 ## Ferramentas de governança
