@@ -145,6 +145,16 @@ Do not manually edit the consolidated block.
 - EP-008 Task 02 (Quick): longer engine-sound gears — ENGINE_DEFAULTS.finalDrive 4.5 -> 3.3 (every gear 1.36x more speed, first upshift ~17-20 m/s, upshifts per race 141 -> 111 across the 6 harness runs). Sound only. `npm run test:sim` 88/88.
 
 
+# 2026-09-22 — TASK-kaleugit-EP-008-03
+
+- EP-008 Task 03 (Standard): RF-012 parts — ENGINES e16/e20/e24 (1.6/2.0/2.4), CHASSIS leve/medio/pesado, TANKS pequeno/medio/grande; BASE_PARAMS.mass + turboCapacity (1 = exact identity, goldens unchanged); engine preset changes the sound model RPM range + timbre. CA-010 green (>= 3% per swap; per-part non-dominance in all 243 builds; no universal best). Bot unaffected. UX gate pending human.
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-04
+
+- EP-008 Task 04 (Standard): garage rows MOTOR/CHASSI/TANQUE DE TURBO with preset-derived trade-off labels; profile persists engine/chassis/tank (old profiles -> defaults, no migration); main.js resolves all 5 parts per race, passes engine to the engine sound, turbo bar cells = round(12 x turboCapacity). Garage fits 640x360 (e2e). test:sim 104/104, npm test 12/12. UX gate pending human.
+
+
 # 2026-09-22 — TASK-kaleugit-EP-008-05
 
 - EP-008 Task 05 (Standard): turbo bug fixed at the root (recharge whenever not burning, re-ignite hysteresis turboReigniteFuel 0.25); reference holds Space (Mata 43.0 s, Cerrado 42.9 s); bot recalibrated (TUNING lifts; Cerrado difficulty 0.9): medians 46.3 / 45.5 s, ratios 1.075 / 1.059; 0.1 s tapping beats the bot median by 6.3% / 4.4%. Goldens unchanged. UX gate pending human.

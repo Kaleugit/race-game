@@ -139,6 +139,21 @@ Do not edit generated block manually.
 - tests/sim/engine-model.test.js keeps a LEGACY `{ finalDrive: 4.5 }` baseline for the ">= 1.3x per gear" and "fewer upshifts" checks.
 
 
+# 2026-09-22 — TASK-kaleugit-EP-008-03
+
+- BASE_PARAMS.mass divides throttle/turbo accel, AIR_TORQUE and the landing rebound; BASE_PARAMS.turboCapacity divides TURBO_DEPLETE/TURBO_RECHARGE (fuel stays 0..1). Engines also scale TURBO_DEPLETE (turboBurnMult).
+- resolveCarParams(base, { tire, gearbox, engine?, chassis?, tank? }): missing new parts = DEFAULT_PARTS, so profile.getGarage() (still color/tire/gearbox) keeps working until EP-008-04.
+- EP-008-04 wiring: engineSound.update(dt, { ..., engine: garage.engine }); turbo HUD can show seconds = params.turboCapacity / params.TURBO_DEPLETE; labels in ENGINES/CHASSIS/TANKS[id].label.
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-04
+
+- profile.getGarage() -> { color, tire, gearbox, engine, chassis, tank } (always valid ids; safe for resolveCarParams). race_profile_v1 version stays 1.
+- showGarage({ selection, colors, tires, gearboxes, engines, chassis, tanks, onChange, onConfirm }); rows #garage-engines [data-engine], #garage-chassis [data-chassis], #garage-tanks [data-tank]; .garage-sel-trade shows the selected label (visible only at max-height 500px).
+- #hud data-engine / data-turbo-capacity / data-mass = resolved params of the current race; #turbobar cells = round(12 x turboCapacity).
+- tests/e2e/drive.js pickGarage accepts engine/chassis/tank.
+
+
 # 2026-09-22 — TASK-kaleugit-EP-008-05
 
 - BASE_PARAMS.turboReigniteFuel 0.25; car state.turboLockout (set when the tank empties while burning, cleared at >= turboReigniteFuel). Tank recharges whenever turboActive is false.
