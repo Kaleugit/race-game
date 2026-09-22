@@ -36,27 +36,42 @@ async function signPixels(page) {
 
 const distance = (page) => page.evaluate(() => Number(document.getElementById('dist').textContent));
 
-/** Creeps the car to `target` metres with throttle taps, then reverses if it overshot. */
+async function tap(page, key, hold, rest) {
+  await page.keyboard.down(key);
+  await page.waitForTimeout(hold);
+  await page.keyboard.up(key);
+  await page.waitForTimeout(rest);
+}
+
+/** Brakes until the distance stops changing and returns that standing position. */
+async function stop(page) {
+  let prev = -1;
+  for (let i = 0; i < 40; i++) {
+    const d = await distance(page);
+    if (d === prev) return d;
+    prev = d;
+    await tap(page, 'ArrowDown', 90, 110);
+  }
+  return distance(page);
+}
+
+/**
+ * Creeps the car to `target` metres and stops it there. Braking cannot undo an overshoot (the car
+ * never drives backwards), so the approach stops short and nudges: throttle bursts while far, then
+ * short taps from a standstill until the car rests within 2 m before `target`.
+ */
 async function driveTo(page, target) {
   for (let i = 0; i < 400; i++) {
     const d = await distance(page);
-    if (d >= target) break;
-    const far = target - d > 12;
-    await page.keyboard.down('ArrowUp');
-    await page.waitForTimeout(far ? 200 : 55);
-    await page.keyboard.up('ArrowUp');
-    await page.waitForTimeout(far ? 60 : 140);
+    if (d >= target - 8) break;
+    await tap(page, 'ArrowUp', 200, 60);
   }
-  for (let i = 0; i < 200; i++) {
-    const d = await distance(page);
-    if (d <= target) break;
-    await page.keyboard.down('ArrowDown');
-    await page.waitForTimeout(d - target > 6 ? 140 : 50);
-    await page.keyboard.up('ArrowDown');
-    await page.waitForTimeout(150);
+  for (let i = 0; i < 120; i++) {
+    const d = await stop(page);
+    if (d >= target - 2) return d;
+    await tap(page, 'ArrowUp', d < target - 5 ? 70 : 40, 120);
   }
-  await page.waitForTimeout(300);
-  return distance(page);
+  return stop(page);
 }
 
 test('placa de "!" visível 20 m antes da areia e antes da lama', async ({ page }) => {
