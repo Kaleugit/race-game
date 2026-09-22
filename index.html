@@ -18,107 +18,204 @@
         background: #050208;
       }
       canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+      /* Shared UI tokens (EP-008-07): the garage docks (EP-008-06) and the race HUD use the same font,
+         type scale, gold accent and dark translucent panels. --ui-fs is the base size; everything else
+         in those blocks is sized in em from it, so one number scales the whole UI with the viewport. */
+      :root {
+        --ui-font: 'Courier New', monospace;
+        --ui-fs: clamp(9px, 1.7vh, 16px);
+        --ui-gold: #ffd86b;
+        --ui-hot: #ff8a3a;
+        --ui-ink: #fffbe0;
+        --ui-ink-2: #e9e4c8;
+        --ui-muted: #b3badf;
+        --ui-line: #4a5070;
+        --ui-bot: #ff4444;
+        --ui-bot-text: #ff6b6b;
+        --ui-panel-bg: linear-gradient(180deg, rgba(16,11,24,0.9) 0%, rgba(8,5,12,0.86) 100%);
+        --ui-glass-bg: linear-gradient(180deg, rgba(16,11,24,0.62) 0%, rgba(8,5,12,0.48) 100%);
+        --ui-panel-border: rgba(255,216,107,0.2);
+        --ui-face: rgba(8,5,12,0.42);
+      }
+      .race-ui {
+        font-family: var(--ui-font); font-size: var(--ui-fs);
+        color: var(--ui-ink); text-shadow: 1px 1px 0 #000;
+        /* Race layout: HUD column (left), race bar (centre), action column (right). */
+        --hud-gut: 12px;
+        --hud-w: 18.4em;
+        --act-w: 9.6em;
+      }
+      /* Race HUD (EP-008-07): speed + turbo gauges and the DIST / BOT readouts, top-left. */
       #hud {
-        position: fixed; top: 12px; left: 12px;
-        font-family: 'Courier New', monospace;
-        color: #fffbe0; text-shadow: 2px 2px 0 #000;
-        font-size: 14px; line-height: 1.4;
+        position: fixed;
+        top: calc(var(--hud-gut) + env(safe-area-inset-top, 0px));
+        left: calc(var(--hud-gut) + env(safe-area-inset-left, 0px));
+        width: var(--hud-w);
+        display: flex; flex-direction: column; gap: 0.5em;
         pointer-events: none;
       }
-      #hud .v { color: #ffd86b; }
-      #hud .vbot { color: #ff8a3a; }
+      .hud-gauges { display: flex; align-items: flex-end; gap: 0.4em; }
+      .gauge { display: block; overflow: visible; }
+      .gauge-speed { width: 10.5em; height: 10.5em; }
+      .gauge-turbo { width: 7.5em; height: 7.5em; }
+      .gauge text {
+        font-family: var(--ui-font); font-weight: 700; text-anchor: middle;
+        paint-order: stroke; stroke: rgba(0,0,0,0.85); stroke-width: 1.4px; stroke-linejoin: round;
+      }
+      .g-face { fill: var(--ui-face); stroke: rgba(255,216,107,0.3); stroke-width: 0.8; }
+      .g-track, .g-fill { fill: none; stroke-width: 5; }
+      .g-track { stroke: rgba(255,255,255,0.14); }
+      .g-fill { stroke: var(--ui-gold); }
+      .gauge-speed[data-turbo="on"] .g-fill { stroke: var(--ui-hot); }
+      .tick { stroke: rgba(233,228,200,0.5); stroke-width: 0.8; }
+      .tick.major { stroke: var(--ui-ink); stroke-width: 1.4; }
+      .gauge .tick-num { font-size: 8px; fill: var(--ui-muted); stroke-width: 1px; }
+      .g-needle { fill: var(--ui-ink); }
+      .gauge-speed[data-turbo="on"] .g-needle { fill: #ffe38f; }
+      .g-hub { fill: var(--ui-gold); stroke: #000; stroke-width: 0.8; }
+      .gauge .g-num { font-size: 17px; fill: var(--ui-ink); }
+      .gauge .g-unit { font-size: 8px; fill: var(--ui-muted); letter-spacing: 0.12em; stroke-width: 1px; }
+      .turbo-seg { fill: none; stroke: rgba(255,255,255,0.14); stroke-width: 8; }
+      .turbo-seg.on { stroke: var(--ui-gold); }
+      .gauge-turbo[data-state="active"] .turbo-seg.on { stroke: var(--ui-hot); }
+      .gauge-turbo[data-state="low"] .turbo-seg.on { stroke: #ff5555; }
+      .gauge-turbo[data-state="lockout"] .turbo-seg.on { stroke: rgba(255,85,85,0.55); }
+      .turbo-reignite { stroke: rgba(255,251,224,0.4); stroke-width: 1; }
+      .gauge-turbo[data-state="lockout"] .turbo-reignite { stroke: var(--ui-bot-text); stroke-width: 2; }
+      .gauge .turbo-pct { font-size: 24px; }
+      .gauge .turbo-label { font-size: 12px; letter-spacing: 0.08em; }
+      .gauge-turbo[data-state="lockout"] .turbo-pct,
+      .gauge-turbo[data-state="lockout"] .turbo-label { fill: var(--ui-bot-text); }
+      .hud-readouts {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 0.2em 1em;
+        padding: 0.45em 0.8em 0.5em;
+        background: var(--ui-glass-bg);
+        border: 1px solid var(--ui-panel-border); border-top: 2px solid var(--ui-gold);
+      }
+      .hud-row { display: flex; align-items: baseline; gap: 0.45em; white-space: nowrap; }
+      #hud-debug, #hud-pos { grid-column: 1 / -1; }
+      .hud-k { font-size: 0.9em; font-weight: 700; letter-spacing: 0.18em; color: var(--ui-muted); }
+      .hud-v { font-size: 1.3em; font-weight: 700; color: var(--ui-ink); font-variant-numeric: tabular-nums; }
+      .hud-u { font-size: 0.9em; color: var(--ui-muted); }
+      .hud-row-bot .hud-k, .hud-row-bot .hud-v { color: var(--ui-bot-text); }
+      #hud-bot-won {
+        font-weight: 700; letter-spacing: 0.14em; white-space: nowrap;
+        color: var(--ui-bot-text); background: rgba(255,68,68,0.16);
+        border-left: 2px solid var(--ui-bot); padding: 0.45em 0.7em;
+      }
+      /* In-race buttons (LOBBY / REINICIAR / TOUCH), top-right column. */
+      #race-actions {
+        position: fixed; z-index: 20;
+        top: calc(var(--hud-gut) + env(safe-area-inset-top, 0px));
+        right: calc(var(--hud-gut) + env(safe-area-inset-right, 0px));
+        width: var(--act-w);
+        display: flex; flex-direction: column; gap: 0.45em;
+      }
+      .race-btn {
+        font-family: var(--ui-font); font-size: 1em; font-weight: 700;
+        letter-spacing: 0.14em; line-height: 1.1; white-space: nowrap; text-align: center;
+        color: var(--ui-ink); background: var(--ui-glass-bg);
+        border: 1px solid var(--ui-panel-border);
+        padding: 0.6em 0.5em; cursor: pointer; user-select: none;
+        text-shadow: 1px 1px 0 #000;
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
+      }
+      @media (hover: hover) {
+        .race-btn:hover { background: rgba(255,216,107,0.17); border-color: var(--ui-gold); color: var(--ui-gold); }
+      }
+      .race-btn:active { transform: translateY(1px); }
+      .race-btn:focus-visible { outline: 2px solid var(--ui-ink); outline-offset: 2px; }
+      #btn-back-lobby, #btn-restart { display: none; }
+      /* Race bar (mini-map): fills the gap between the HUD and the action column, max ~40em centred. */
+      #race-bar {
+        position: fixed; z-index: 30; pointer-events: none;
+        top: calc(var(--hud-gut) + 0.5em + env(safe-area-inset-top, 0px));
+        left: max(calc(var(--hud-gut) + var(--hud-w) + 1.5em), calc(50% - 20em));
+        right: max(calc(var(--hud-gut) + var(--act-w) + 1.5em), calc(50% - 20em));
+        display: none; align-items: center; gap: 0.8em;
+      }
+      #race-bar.show { display: flex; }
+      #race-bar-label-you, #race-bar-label-bot {
+        font-weight: 700; letter-spacing: 0.18em; white-space: nowrap;
+      }
+      #race-bar-label-you { color: var(--ui-gold); }
+      #race-bar-label-bot { color: var(--ui-bot-text); }
+      #race-bar-track {
+        position: relative; flex: 1; height: 3px;
+        background: rgba(255,255,255,0.25); box-shadow: 0 1px 0 rgba(0,0,0,0.6);
+      }
+      #race-bar-player, #race-bar-bot {
+        position: absolute; top: 50%; width: 0.85em; height: 0.85em;
+        transform: translate(-50%, -50%) rotate(45deg);
+        left: 0%;
+      }
+      #race-bar-player { background: var(--ui-gold); box-shadow: 0 0 6px var(--ui-gold); z-index: 2; }
+      #race-bar-bot    { background: var(--ui-bot); box-shadow: 0 0 6px var(--ui-bot); z-index: 1; }
+      #race-bar-finish {
+        position: absolute; top: -0.45em; right: 0; width: 2px; height: calc(0.9em + 3px);
+        background: rgba(255,255,255,0.6);
+      }
+      #race-bar-stage {
+        position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+        margin-top: 0.5em; white-space: nowrap;
+        font-size: 0.9em; font-weight: 700; letter-spacing: 0.18em; color: var(--ui-ink-2);
+      }
+      /* Keyboard hint, desktop only. */
       #help {
-        position: fixed; bottom: 12px; left: 12px;
-        font-family: 'Courier New', monospace;
-        color: #cfd6ff; text-shadow: 2px 2px 0 #000;
-        font-size: 12px; opacity: 0.85;
+        position: fixed;
+        bottom: calc(var(--hud-gut) + env(safe-area-inset-bottom, 0px));
+        left: calc(var(--hud-gut) + env(safe-area-inset-left, 0px));
+        display: flex; flex-wrap: wrap; gap: 0.3em 1.4em;
+        letter-spacing: 0.08em; color: var(--ui-muted);
+        pointer-events: none;
       }
-      #btn-back-lobby {
-        position: fixed; top: 12px; right: 12px; z-index: 20;
-        font-family: 'Courier New', monospace;
-        background: rgba(0,0,0,0.4); color: #fffbe0;
-        border: 1px solid rgba(255,255,255,0.3);
-        padding: 8px 12px; font-size: 13px;
-        cursor: pointer; user-select: none;
-        text-shadow: 2px 2px 0 #000;
-        display: none;
-      }
-      #btn-back-lobby:hover { background: rgba(255,216,107,0.18); border-color: #ffd86b; }
-      #btn-restart {
-        position: fixed; top: 52px; right: 12px; z-index: 20;
-        font-family: 'Courier New', monospace;
-        background: rgba(0,0,0,0.4); color: #fffbe0;
-        border: 1px solid rgba(255,255,255,0.3);
-        padding: 8px 12px; font-size: 13px;
-        cursor: pointer; user-select: none;
-        text-shadow: 2px 2px 0 #000;
-        display: none;
-      }
-      #btn-restart:hover { background: rgba(255,216,107,0.18); border-color: #ffd86b; }
-      #mobiletoggle {
-        position: fixed; top: 92px; right: 12px;
-        font-family: 'Courier New', monospace;
-        background: rgba(0,0,0,0.4); color: #fffbe0;
-        border: 1px solid rgba(255,255,255,0.3);
-        padding: 8px 12px; font-size: 13px;
-        cursor: pointer; user-select: none;
-        text-shadow: 2px 2px 0 #000;
-      }
+      #help b { color: var(--ui-ink); }
+      #touchpad.show ~ #help { display: none; }
+      /* Touch controls: fixed thumb-sized targets; labels use the UI font (capped for the pedals). */
       #touchpad {
         position: fixed; inset: 0;
         pointer-events: none;
         display: none;
       }
       #touchpad.show { display: block; }
-      #touchpad .pad { position: absolute; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 8px; pointer-events: none; }
-      #touchpad .pad-left { left: calc(12px + env(safe-area-inset-left, 0px)); }
-      #touchpad .pad-right { right: calc(12px + env(safe-area-inset-right, 0px)); align-items: flex-end; }
+      #touchpad .pad { position: absolute; bottom: calc(var(--hud-gut) + env(safe-area-inset-bottom, 0px)); display: flex; gap: 8px; pointer-events: none; }
+      #touchpad .pad-left { left: calc(var(--hud-gut) + env(safe-area-inset-left, 0px)); }
+      #touchpad .pad-right { right: calc(var(--hud-gut) + env(safe-area-inset-right, 0px)); align-items: flex-end; }
       #touchpad .tbtn {
-        background: rgba(255,255,255,0.10);
-        border: 1px solid rgba(255,255,255,0.35);
-        color: rgba(255,251,224,0.6);
-        font-family: 'Courier New', monospace;
-        line-height: 1;
+        font-family: var(--ui-font); font-weight: 700;
+        font-size: min(var(--ui-fs), 12px); letter-spacing: 0.12em; line-height: 1;
+        color: rgba(255,251,224,0.8);
+        background: rgba(8,5,12,0.36);
+        border: 1px solid rgba(255,216,107,0.32);
+        text-shadow: 1px 1px 0 #000;
         display: flex; align-items: center; justify-content: center;
+        padding: 0;
         user-select: none; -webkit-user-select: none; touch-action: none;
         pointer-events: auto;
       }
-      #touchpad .tbtn:active { background: rgba(255,255,255,0.28); color: rgba(255,251,224,0.95); }
-      #touchpad .tbtn-arrow {
-        width: 88px; height: 88px;
-        border-radius: 50%;
-        font-size: 44px;
-      }
-      #touchpad .tbtn-pedal {
-        width: 38px; height: 62px;
-        border-radius: 18px;
-        font-size: 20px;
-        letter-spacing: -1px;
-      }
-      #touchpad .tbtn-pedal.brake { color: rgba(255,160,140,0.7); border-color: rgba(255,160,140,0.5); }
-      #touchpad .tbtn-pedal.brake:active { color: rgba(255,180,160,1); }
+      #touchpad .tbtn:active { background: rgba(255,216,107,0.2); border-color: var(--ui-gold); color: var(--ui-ink); }
+      #touchpad .tbtn-arrow { width: 88px; height: 88px; font-size: 38px; letter-spacing: 0; }
+      #touchpad .tbtn-pedal { width: 52px; height: 64px; }
+      #touchpad .tbtn-pedal.brake { color: rgba(255,178,150,0.9); border-color: rgba(255,138,90,0.5); }
+      #touchpad .tbtn-pedal.brake:active { background: rgba(255,138,90,0.22); color: #ffd2c0; }
       #touchpad .tbtn-gasturbo {
-        width: 42px; height: 110px;
-        border-radius: 22px;
-        font-size: 18px;
-        letter-spacing: -1px;
-        flex-direction: column;
-        padding: 4px 0;
-        color: rgba(180,255,180,0.7);
-        border-color: rgba(180,255,180,0.5);
-        background: linear-gradient(to top, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.10) 50%, rgba(255,200,80,0.10) 50%, rgba(255,200,80,0.18) 100%);
+        width: 56px; height: 112px;
+        flex-direction: column; align-items: stretch;
+        color: rgba(190,255,200,0.9); border-color: rgba(143,240,168,0.5);
       }
+      #touchpad .tbtn-gasturbo .zone-turbo,
+      #touchpad .tbtn-gasturbo .zone-gas { flex: 1; display: flex; align-items: center; justify-content: center; }
       #touchpad .tbtn-gasturbo .zone-turbo {
-        flex: 1; display: flex; align-items: center; justify-content: center;
-        font-size: 9px; color: rgba(255,200,80,0.75); letter-spacing: 0;
+        color: rgba(255,216,107,0.9);
+        background: rgba(255,200,80,0.1);
+        border-bottom: 1px dashed rgba(255,216,107,0.4);
       }
-      #touchpad .tbtn-gasturbo .zone-gas {
-        flex: 1; display: flex; align-items: center; justify-content: center;
-        font-size: 18px;
+      #touchpad .tbtn-gasturbo.gas-on { border-color: rgba(200,255,200,0.85); }
+      #touchpad .tbtn-gasturbo.gas-on .zone-gas { background: rgba(111,220,140,0.24); color: #eaffee; }
+      #touchpad .tbtn-gasturbo.turbo-on .zone-turbo { background: rgba(255,138,58,0.42); color: var(--ui-ink); }
+      @media (prefers-reduced-motion: reduce) {
+        .race-btn { transition: none; }
       }
-      #touchpad .tbtn-gasturbo.gas-on { color: rgba(200,255,200,1); border-color: rgba(200,255,200,0.85); }
-      #touchpad .tbtn-gasturbo.turbo-on .zone-turbo { color: rgba(255,220,120,1); }
-      #touchpad .tbtn-gasturbo.turbo-on { background: linear-gradient(to top, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.18) 50%, rgba(255,200,80,0.30) 50%, rgba(255,200,80,0.45) 100%); }
       #lobby {
         position: fixed; inset: 0; z-index: 100;
         background: url('/Lobby-1.png') center center / cover no-repeat, linear-gradient(135deg, #1a0a2e 0%, #2d1a4a 50%, #1a0a2e 100%);
@@ -247,21 +344,19 @@
         display: none;
         flex-direction: column;
         align-items: center; justify-content: center;
-        gap: 28px;
+        gap: 1.6em;
         pointer-events: none;
       }
       #countdown-overlay.show { display: flex; }
       #countdown-vs {
-        font-family: 'Courier New', monospace;
-        font-size: 22px; letter-spacing: 6px;
-        color: #cfd6ff; text-shadow: 2px 2px 0 #000;
+        font-size: 1.6em; font-weight: 700; letter-spacing: 0.32em;
+        color: var(--ui-muted); text-shadow: 2px 2px 0 #000;
       }
       #countdown-num {
-        font-family: 'Courier New', monospace;
-        font-size: 96px; letter-spacing: 4px;
-        color: #ffd86b; text-shadow: 4px 4px 0 #000, 0 0 40px #ff7a4a;
+        font-size: 7em; font-weight: 700; letter-spacing: 0.06em;
+        color: var(--ui-gold); text-shadow: 4px 4px 0 #000, 0 0 40px #ff7a4a;
         line-height: 1;
-        min-width: 160px; text-align: center;
+        min-width: 2.2em; text-align: center;
       }
       #end-overlay {
         position: fixed; inset: 0; z-index: 60;
@@ -368,10 +463,10 @@
         width: var(--dock-w);
         display: flex; flex-direction: column; gap: 1.1em;
         padding: 1.1em 1.2em 1.2em;
-        font-size: clamp(9px, 1.7vh, 16px);
-        background: linear-gradient(180deg, rgba(16,11,24,0.9) 0%, rgba(8,5,12,0.86) 100%);
-        border: 1px solid rgba(255,216,107,0.2);
-        border-top: 2px solid #ffd86b;
+        font-size: var(--ui-fs);
+        background: var(--ui-panel-bg);
+        border: 1px solid var(--ui-panel-border);
+        border-top: 2px solid var(--ui-gold);
         box-shadow: 0 14px 36px rgba(5,2,8,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
         -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
         overflow: auto;
@@ -392,7 +487,7 @@
       .garage-section { display: flex; flex-direction: column; gap: 0.5em; }
       .garage-label {
         font-size: 0.9em; font-weight: 700; letter-spacing: 0.18em; line-height: 1.2;
-        color: #b3badf; white-space: nowrap;
+        color: var(--ui-muted); white-space: nowrap;
       }
       #garage-color-name { color: #ffd86b; margin-left: 0.6em; }
       /* Segmented control: the three options of one part, selected = gold. */
@@ -402,7 +497,7 @@
       }
       .garage-opt {
         position: relative;
-        font-family: 'Courier New', monospace; font-size: 1.05em; font-weight: 700;
+        font-family: var(--ui-font); font-size: 1.05em; font-weight: 700;
         letter-spacing: 0.06em; line-height: 1.1; white-space: nowrap;
         color: #e9e4c8; background: transparent;
         border: 0; border-left: 1px solid #3a3f5a;
@@ -434,7 +529,7 @@
         font-size: 0.86em; line-height: 1.25;
       }
       .stat { display: grid; grid-template-columns: 5.4em 1fr 4em; align-items: center; gap: 0.8em; }
-      .stat-k { color: #b3badf; letter-spacing: 0.08em; white-space: nowrap; }
+      .stat-k { color: var(--ui-muted); letter-spacing: 0.08em; white-space: nowrap; }
       .stat[data-tone="zero"] { opacity: 0.45; }
       .stat-v { text-align: right; font-weight: 700; color: #e9e4c8; font-variant-numeric: tabular-nums; white-space: nowrap; }
       .stat-bar { position: relative; height: 0.42em; }
@@ -526,35 +621,6 @@
         #end-play-again { margin-top: 4px; padding: 8px 32px; }
         .end-secondary { padding: 7px 18px; font-size: 12px; }
       }
-      #race-bar {
-        position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
-        width: 60%; max-width: 600px;
-        display: none; align-items: center; gap: 8px;
-        z-index: 30; pointer-events: none;
-      }
-      #race-bar.show { display: flex; }
-      #race-bar-label-you, #race-bar-label-bot {
-        font-family: 'Courier New', monospace; font-size: 10px;
-        letter-spacing: 2px; white-space: nowrap;
-        text-shadow: 1px 1px 0 #000;
-      }
-      #race-bar-label-you { color: #ffd86b; }
-      #race-bar-label-bot { color: #ff4444; }
-      #race-bar-track {
-        position: relative; flex: 1; height: 3px;
-        background: rgba(255,255,255,0.25);
-      }
-      #race-bar-player, #race-bar-bot {
-        position: absolute; top: 50%; width: 12px; height: 12px;
-        border-radius: 50%; transform: translate(-50%, -50%);
-        left: 0%;
-      }
-      #race-bar-player { background: #ffd86b; box-shadow: 0 0 6px #ffd86b; z-index: 2; }
-      #race-bar-bot    { background: #ff4444; box-shadow: 0 0 6px #ff4444; z-index: 1; }
-      #race-bar-finish {
-        position: absolute; top: -5px; right: 0; width: 2px; height: 13px;
-        background: rgba(255,255,255,0.5);
-      }
     </style>
   </head>
   <body>
@@ -579,7 +645,7 @@
       <b>Compartilhar</b> &#x2191; e depois em
       <b>Adicionar &agrave; Tela de In&iacute;cio</b>. Abra o jogo pelo &iacute;cone criado.
     </div>
-    <div id="race-bar">
+    <div id="race-bar" class="race-ui">
       <span id="race-bar-label-you">VOCÊ</span>
       <div id="race-bar-track">
         <div id="race-bar-bot"></div>
@@ -588,7 +654,7 @@
       </div>
       <span id="race-bar-label-bot">BOT</span>
     </div>
-    <div id="countdown-overlay">
+    <div id="countdown-overlay" class="race-ui">
       <div id="countdown-vs">vs. BOT</div>
       <div id="countdown-num">3</div>
     </div>
@@ -660,32 +726,40 @@
         <button id="map-back" class="end-secondary" type="button" hidden>&#8592; GARAGEM</button>
       </div>
     </div>
-    <div id="hud">
-      VEL <span class="v" id="speed">0</span> km/h<br />
-      DIST <span class="v" id="dist">0</span> m<br />
-      TURBO <span class="v" id="turbobar">[████████████]</span><br />
-      BOT <span class="vbot" id="bot-dist">0</span> m<br />
-      <span id="hud-debug" style="display:none">SUSP <span class="v" id="suspstate">ON</span><br />TURBO INF <span class="v" id="infturbo">OFF</span><br /></span>
-      <span id="hud-pos" style="display:none">POS <span class="v" id="pos">0</span></span>
+    <!-- Race HUD (EP-008-07): gauges built by src/ui/race-hud.js; same type scale as the garage. -->
+    <div id="hud" class="race-ui">
+      <div class="hud-gauges">
+        <svg id="speed-gauge" class="gauge gauge-speed" viewBox="0 0 100 100" role="img" aria-label="Velocidade em km/h"></svg>
+        <svg id="turbo-gauge" class="gauge gauge-turbo" viewBox="0 0 100 100" role="img" aria-label="Tanque de turbo"></svg>
+      </div>
+      <div class="hud-readouts">
+        <div class="hud-row"><span class="hud-k">DIST</span><span class="hud-v" id="dist">0</span><span class="hud-u">m</span></div>
+        <div class="hud-row hud-row-bot"><span class="hud-k">BOT</span><span class="hud-v" id="bot-dist">0</span><span class="hud-u">m</span></div>
+        <div id="hud-debug" class="hud-row" style="display:none"><span class="hud-k">SUSP</span><span class="hud-v" id="suspstate">ON</span><span class="hud-k">INF</span><span class="hud-v" id="infturbo">OFF</span></div>
+        <div id="hud-pos" class="hud-row" style="display:none"><span class="hud-k">POS</span><span class="hud-v" id="pos">0</span></div>
+      </div>
     </div>
-    <div id="help">
-      &uarr; acelera &nbsp; &darr; freia &nbsp; &larr;&rarr; inclina &nbsp; ESPA&Ccedil;O turbo
+    <div id="race-actions" class="race-ui">
+      <button id="btn-back-lobby" class="race-btn" type="button" onclick="location.reload()" title="Voltar ao lobby">&#8592; LOBBY</button>
+      <button id="btn-restart" class="race-btn" type="button" title="Reiniciar corrida">&#8635; REINICIAR</button>
+      <button id="mobiletoggle" class="race-btn" type="button">TOUCH</button>
     </div>
-    <button id="btn-back-lobby" onclick="location.reload()" title="Voltar ao lobby">&#8592; LOBBY</button>
-    <button id="btn-restart" title="Reiniciar corrida">&#8635; REINICIAR</button>
-    <button id="mobiletoggle">TOUCH</button>
-    <div id="touchpad">
+    <div id="touchpad" class="race-ui">
       <div class="pad pad-left">
-        <button class="tbtn tbtn-arrow" data-key="left">&larr;</button>
-        <button class="tbtn tbtn-arrow" data-key="right">&rarr;</button>
+        <button class="tbtn tbtn-arrow" data-key="left" aria-label="Inclinar para tr&aacute;s">&larr;</button>
+        <button class="tbtn tbtn-arrow" data-key="right" aria-label="Inclinar para frente">&rarr;</button>
       </div>
       <div class="pad pad-right">
-        <button class="tbtn tbtn-pedal brake" data-key="down">&#9776;</button>
+        <button class="tbtn tbtn-pedal brake" data-key="down">FREIO</button>
         <button class="tbtn tbtn-gasturbo" id="gasturbo">
           <span class="zone-turbo">TURBO</span>
-          <span class="zone-gas">&#8285;&#8285;&#8285;</span>
+          <span class="zone-gas">ACEL</span>
         </button>
       </div>
+    </div>
+    <!-- Keyboard hint: desktop only, hidden while the touch controls are on (sibling rule in CSS). -->
+    <div id="help" class="race-ui">
+      <span><b>&uarr;</b> acelera</span><span><b>&darr;</b> freia</span><span><b>&larr;&rarr;</b> inclina</span><span><b>ESPA&Ccedil;O</b> turbo</span>
     </div>
     <script type="module" src="/src/main.js"></script>
   </body>

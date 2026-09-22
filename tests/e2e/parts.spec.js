@@ -4,7 +4,7 @@ import { DEFAULT_PARTS, resolveCarParams } from '../../src/parts/presets.js';
 import { trackErrors, openGarageFromLobby, pickGarage, confirmGarage, startStageFromMap } from './drive.js';
 
 // EP-008-04: engine / chassis / turbo tank are chosen in the garage, survive a reload and reach the
-// race (resolved physics params exposed on #hud, turbo bar sized by the tank capacity).
+// race (resolved physics params exposed on #hud, turbo gauge sized by the tank capacity).
 const PARTS = { engine: 'e24', chassis: 'pesado', tank: 'grande' };
 const ROWS = { engine: 'garage-engines', chassis: 'garage-chassis', tank: 'garage-tanks' };
 
@@ -43,8 +43,14 @@ test('RF-012: motor/chassi/tanque sobrevivem ao reload e chegam à corrida', asy
   await expect(hud).toHaveAttribute('data-engine', PARTS.engine);
   await expect(hud).toHaveAttribute('data-turbo-capacity', String(expected.turboCapacity));
   await expect(hud).toHaveAttribute('data-mass', String(expected.mass));
-  // Grande tank = 12 * 1.4 = 17 cells in the turbo bar (default tank: 12).
-  await expect(page.locator('#turbobar')).toHaveText(/^\[[█░]{17}\]$/);
+  // Grande tank = 12 * 1.4 = 17 segments in the turbo gauge (default tank: 12), each one drawn.
+  const turbo = page.locator('#turbo-gauge');
+  await expect(turbo).toBeVisible();
+  await expect(turbo).toHaveAttribute('data-segments', '17');
+  await expect(turbo.locator('.turbo-seg')).toHaveCount(17);
+  for (const box of await turbo.locator('.turbo-seg').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().toJSON()))) {
+    expect(box.width * box.height).toBeGreaterThan(0);
+  }
   expect(errors).toEqual([]);
 });
 
