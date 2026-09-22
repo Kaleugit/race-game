@@ -46,4 +46,76 @@ Do not edit generated block manually.
 - BASE_PARAMS gains `grip = { dirt: 1, mud: 0.8, sand: 0.75 }` (= Misto) and `surfaceDrag = { dirt: 0, mud: 0.3, sand: 0.35 }` (1/s, proportional to speed, ground only).
 - Default car on teste-plano is now slowed in its sand/mud zones; mata-atlantica (all dirt) is unchanged.
 - Sim fixture tests/sim/fixtures/areia.stage.js: dirt [0,100) + sand [100,300), finishX 300 (exports SAND_FROM/SAND_TO). EP-005-02 re-checks CA-008 on the real Cerrado.
+
+
+# 2026-09-21 — TASK-kaleugit-EP-004-01
+
+- `createBotDriver({ track, difficulty, seed, params? })` -> `{ decide(carState, dt) }` returning `{ up, down, left, right, space, locked: false }`; feed it `botCar.state` each frame. Tuning knobs in `TUNING` at the top of src/bot/bot-driver.js.
+- `runBotToFinish({ car, driver, track, dt, maxTime, startTime })` returns the finish time on the race clock (pass the current race time as startTime) or null.
+- `resolveBotParams(stage)` uses `stage.bot.parts ?? BOT_DEFAULT_PARTS` (misto/padrao).
+- `createReferenceDriver(track)` in tests/sim/reference-driver.js is the harness driver for CA-004/CA-009.
+
+
+# 2026-09-21 — TASK-kaleugit-EP-004-02
+
+- main.js bot state: module-level `botCar`, `botDriver`, `raceIndex`, `currentStage` (set in setStage). Bot rebuilt in resetGame; stepped in tick only while `state.botFinishTime == null`; `state.botScroll` clamped to finishX.
+- `renderBotBar()` owns #race-bar-bot position + turbo glow; EP-006 mini-map can read `botCar.state.x` / `state.botScroll`.
+- When the player finishes first, `state.botFinishTime` comes from runBotToFinish (null past 180 s -> "—").
+
+
+# 2026-09-21 — TASK-kaleugit-EP-005-01
+
+- Mata Atlântica: finishX 2600; reference 73.70 s, bot d=0.5 median 79.42 s (ratio 1.078, spread ±3%), constant up 94.9 s, front-flip 109.8 s. Mud zones [930,1000) [1220,1390) [1940,1985) [2220,2300); palette.zones.mud 0x3b2a1a.
+- Frozen old stage: tests/sim/fixtures/mata-atlantica-legacy.stage.js (id mata-atlantica-legacy, hidden) — physics goldens and the d399713 height fixture run on it; never edit.
+- CA-009 / CA-004 are generic over listStages(): Cerrado (Task 02) is covered automatically; its median/reference ratio must be > 1.078 to be "harder".
+- Reference pace is ~35 m/s on this kind of terrain: ~2600 m ≈ 74 s.
+
+
+# 2026-09-21 — TASK-kaleugit-EP-005-02
+
+- Cerrado: finishX 2800; reference 80.53 s, bot d=0.6 median 86.23 s (ratio 1.071), constant up 104.1 s, front-flip 121.4 s. Sand zones [270,440) [1180,1330) [2150,2280); palette ground 0x5a2616, sand 0xd9b27a. Max slope 0.71.
+- "Harder" = lower bot/reference ratio (epic DA-003); the earlier "> 1.078" note was inverted.
+- Local e2e with 4 specs flakes at the countdown under 4 workers; `npm test -- --workers=2` is reliable.
+
+
+# 2026-09-21 — TASK-kaleugit-EP-006-01
+
+- Profile API: createProfile(storage, listStages()) -> getGarage() {color,tire,gearbox} (no upgrades: feeds resolveCarParams directly), saveGarage, getUnlocked, isUnlocked, getBest(stageId), recordWin(stageId, time) -> {best, isNewBest, unlockedId}.
+- Garage `color` is a CAR_COLORS id (default 'vermelho'); map to hex with getCarColor(id).hex for applyCarLook.
+- profile.js must receive stages injected (stages/index.js uses import.meta.glob, Node-incompatible).
+
+
+# 2026-09-21 — TASK-kaleugit-EP-006-02
+
+- applyCarLook(carBuilt, { color, tire }): color = CAR_COLORS id or hex; tire = TIRES id; omitted fields unchanged; unknown ids throw. Also makeCar({ color, tire }).
+- Works on makeCar()/makeBesouro() via their `look` handle; makeCarGLB() has none (returned unchanged).
+- Per-tire visuals live in TIRE_LOOKS at the top of src/car.js (tuning knob for the UX gate).
+- car.js can be imported in Node with a document/canvas stub (see tests/sim/car-look.test.js).
+
+
+# 2026-09-21 — TASK-kaleugit-EP-006-03
+
+- UI API: showGarage({selection, colors: CAR_COLORS, tires: TIRES, gearboxes: GEARBOXES, onChange, onConfirm}) / hideGarage; showStageMap({stages: listStages(), isUnlocked, onSelect, onBack?}) / hideStageMap; showResult({won, playerTime, botTime, bestTime, isNewBest?, onRematch, onMap, onGarage}) / hideResult; formatTime, formatDelta in src/ui/format.js.
+- Overlays toggle via .show; buttons without callbacks are hidden; handlers assigned via onclick (safe to reopen every race).
+- #end-lobby-btn is hidden but still present because src/main.js binds it at load — EP-006-04 removes both.
+
+
+# 2026-09-21 — TASK-kaleugit-EP-006-04
+
+- initLobby({ profile, stages, testStageId, onStart }) -> { openHome, openGarage, openMap }; ?stage=<id> makes JOGAR start that stage directly (e2e shortcut).
+- main.js reads profile.getGarage() in resetGame (params, look, engine gearbox); finishRace -> recordWin on win -> showResult; leaveRace() pauses the race loop (menuOpen) and reopens a lobby screen.
+- DOM ids created from JS: #hud-bot-won (bot finished first), #race-bar-stage (stage name).
+
+
+# 2026-09-21 — TASK-kaleugit-EP-007-01
+
+- `import { createEngineModel, ENGINE_DEFAULTS, scaleGearRatios } from './audio/engine-model.js'`; `createEngineModel({ gearboxPreset })` -> `{ update(dt, { speed, throttle, airborne }) -> { rpm, gear, load, shifting, firingHz }, reset(), gearRatios }`.
+- `throttle` 0..1 (booleans accepted); `speed` sign ignored; load 0 while shifting, throttle*0.3 airborne. Call `reset()` on race restart.
+- Gearbox preset id = the EP-003 GEARBOXES key (`curta`/`padrao`/`longa`); unknown id throws.
+
+
+# 2026-09-21 — TASK-kaleugit-EP-007-02
+
+- `initEngineSound()` -> `{ start, update(dt, { speed, throttle, airborne, turboActive, gearboxPreset }), stop }`; update is a no-op until start(); start()/stop() reset the engine model; changing gearboxPreset rebuilds it.
+- Tuning knobs live at the top of src/sound.js (ORDERS table, MASTER_LEVEL, *_TAU); RPM/gear behavior lives in src/audio/engine-model.js.
 <!-- WORKSTREAM_NOTES:END -->
