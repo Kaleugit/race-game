@@ -7,6 +7,10 @@ import { defineConfig, devices } from '@playwright/test';
 // ~3x slower than real time. Use the real GPU through ANGLE/D3D11 (~58 FPS).
 const gpuArgs = process.platform === 'win32' ? ['--use-angle=d3d11'] : [];
 
+// Port of the preview server the specs run against. Two worktrees (parallel task
+// agents) collide on one strictPort, so each can pick its own: E2E_PORT=4183 npm test.
+const port = Number(process.env.E2E_PORT) || 4173;
+
 export default defineConfig({
   testDir: 'tests/e2e',
   timeout: 120_000,
@@ -16,7 +20,7 @@ export default defineConfig({
   workers: 2,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:4173',
+    baseURL: `http://localhost:${port}`,
     viewport: { width: 1280, height: 720 },
   },
   projects: [{
@@ -28,8 +32,8 @@ export default defineConfig({
     },
   }],
   webServer: {
-    command: 'npm run build && npm run preview -- --port 4173 --strictPort',
-    url: 'http://localhost:4173',
+    command: `npm run build && npm run preview -- --port ${port} --strictPort`,
+    url: `http://localhost:${port}`,
     timeout: 180_000,
     reuseExistingServer: false,
   },
