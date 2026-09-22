@@ -17,7 +17,7 @@
 
 ### Task 01 - Controlador de IA, preset do bot e calibração no harness
 - Task ID: TASK-kaleugit-EP-004-01
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Standard
 - Domain: Bot (IA de pilotagem)
