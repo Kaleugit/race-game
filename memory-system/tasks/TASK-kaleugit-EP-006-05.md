@@ -8,18 +8,19 @@
 - Branch: TASK-kaleugit-EP-006-05-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-22 00:25
+- Last Updated: 2026-09-22 03:28
 - Started: 2026-09-22 03:10
-- Completed: 2026-09-22 00:25
+- Completed: 2026-09-22 03:27
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-006-05-implement-planning-2026-09-22.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-006-05-implement-report-2026-09-22.md
 - prior-art: tests/e2e/smoke.spec.js (error collection + flow selectors), tests/sim/reference-driver.js (turbo policy reproduced by driveToFinish), tests/sim/bot.test.js (CA-007 bot half), src/ui/format.js formatDelta (imported by result.spec)
 - Evidence: PASS — npm test 9/9 twice (flow x2, progress, result, garage + 4 existing); CA-002 Mata wins 70.95 s / 71.28 s vs bot 79.36 s / 79.06 s; npm run test:sim 86/86; no src/ or index.html in the diff
 - UX Gate: pending human (batched at epic end)
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 - Delivery PR: #25
-- Delivery Status: PR_OPEN_MANUAL_MERGE
+- Delivery Status: MERGED
 
+- Delivery Merged At: 2026-09-22 03:27
 ## Autonomous Decisions
 - DA-001: CA-002 win driven by the reference turbo policy (hold Space until #turbobar is empty, then toggle it every frame) instead of a held ArrowUp+Space — Criteria: orchestrator option (a) + task escalation (held input loses on Mata) — Rationale: real win through the real UI, no src/ change; the sim shows the held-Space loss comes from the blocked turbo recharge, not from air control.
 - DA-002: Keys dispatched as KeyboardEvents on window from an in-page rAF loop — Criteria: determinism (frame-aligned toggle) — Rationale: Playwright's CDP keyboard cannot toggle once per frame; the game's listeners are the same.
