@@ -281,6 +281,53 @@
 - Escalation Conditions:
   - None
 
+### Task 12 - Placa de aviso (!) 20 m antes de cada hazard
+- Task ID: TASK-kaleugit-EP-008-12
+- Status: PENDING
+- Priority: 1
+- Execution Mode: Quick
+- Domain: Conteúdo e fluxo do jogador
+- Description:
+  - Pedido do gestor (UX, 2026-09-22): 20 m antes de cada faixa de areia, lama ou qualquer hazard, uma placa com ponto de exclamação.
+  - Gerada a partir dos dados do estágio (zonas de hazard), em todos os estágios (inclusive o modo livre da Task 13); visual low-poly coerente, sem colisão.
+- Depends On: TASK-kaleugit-EP-008-10
+- Canonical File: memory-system/tasks/TASK-kaleugit-EP-008-12.md
+- Suggested Branch: TASK-kaleugit-EP-008-12-implement
+- Input Context (max 5 files):
+  - src/stages/*.stage.js
+  - src/main.js
+  - src/textures.js
+  - tests/sim/stages.test.js
+  - tests/e2e/stage-data.spec.js
+- Done Criteria:
+  - `npm test` e `npm run test:sim` verdes; teste prova uma placa a 20 m antes de cada hazard de cada estágio; aprovação visual do gestor.
+- Escalation Conditions:
+  - None
+
+### Task 13 - Modo livre: terreno de 5000 m
+- Task ID: TASK-kaleugit-EP-008-13
+- Status: PENDING
+- Priority: 1
+- Execution Mode: Standard
+- Domain: Conteúdo e fluxo do jogador
+- Description:
+  - Pedido do gestor (UX, 2026-09-22): uma modalidade de andar livre num terreno de 5000 m.
+  - Estágio data-driven de 5000 m com mistura de terra, lama, areia, subidas e saltos; sem bot, sem tempo/resultado de vitória, sem afetar o progresso; HUD mostra a distância; ao chegar ao fim, tela simples com VOLTAR/DE NOVO.
+  - Acesso: card "MODO LIVRE" sempre desbloqueado na tela do mapa (após a Task 09); placas de aviso da Task 12 valem aqui.
+- Depends On: TASK-kaleugit-EP-008-09, TASK-kaleugit-EP-008-11, TASK-kaleugit-EP-008-12
+- Canonical File: memory-system/tasks/TASK-kaleugit-EP-008-13.md
+- Suggested Branch: TASK-kaleugit-EP-008-13-implement
+- Input Context (max 5 files):
+  - src/stages/registry.js
+  - src/main.js
+  - src/lobby.js
+  - index.html
+  - tests/e2e/drive.js
+- Done Criteria:
+  - `npm test` e `npm run test:sim` verdes; e2e entra no modo livre pelo mapa, dirige e confirma que não há bot nem registro de vitória; aprovação do gestor.
+- Escalation Conditions:
+  - None
+
 ## Planning Notes
 - Default policy: create `planning/report` on demand as tasks move to execution.
 - Each task must be self-contained: the canonical task file + listed input context must be sufficient for execution without implicit knowledge from prior tasks.
