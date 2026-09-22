@@ -647,6 +647,44 @@
       .map-stage[data-locked="true"] .map-num { color: #4a5070; }
       .map-stage .map-name { flex: 1; font-size: 18px; letter-spacing: 4px; }
       .map-stage .map-info { font-size: 12px; letter-spacing: 2px; color: #cfd6ff; }
+      /* MODO LIVRE (EP-008-13): a mode, not a rung of the ladder — teal instead of gold, an infinity
+         mark instead of a stage number, and never a lock. Same row rhythm so the panel stays tidy. */
+      #map-free {
+        display: flex; align-items: center; gap: 14px;
+        font-family: 'Courier New', monospace; text-align: left;
+        color: #dff7ff; cursor: pointer;
+        background: linear-gradient(90deg, rgba(60,220,200,0.16), rgba(0,0,0,0.5) 70%);
+        border: 2px solid #3cdcc8;
+        padding: 12px 16px;
+        text-shadow: 2px 2px 0 #000;
+        transition: background 0.15s, border-color 0.15s;
+      }
+      #map-free:hover {
+        background: linear-gradient(90deg, rgba(60,220,200,0.3), rgba(0,0,0,0.5) 70%);
+        border-color: #7ef0e0;
+      }
+      #map-free .map-free-icon { font-size: 22px; line-height: 1; color: #3cdcc8; }
+      #map-free .map-free-name { flex: 1; font-size: 18px; letter-spacing: 4px; }
+      #map-free .map-free-sub { font-size: 12px; letter-spacing: 2px; color: #9fe8de; }
+      /* Free-roam end screen (EP-008-13): distance + time, DE NOVO / VOLTAR. No result, nothing to
+         compare and no best time — it is a ride, not a race. */
+      #free-end-overlay { align-items: center; justify-content: center; background: rgba(5,2,8,0.72); }
+      #free-end-panel {
+        /* Wide enough for "FIM DO PERCURSO" on one line at the desktop type scale. */
+        width: min(520px, calc(100vw - 24px));
+        align-items: center; text-align: center;
+        border-color: rgba(60,220,200,0.45);
+      }
+      #free-end-panel .screen-title {
+        color: #3cdcc8; text-shadow: 3px 3px 0 #000, 0 0 18px rgba(60,220,200,0.6);
+      }
+      #free-end-info {
+        font-family: 'Courier New', monospace;
+        font-size: 20px; letter-spacing: 3px; color: #fffbe0;
+      }
+      #free-end-info .free-end-unit { font-size: 13px; color: #9fe8de; }
+      #free-end-info .free-end-sep { color: #7c84ab; margin: 0 8px; }
+      #free-end-again { width: 100%; }
       /* Pre-race option (EP-008-11): draw the bot as a ghost on the track. Same card language as the
          stage rows, but dashed + muted while off so it never competes with the stage list. */
       .map-toggle {
@@ -694,6 +732,11 @@
         .screen-primary { font-size: 15px; padding: 8px 20px; }
         .map-stage { padding: 8px 12px; }
         .map-stage .map-name { font-size: 15px; }
+        #map-free { padding: 8px 12px; gap: 10px; }
+        #map-free .map-free-name { font-size: 15px; }
+        #map-free .map-free-icon { font-size: 18px; }
+        #map-free .map-free-sub { font-size: 11px; letter-spacing: 1px; }
+        #free-end-info { font-size: 16px; letter-spacing: 2px; }
         .map-toggle { padding: 6px 12px; gap: 10px; }
         .map-toggle .map-toggle-k, .map-toggle .map-toggle-v { font-size: 11px; letter-spacing: 2px; }
         #end-overlay { gap: 8px; }
@@ -808,11 +851,30 @@
       <div id="map-panel" class="screen-panel">
         <div class="screen-title">MAPA</div>
         <div id="map-stages"></div>
+        <!-- MODO LIVRE (EP-008-13): shown by src/ui/stage-map.js when a free-roam stage exists. -->
+        <button id="map-free" type="button" hidden>
+          <span class="map-free-icon" aria-hidden="true">&#8734;</span>
+          <span class="map-free-name">MODO LIVRE</span>
+          <span id="map-free-sub" class="map-free-sub"></span>
+        </button>
         <button id="map-ghost" class="map-toggle" type="button" aria-pressed="false" data-ghost="off" hidden>
           <span class="map-toggle-k">BOT FANTASMA</span>
           <span id="map-ghost-value" class="map-toggle-v">DESLIGADO</span>
         </button>
         <button id="map-back" class="end-secondary" type="button" hidden>&#8592; LOBBY</button>
+      </div>
+    </div>
+    <!-- Free-roam end screen (EP-008-13): filled and opened by src/ui/free-end.js. -->
+    <div id="free-end-overlay" class="screen-overlay" aria-hidden="true">
+      <div id="free-end-panel" class="screen-panel">
+        <div class="screen-title">FIM DO PERCURSO</div>
+        <div id="free-end-info">
+          <span id="free-end-dist">0</span><span class="free-end-unit">m</span>
+          <span class="free-end-sep">&middot;</span>
+          <span id="free-end-time">0.00s</span>
+        </div>
+        <button id="free-end-again" class="screen-primary" type="button">DE NOVO</button>
+        <button id="free-end-back" class="end-secondary" type="button">&#8592; VOLTAR</button>
       </div>
     </div>
     <!-- Race HUD (EP-008-07): gauges built by src/ui/race-hud.js; same type scale as the garage. -->

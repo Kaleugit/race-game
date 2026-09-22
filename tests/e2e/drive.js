@@ -79,6 +79,18 @@ export async function startStageFromMap(page, stageId) {
   await waitCountdown(page);
 }
 
+/** Map MODO LIVRE card (EP-008-13) -> map closes -> countdown shows and ends (free roam running). */
+export async function startFreeRoamFromMap(page) {
+  await page.locator('#map-free').click();
+  await expect(page.locator('#map-overlay')).not.toHaveClass(SHOW);
+  await waitCountdown(page);
+}
+
+/** Raw `race_profile_v1` string in localStorage (null when the player has no profile yet). */
+export async function readProfile(page) {
+  return page.evaluate(() => window.localStorage.getItem('race_profile_v1'));
+}
+
 /** Countdown shows, then hides (inputs unlocked). */
 export async function waitCountdown(page) {
   const countdown = page.locator('#countdown-overlay');
@@ -87,7 +99,7 @@ export async function waitCountdown(page) {
 }
 
 /**
- * Drives the player car to the finish line and waits for the result screen.
+ * Holds ArrowUp + Space until the overlay `endId` opens, then releases both keys.
  *
  * Policy = the reference driver of the calibration (tests/sim/reference-driver.js), the natural
  * human input: ArrowUp and Space both held for the whole race. Since EP-008-05 the turbo tank
@@ -96,12 +108,12 @@ export async function waitCountdown(page) {
  * not needed: in the headless sim holding both keys reproduces the reference time.
  *
  * The keys are dispatched as KeyboardEvents on `window` (the game's real listeners). A
- * requestAnimationFrame loop releases both keys when #end-overlay opens.
+ * requestAnimationFrame loop watches the overlay and releases the keys as soon as it opens.
  */
-export async function driveToFinish(page, { timeout = 150_000 } = {}) {
-  await page.evaluate(() => {
+async function holdThrottleUntil(page, endId) {
+  await page.evaluate((id) => {
     const fire = (type, key, code) => window.dispatchEvent(new KeyboardEvent(type, { key, code, bubbles: true }));
-    const end = document.getElementById('end-overlay');
+    const end = document.getElementById(id);
     fire('keydown', 'ArrowUp', 'ArrowUp');
     fire('keydown', ' ', 'Space');
     const step = () => {
@@ -113,8 +125,34 @@ export async function driveToFinish(page, { timeout = 150_000 } = {}) {
       requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
-  });
+  }, endId);
+}
+
+/** Drives the player car to the finish line and waits for the result screen. */
+export async function driveToFinish(page, { timeout = 150_000 } = {}) {
+  await holdThrottleUntil(page, 'end-overlay');
   await expect(page.locator('#end-overlay')).toHaveClass(SHOW, { timeout });
+}
+
+/**
+ * Free roam (EP-008-13): drives to the end of the terrain and waits for `#free-end-overlay`.
+ * Same input policy as `driveToFinish`; there is no result screen to wait for here.
+ */
+export async function driveFreeRoamToEnd(page, { timeout = 150_000 } = {}) {
+  await holdThrottleUntil(page, 'free-end-overlay');
+  await expect(page.locator('#free-end-overlay')).toHaveClass(SHOW, { timeout });
+}
+
+/** Holds ArrowUp for `ms` and releases it (free roam has no finish to wait for). */
+export async function driveForMs(page, ms) {
+  await page.evaluate((hold) => new Promise((resolve) => {
+    const fire = (type, key, code) => window.dispatchEvent(new KeyboardEvent(type, { key, code, bubbles: true }));
+    fire('keydown', 'ArrowUp', 'ArrowUp');
+    setTimeout(() => {
+      fire('keyup', 'ArrowUp', 'ArrowUp');
+      resolve();
+    }, hold);
+  }), ms);
 }
 
 /** Raw seconds the result screen stores in data-seconds (player, bot). */

@@ -9,11 +9,15 @@
  * The opponent is a second physics instance (botCar) driven by src/bot/bot-driver.js; its position
  * feeds the race bar (mini-map with the stage name) and, when the BOT FANTASMA option of the map
  * screen is on, a translucent ghost mesh (src/bot/ghost-car.js) that only reads the bot state.
+ * Stages with `mode: 'free'` (EP-008-13) run as free roam instead: no bot, no ghost, no race bar,
+ * no win/defeat and nothing written to the profile — only the HUD and a plain end screen at the
+ * far end of the terrain (src/ui/free-end.js).
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { makeSkyTexture, makeMountainTexture, makeHillTexture } from './textures.js';
 import { getDefaultStage, getStage, listStages } from './stages/index.js';
+import { isFreeRoam } from './stages/registry.js';
 import { createTrack } from './track/track.js';
 import { createTrackScene } from './track/track-scene.js';
 import { initLobby } from './lobby.js';
@@ -23,6 +27,7 @@ import { BASE_PARAMS } from './physics/params.js';
 import { resolveCarParams } from './parts/presets.js';
 import { createProfile } from './profile/profile.js';
 import { showResult, hideResult } from './ui/result.js';
+import { showFreeEnd, hideFreeEnd } from './ui/free-end.js';
 import { createRaceHud, playerLeads } from './ui/race-hud.js';
 import { initEngineSound } from './sound.js';
 import { createBotDriver, runBotToFinish } from './bot/bot-driver.js';
@@ -30,6 +35,10 @@ import { resolveBotParams, BOT_DEFAULT_PARTS } from './bot/bot-preset.js';
 import { createGhostCar } from './bot/ghost-car.js';
 
 const DEV_MODE = location.search.includes('dev');
+
+// MODO LIVRE (EP-008-13): the 5 km free-roam terrain offered on the map screen. It is a hidden stage
+// (never in listStages(), so it stays out of the race ladder) reached by id from the map card.
+const FREE_STAGE_ID = 'terra-livre';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -122,6 +131,8 @@ function setStage(id) {
   track = createTrack(stage);
   trackScene = createTrackScene({ scene, skyScene, stage, track });
   currentStage = stage;
+  // Free roam is decided by the stage data, once, here: everything downstream reads state.freeRoam.
+  state.freeRoam = isFreeRoam(stage);
   raceBarStageEl.textContent = String(stage.name ?? stage.id).toUpperCase();
   return stage;
 }
@@ -251,6 +262,7 @@ const state = {
   raceFinished: false,
   raceTime: 0,
   inputFrozen: true,
+  freeRoam: false,
   botScroll: 0,
   botFinishTime: null,
   botWon: false,
@@ -261,6 +273,7 @@ const engineSound = initEngineSound();
 
 const countdownOverlayEl = document.getElementById('countdown-overlay');
 const countdownNumEl = document.getElementById('countdown-num');
+const countdownVsEl = document.getElementById('countdown-vs');
 const btnRestartEl = document.getElementById('btn-restart');
 btnRestartEl.addEventListener('click', () => {
   hideResult();
@@ -290,7 +303,8 @@ document.getElementById('race-bar').appendChild(raceBarStageEl);
 // while it is off) and then only shown/hidden, so no race pays for a mesh it does not draw. It uses
 // the bot tire look of the stage that built it; every stage runs BOT_DEFAULT_PARTS today.
 function setUpGhost() {
-  const on = profile.getSettings().ghostBot;
+  // Free roam has no opponent, so the option has nothing to draw: it stays off there (EP-008-13).
+  const on = !state.freeRoam && profile.getSettings().ghostBot;
   if (on && !ghostCar) {
     const tire = (currentStage.bot?.parts ?? BOT_DEFAULT_PARTS).tire;
     ghostCar = createGhostCar({ scene, look: { tire } });
@@ -317,8 +331,14 @@ function resetGame() {
   state.raceFinished = false;
   state.raceTime = 0;
   raceIndex++;
-  botCar = createCarPhysics({ track, params: resolveBotParams(currentStage) });
-  botDriver = createBotDriver({ track, difficulty: currentStage.bot.difficulty, seed: raceIndex });
+  // Free roam (EP-008-13): no opponent instance at all — no bot physics, no bot seed, no race bar.
+  if (state.freeRoam) {
+    botCar = null;
+    botDriver = null;
+  } else {
+    botCar = createCarPhysics({ track, params: resolveBotParams(currentStage) });
+    botDriver = createBotDriver({ track, difficulty: currentStage.bot.difficulty, seed: raceIndex });
+  }
   state.botScroll = 0;
   state.botFinishTime = null;
   state.playerFirst = true; // grid order until someone is ahead (EP-008-10)
@@ -327,12 +347,15 @@ function resetGame() {
   renderBotBar();
   state.botWon = false;
   botWonNoticeEl.style.display = 'none';
+  // The HUD carries the mode so the e2e can assert the free-roam screen has no opponent element.
+  document.getElementById('hud').dataset.mode = state.freeRoam ? 'free' : 'race';
   state.inputFrozen = true;
   carPivot.rotation.z = 0;
   carPivot.position.set(0, CAR_HALF_HEIGHT, 0);
   bodyGroup.position.y = 0;
   flame.visible = false;
   hideResult();
+  hideFreeEnd();
   if (btnRestartEl) btnRestartEl.style.display = 'none';
 }
 
@@ -351,6 +374,7 @@ function leaveRace(open) {
   engineSound.stop();
   countdownOverlayEl.classList.remove('show');
   hideResult();
+  hideFreeEnd();
   raceBarEl.classList.remove('show');
   btnBackLobbyEl.style.display = 'none';
   btnRestartEl.style.display = 'none';
@@ -369,6 +393,8 @@ function startCountdown() {
   engineSound.start();
   countdownTimer = 0;
   countdownNumEl.textContent = '1';
+  // Free roam has nobody to line up against (EP-008-13).
+  countdownVsEl.textContent = state.freeRoam ? 'MODO LIVRE' : 'vs. BOT';
   countdownOverlayEl.classList.add('show');
 }
 
@@ -384,7 +410,8 @@ function updateCountdown(dt) {
     state.raceStarted = true;
     btnBackLobbyEl.style.display = 'block';
     btnRestartEl.style.display = 'block';
-    raceBarEl.classList.add('show');
+    // The race bar is the duel mini-map (positions + bot marker): free roam never shows it.
+    raceBarEl.classList.toggle('show', !state.freeRoam);
   }
 }
 
@@ -417,6 +444,20 @@ function finishRace(playerWon) {
     onRematch: () => startCountdown(), // same stage, new bot seed
     onMap: () => leaveRace((l) => l.openMap()),
     onGarage: () => leaveRace((l) => l.openGarage()),
+  });
+}
+
+// Free roam: reaching the end of the terrain is not a victory — no opponent time, no best time and
+// nothing written to the profile (EP-008-13). DE NOVO restarts the run, VOLTAR goes back to the lobby.
+function finishFreeRoam() {
+  state.raceFinished = true;
+  state.inputFrozen = true;
+  engineSound.stop();
+  showFreeEnd({
+    distance: track.finishX,
+    time: state.raceTime,
+    onAgain: () => startCountdown(),
+    onBack: () => leaveRace((l) => l.openHome()),
   });
 }
 
@@ -469,6 +510,7 @@ function updateCamera(dt) {
 
 // Race-bar marker for the bot: position from botCar.state.x, turbo glow from botCar.state.turboActive.
 function renderBotBar() {
+  if (!botCar) return; // free roam: no opponent, no marker (EP-008-13)
   const progress = Math.min(Math.max(state.botScroll / track.finishX, 0), 1);
   raceBarBotEl.style.left = (progress * 100).toFixed(1) + '%';
   raceBarBotEl.style.boxShadow = botCar.state.turboActive ? '0 0 10px #ff4444, 0 0 20px #ff8800' : '0 0 6px #ff4444';
@@ -500,7 +542,7 @@ function updateHUD() {
   raceHud.update(car);
   if (state.gridVisible && posValEl) posValEl.textContent = Math.round(car.x);
 
-  if (state.raceStarted && !state.raceFinished) {
+  if (state.raceStarted && !state.raceFinished && !state.freeRoam) {
     state.playerFirst = playerLeads(state.playerFirst, car.x, state.botScroll, track.finishX);
     raceHud.setPositions(state.playerFirst);
     const playerProgress = Math.min(car.x / track.finishX, 1);
@@ -516,7 +558,11 @@ function tick(now) {
 
   updateCountdown(dt);
 
-  if (state.raceStarted && !state.raceFinished) {
+  if (state.raceStarted && !state.raceFinished && state.freeRoam) {
+    // Free roam (EP-008-13): no opponent to step, nothing to win — only the end of the terrain.
+    state.raceTime += dt;
+    if (playerCar.state.x >= track.finishX) finishFreeRoam();
+  } else if (state.raceStarted && !state.raceFinished) {
     state.raceTime += dt;
     if (state.botFinishTime == null) {
       botCar.step(dt, botDriver.decide(botCar.state, dt));
@@ -547,7 +593,7 @@ function tick(now) {
   renderSuspension();
   updateCarVisual(dt);
   // Ghost opponent: reads botCar.state only (no collision, no physics); culled off-screen.
-  ghostCar?.update(botCar.state, car.x, dt, camera.right);
+  if (botCar) ghostCar?.update(botCar.state, car.x, dt, camera.right);
   const smokeIntensity = (car.turboActive && keys.up) ? 3 : keys.up ? 2 : 1;
   const isTurbulent = car.airborne || Math.abs(car.angVel) > 2.0;
   carBuilt.updateSmoke(dt, smokeIntensity, car.speed, isTurbulent);
@@ -569,6 +615,8 @@ function tick(now) {
 const lobby = initLobby({
   profile,
   stages: listStages(),
+  // MODO LIVRE card on the map: always available, outside the unlock ladder (EP-008-13).
+  freeStage: getStage(FREE_STAGE_ID) ?? null,
   testStageId: stageIdFromUrl(),
   onStart: (stageId, carFactory) => {
     if (carFactory !== makeCar) {
