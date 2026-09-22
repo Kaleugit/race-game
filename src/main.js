@@ -2,6 +2,8 @@
  * @module main
  * @summary Game entry point: renderer, car visuals, input, race loop, HUD; stage selected via ?stage=<id>.
  * Car physics lives in src/physics/car-physics.js (playerCar); this file only renders its state.
+ * The opponent is a second physics instance (botCar) driven by src/bot/bot-driver.js; it has no mesh,
+ * only its position feeds the race bar.
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -15,6 +17,8 @@ import { createCarPhysics } from './physics/car-physics.js';
 import { BASE_PARAMS } from './physics/params.js';
 import { DEFAULT_PARTS, resolveCarParams } from './parts/presets.js';
 import { initEngineSound } from './sound.js';
+import { createBotDriver, runBotToFinish } from './bot/bot-driver.js';
+import { resolveBotParams } from './bot/bot-preset.js';
 
 const DEV_MODE = location.search.includes('dev');
 
@@ -86,6 +90,11 @@ function stageIdFromUrl() {
 let track = null;
 let trackScene = null;
 let playerCar = null;
+let currentStage = null;
+// Bot opponent: rebuilt at the start of every race (resetGame); never added to the scene.
+let botCar = null;
+let botDriver = null;
+let raceIndex = 0; // bot seed = session race counter (epic DA-005)
 
 function setStage(id) {
   let stage = id ? getStage(id) : null;
@@ -97,6 +106,7 @@ function setStage(id) {
   track = createTrack(stage);
   trackScene = createTrackScene({ scene, skyScene, stage, track });
   playerCar = createCarPhysics({ track, params: resolveCarParams(BASE_PARAMS, DEFAULT_PARTS) });
+  currentStage = stage;
   return stage;
 }
 
@@ -224,18 +234,9 @@ const state = {
   raceTime: 0,
   inputFrozen: true,
   botScroll: 0,
-  botSpeed: 0,
-  botTurboActive: false,
-  botTurboCycle: 0,
   botFinishTime: null,
   botWon: false,
 };
-
-// BOT: base ~19 m/s, turbo 1.7× for 2.5s every 7s cycle → avg ≈ 23.8 m/s → 620m / 23.8 ≈ 26s
-const BOT_BASE_SPEED   = 19;
-const BOT_TURBO_MULT   = 1.7;
-const BOT_CYCLE        = 7.0;
-const BOT_TURBO_ON     = 2.5;
 
 const engineSound = initEngineSound();
 
@@ -269,11 +270,12 @@ function resetGame() {
   state.raceStarted = false;
   state.raceFinished = false;
   state.raceTime = 0;
+  raceIndex++;
+  botCar = createCarPhysics({ track, params: resolveBotParams(currentStage) });
+  botDriver = createBotDriver({ track, difficulty: currentStage.bot.difficulty, seed: raceIndex });
   state.botScroll = 0;
-  state.botSpeed = 0;
-  state.botTurboActive = false;
-  state.botTurboCycle = 0;
   state.botFinishTime = null;
+  renderBotBar();
   state.botWon = false;
   state.inputFrozen = true;
   carPivot.rotation.z = 0;
@@ -414,18 +416,11 @@ function updateCamera(dt) {
   camera.lookAt(0, camera.position.y - CAM_LOOK_Y_OFFSET, 0);
 }
 
-function updateBot(dt) {
-  if (!state.raceStarted || state.raceFinished) return;
-  state.botTurboCycle = (state.botTurboCycle + dt) % BOT_CYCLE;
-  state.botTurboActive = state.botTurboCycle < BOT_TURBO_ON;
-  const spd = BOT_BASE_SPEED * (state.botTurboActive ? BOT_TURBO_MULT : 1);
-  const prevBotScroll = state.botScroll;
-  state.botScroll = Math.min(state.botScroll + spd * dt, track.finishX);
-  if (prevBotScroll < track.finishX && state.botScroll >= track.finishX) {
-    state.botFinishTime = state.raceTime;
-  }
-  raceBarBotEl.style.left = ((state.botScroll / track.finishX) * 100).toFixed(1) + '%';
-  raceBarBotEl.style.boxShadow = state.botTurboActive ? '0 0 10px #ff4444, 0 0 20px #ff8800' : '0 0 6px #ff4444';
+// Race-bar marker for the bot: position from botCar.state.x, turbo glow from botCar.state.turboActive.
+function renderBotBar() {
+  const progress = Math.min(Math.max(state.botScroll / track.finishX, 0), 1);
+  raceBarBotEl.style.left = (progress * 100).toFixed(1) + '%';
+  raceBarBotEl.style.boxShadow = botCar.state.turboActive ? '0 0 10px #ff4444, 0 0 20px #ff8800' : '0 0 6px #ff4444';
 }
 
 function updateScrollVisuals(dt) {
@@ -483,7 +478,12 @@ function tick(now) {
 
   if (state.raceStarted && !state.raceFinished) {
     state.raceTime += dt;
-    updateBot(dt);
+    if (state.botFinishTime == null) {
+      botCar.step(dt, botDriver.decide(botCar.state, dt));
+      state.botScroll = Math.min(botCar.state.x, track.finishX);
+      if (botCar.state.x >= track.finishX) state.botFinishTime = state.raceTime;
+      renderBotBar();
+    }
 
     if (state.botScroll >= track.finishX && playerCar.state.x < track.finishX && !state.botWon) {
       showDefeatScreen();
@@ -494,6 +494,10 @@ function tick(now) {
     }
 
     if (playerCar.state.x >= track.finishX) {
+      if (state.botFinishTime == null) {
+        // Player finished first: simulate only the bot to the line for its real time (epic DA-002).
+        state.botFinishTime = runBotToFinish({ car: botCar, driver: botDriver, track, startTime: state.raceTime });
+      }
       showEndScreen(!state.botWon);
     }
   }

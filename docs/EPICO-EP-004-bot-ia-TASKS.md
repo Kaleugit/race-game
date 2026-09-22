@@ -48,7 +48,7 @@
 
 ### Task 02 - Bot real no loop do jogo (remove o fantasma)
 - Task ID: TASK-kaleugit-EP-004-02
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Standard
 - Domain: Bot (integração na corrida)
