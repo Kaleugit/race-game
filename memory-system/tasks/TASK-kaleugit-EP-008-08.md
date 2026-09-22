@@ -8,15 +8,18 @@
 - Branch: TASK-kaleugit-EP-008-08-implement
 - Workstreams: [development]
 - Execution Mode: Quick
-- Last Updated: 2026-09-22 12:23
+- Last Updated: 2026-09-22 16:04
 - Started: 2026-09-22 12:16
-- Completed: 2026-09-22 12:23
+- Completed: 2026-09-22 16:03
 - Report: memory-system/task-docs/TASK-kaleugit-EP-008-08-implement-report-2026-09-22.md
 - prior-art: ENGINES presets in src/parts/presets.js (EP-008-03); only existing `sound`/`timbre` fields swapped, no new code
 - Evidence: PASS — `npm run test:sim` 104/104; `./scripts/validate-changed.sh` PASS; `npm test` 12/12
 - UX Gate: pending human (hearing approval)
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 
+- Delivery PR: #31
+- Delivery Status: MERGED
+- Delivery Merged At: 2026-09-22 16:03
 ## Autonomous Decisions
 - DA-001: "trocar ele com o do 2.4" read as a swap (2.4 gets the 1.6 sound, 1.6 gets the 2.4 sound); sound-order test assertions updated to the new spec — Criteria: human decision > task artifacts — Rationale: the manager changed the requirement those assertions encode; physics and all other assertions untouched.
 - Delivery PR: #31
