@@ -78,6 +78,7 @@ Policy:
 | TASK-kaleugit-20260921172138 | Fix failing governance test harnesses on Windows | COMPLETED | 1 | Standard | TASK-kaleugit-20260921172138-devops | [devops, testing] | 2026-09-21 21:32 |
 | TASK-kaleugit-20260921174640 | Disable telemetry in this project | COMPLETED | 1 | Standard | TASK-kaleugit-20260921174640-devops | [devops] | 2026-09-21 21:35 |
 | TASK-kaleugit-20260921180706 | CI: recreate skill links before validation; +x on CI scripts | COMPLETED | 1 | Standard | TASK-kaleugit-20260921180706-devops | [devops] | 2026-09-21 18:04 |
+| TASK-kaleugit-20260922000335 | e2e: use the real GPU in headless Chromium on Windows | COMPLETED | 1 | Quick | TASK-kaleugit-20260922000335-testing | [testing] | 2026-09-22 00:07 |
 | TASK-kaleugit-EP-001-01 | Playwright + npm test + smoke of the current flow | COMPLETED | 1 | Standard | TASK-kaleugit-EP-001-01-implement | [testing] | 2026-09-21 21:59 |
 | TASK-kaleugit-EP-002-01 | Stage data format, registry and track query (no render) | COMPLETED | 1 | Standard | TASK-kaleugit-EP-002-01-implement | [development] | 2026-09-21 22:30 |
 | TASK-kaleugit-EP-002-02 | Track scene from stage data + wiring in src/main.js | COMPLETED | 1 | Standard | TASK-kaleugit-EP-002-02-implement | [development] | 2026-09-21 22:38 |
@@ -93,7 +94,7 @@ Policy:
 | TASK-kaleugit-EP-007-01 | Engine model (RPM, gears, shifts) | PENDING | 1 | Standard | TASK-kaleugit-EP-007-01-implement | None | 2026-09-21 20:50 |
 | TASK-kaleugit-EP-007-02 | Engine-order synthesis + wiring | PENDING | 1 | Standard | TASK-kaleugit-EP-007-02-implement | None | 2026-09-21 20:50 |
 | TASK-kaleugit-EP-002-03 | CA-003 proof: data-only test stage + e2e | COMPLETED | 2 | Quick | TASK-kaleugit-EP-002-03-implement | [development] | 2026-09-21 23:12 |
-| TASK-kaleugit-EP-003-03 | Tire/gearbox presets and surface grip | COMPLETED | 2 | Standard | TASK-kaleugit-EP-003-03-implement | [development] | 2026-09-21 20:57 |
+| TASK-kaleugit-EP-003-03 | Tire/gearbox presets and surface grip | COMPLETED | 2 | Standard | TASK-kaleugit-EP-003-03-implement | [development] | 2026-09-22 00:01 |
 | TASK-kaleugit-EP-006-02 | Car visual: color and tires | PENDING | 2 | Quick | TASK-kaleugit-EP-006-02-implement | None | 2026-09-21 19:00 |
 | TASK-kaleugit-EP-006-05 | e2e for UI acceptance criteria (CA-001, CA-002, CA-006, CA-007) | PENDING | 2 | Standard | TASK-kaleugit-EP-006-05-implement | None | 2026-09-21 19:00 |
 <!-- TASK_INDEX:END -->

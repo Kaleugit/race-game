@@ -58,6 +58,11 @@ Do not manually edit the consolidated block.
 # 2026-09-21 — TASK-kaleugit-EP-003-03
 
 - EP-003 Task 03 (Standard): tire (Estrada/Misto/Off-road) and gearbox (Curta/Padrão/Longa) presets in src/parts/presets.js with resolveCarParams; physics applies grip[surfaceAt(x)] to acceleration and speed-proportional surfaceDrag on the ground. Misto/Padrão = identity over BASE_PARAMS (goldens unchanged). CA-008 and CDC-102 proven in tests/sim/parts.test.js. `npm run test:sim` 37/37. UX gate pending human.
+
+
+# 2026-09-22 — TASK-kaleugit-20260922000335
+
+- Root-caused local e2e failures: headless Chromium on SwiftShader ran the game at ~7 FPS. Enabled ANGLE/D3D11 on win32 in playwright.config.js; npm test green again (2 passed).
 <!-- SESSION_LOG:END -->
 
 ---
