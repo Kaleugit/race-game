@@ -313,6 +313,123 @@
         transition: background 0.15s, border-color 0.15s, color 0.15s;
       }
       #end-lobby-btn:hover { background: rgba(100,110,160,0.2); border-color: #8890bb; color: #cfd6ff; }
+      [hidden] { display: none !important; }
+      #end-delta {
+        font-family: 'Courier New', monospace;
+        font-size: 28px; letter-spacing: 3px;
+        text-shadow: 2px 2px 0 #000;
+      }
+      #end-delta.ahead { color: #44ff88; }
+      #end-delta.behind { color: #ff8a3a; }
+      #end-actions { display: flex; gap: 12px; }
+      .end-secondary {
+        font-family: 'Courier New', monospace;
+        font-size: 14px; letter-spacing: 4px;
+        color: #cfd6ff; background: rgba(0,0,0,0.4);
+        border: 1px solid #4a5070;
+        padding: 10px 24px; cursor: pointer;
+        text-shadow: 2px 2px 0 #000;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+      }
+      .end-secondary:hover { background: rgba(255,216,107,0.12); border-color: #ffd86b; color: #ffd86b; }
+      /* Garage / stage map (EP-006-03): hidden until src/ui/* adds .show. */
+      .screen-overlay {
+        position: fixed; inset: 0; z-index: 110;
+        display: none;
+        font-family: 'Courier New', monospace;
+        color: #fffbe0; text-shadow: 2px 2px 0 #000;
+      }
+      .screen-overlay.show { display: flex; }
+      .screen-panel {
+        display: flex; flex-direction: column; gap: 14px;
+        background: rgba(5,2,8,0.86);
+        border: 1px solid rgba(255,216,107,0.35);
+        padding: 18px 20px;
+        max-height: calc(100% - 24px); overflow-y: auto;
+      }
+      .screen-title {
+        font-size: 30px; letter-spacing: 8px;
+        color: #ffd86b; text-shadow: 3px 3px 0 #000, 0 0 18px #ff7a4a;
+      }
+      .screen-primary {
+        font-family: 'Courier New', monospace;
+        font-size: 18px; letter-spacing: 5px;
+        color: #fffbe0; background: rgba(0,0,0,0.55);
+        border: 2px solid #ffd86b;
+        padding: 12px 32px; cursor: pointer;
+        text-shadow: 2px 2px 0 #000;
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
+      }
+      .screen-primary:hover { background: rgba(255,216,107,0.18); border-color: #ff8a3a; color: #ffd86b; }
+      /* Garage is a right-side panel so the lobby car stays visible for the live preview. */
+      #garage-overlay { justify-content: flex-end; align-items: center; pointer-events: none; }
+      #garage-panel {
+        pointer-events: auto;
+        width: min(440px, 56vw);
+        margin-right: calc(12px + env(safe-area-inset-right, 0px));
+      }
+      .garage-label { font-size: 13px; letter-spacing: 4px; color: #cfd6ff; margin-bottom: 8px; }
+      #garage-color-name { color: #ffd86b; margin-left: 8px; }
+      #garage-colors { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+      #garage-colors .swatch {
+        aspect-ratio: 1; min-height: 32px;
+        border: 2px solid rgba(255,255,255,0.3);
+        box-shadow: 2px 2px 0 #000; cursor: pointer;
+      }
+      #garage-colors .swatch.selected { border-color: #ffd86b; box-shadow: 0 0 0 2px #000, 0 0 12px #ffd86b; }
+      .garage-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .garage-opt {
+        display: flex; flex-direction: column; gap: 4px; align-items: flex-start;
+        font-family: 'Courier New', monospace; text-align: left;
+        color: #fffbe0; background: rgba(0,0,0,0.45);
+        border: 1px solid #4a5070;
+        padding: 8px; cursor: pointer;
+        text-shadow: 1px 1px 0 #000;
+      }
+      .garage-opt:hover { border-color: #8890bb; }
+      .garage-opt.selected { border-color: #ffd86b; background: rgba(255,216,107,0.14); }
+      .garage-opt .opt-name { font-size: 14px; letter-spacing: 2px; color: #ffd86b; }
+      .garage-opt .opt-trade { font-size: 10px; line-height: 1.35; color: #cfd6ff; }
+      #garage-confirm { align-self: stretch; }
+      #map-overlay { align-items: center; justify-content: center; background: rgba(5,2,8,0.72); }
+      #map-panel { width: min(560px, calc(100vw - 24px)); align-items: stretch; }
+      #map-stages { display: flex; flex-direction: column; gap: 10px; }
+      .map-stage {
+        display: flex; align-items: center; gap: 14px;
+        font-family: 'Courier New', monospace; text-align: left;
+        color: #fffbe0; background: rgba(0,0,0,0.5);
+        border: 2px solid #ffd86b;
+        padding: 12px 16px; cursor: pointer;
+        text-shadow: 2px 2px 0 #000;
+        transition: background 0.15s, border-color 0.15s;
+      }
+      .map-stage:hover:not(:disabled) { background: rgba(255,216,107,0.18); border-color: #ff8a3a; }
+      .map-stage[data-locked="true"] { cursor: not-allowed; border-color: #4a5070; color: #6a7090; }
+      .map-stage .map-num { font-size: 22px; color: #ff8a3a; }
+      .map-stage[data-locked="true"] .map-num { color: #4a5070; }
+      .map-stage .map-name { flex: 1; font-size: 18px; letter-spacing: 4px; }
+      .map-stage .map-info { font-size: 12px; letter-spacing: 2px; color: #cfd6ff; }
+      #map-back { align-self: flex-start; }
+      /* Mobile landscape: compact everything to fit ~360px of height. */
+      @media (max-height: 500px) {
+        .screen-panel { gap: 8px; padding: 10px 14px; }
+        .screen-title { font-size: 20px; letter-spacing: 6px; }
+        .garage-label { font-size: 11px; margin-bottom: 4px; }
+        #garage-colors { gap: 6px; }
+        #garage-colors .swatch { aspect-ratio: auto; height: 30px; min-height: 0; }
+        .garage-opt { padding: 6px; }
+        .garage-opt .opt-name { font-size: 12px; }
+        .garage-opt .opt-trade { font-size: 9px; }
+        .screen-primary { font-size: 15px; padding: 8px 20px; }
+        .map-stage { padding: 8px 12px; }
+        .map-stage .map-name { font-size: 15px; }
+        #end-overlay { gap: 8px; }
+        #end-result { font-size: 40px; }
+        #end-times { font-size: 15px; line-height: 1.6; }
+        #end-delta { font-size: 20px; }
+        #end-play-again { margin-top: 4px; padding: 8px 32px; }
+        .end-secondary { padding: 7px 18px; font-size: 12px; }
+      }
       #race-bar {
         position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
         width: 60%; max-width: 600px;
@@ -386,8 +503,39 @@
         <span class="t-label">BOT&nbsp;</span> <span class="t-val" id="end-bot-time">—</span><br/>
         <span class="t-label">MELHOR</span> <span class="t-val" id="end-best-time">—</span>
       </div>
-      <button id="end-play-again">JOGAR DE NOVO</button>
-      <button id="end-lobby-btn">&#8592; LOBBY</button>
+      <div id="end-delta" hidden>+0.00s</div>
+      <button id="end-play-again">REVANCHE</button>
+      <div id="end-actions">
+        <button id="end-map" class="end-secondary" type="button" hidden>&#9873; MAPA</button>
+        <button id="end-garage" class="end-secondary" type="button" hidden>&#128295; GARAGEM</button>
+      </div>
+      <!-- Legacy: src/main.js still binds this id until EP-006-04 rewires the result flow. -->
+      <button id="end-lobby-btn" hidden>&#8592; LOBBY</button>
+    </div>
+    <div id="garage-overlay" class="screen-overlay" aria-hidden="true">
+      <div id="garage-panel" class="screen-panel">
+        <div class="screen-title">GARAGEM</div>
+        <div class="garage-section">
+          <div class="garage-label">COR <span id="garage-color-name"></span></div>
+          <div id="garage-colors"></div>
+        </div>
+        <div class="garage-section">
+          <div class="garage-label">PNEU</div>
+          <div id="garage-tires" class="garage-opts"></div>
+        </div>
+        <div class="garage-section">
+          <div class="garage-label">C&Acirc;MBIO</div>
+          <div id="garage-gearboxes" class="garage-opts"></div>
+        </div>
+        <button id="garage-confirm" class="screen-primary" type="button">CONFIRMAR</button>
+      </div>
+    </div>
+    <div id="map-overlay" class="screen-overlay" aria-hidden="true">
+      <div id="map-panel" class="screen-panel">
+        <div class="screen-title">MAPA</div>
+        <div id="map-stages"></div>
+        <button id="map-back" class="end-secondary" type="button" hidden>&#8592; GARAGEM</button>
+      </div>
     </div>
     <div id="hud">
       VEL <span class="v" id="speed">0</span> km/h<br />

@@ -1,6 +1,6 @@
 # API Index — Kaleugit/race-game
 
-> **Coverage**: 19/21 backend files (90%), 0/0 frontend custom elements (0%).
+> **Coverage**: 24/26 backend files (92%), 0/0 frontend custom elements (0%).
 > Auto-generated from JSDoc `@module` / `@summary` / `@element` tags. Transition phase — files without these tags do NOT appear here.
 >
 > **If you don't find what you need:**
@@ -8,8 +8,8 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-22T01:54Z
-Total candidate files scanned: 21
+Last regenerated: 2026-09-22T02:08Z
+Total candidate files scanned: 26
 
 ## Backend modules
 
@@ -87,6 +87,32 @@ Total candidate files scanned: 21
 
 ### `src/track/track.js` — track/track
 - Pure track query built from stage data (height, slope, surface). No three.js, no DOM.
+
+### `src/ui/dom.js` — ui/dom
+- Tiny DOM helpers shared by the screen modules (element lookup, element creation, overlay toggle).
+- Element by id; throws a clear error when index.html is missing it.
+- Create an element with a class name, text and data-* attributes (camelCase keys).
+- Show or hide an overlay through its `.show` class (overlays are hidden by default).
+- Turn a `{ id: {...} }` map (e.g. TIRES) or an `[{ id, ... }]` list into a list of `{ id, ... }`.
+
+### `src/ui/format.js` — ui/format
+- Race time formatting for the result screen: `formatTime` and the signed `formatDelta`.
+- Seconds with 2 decimals and an `s` suffix (`63.42s`); non-finite -> `—`.
+- Signed time difference between the player and the bot.
+
+### `src/ui/garage.js` — ui/garage
+- Garage screen (RF-007/008/009): color swatches, tire and gearbox choice with trade-off
+- Trade-off label for a tire preset: top speed change + grip per surface.
+- Trade-off label for a gearbox preset: acceleration x top speed.
+- Open the garage with the current selection and the available options.
+
+### `src/ui/result.js` — ui/result
+- Result screen (RF-006/CA-006): VITÓRIA/DERROTA, player/bot/best times with 2 decimals
+- Open the result screen.
+
+### `src/ui/stage-map.js` — ui/stage-map
+- Stage map screen (RF-002/003): one item per stage with `data-locked`; a locked stage
+- Open the stage map.
 
 ## Frontend custom elements
 
