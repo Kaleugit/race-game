@@ -42,7 +42,7 @@
 
 ### Task 02 - Marchas mais longas no som
 - Task ID: TASK-kaleugit-EP-008-02
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Quick
 - Domain: Áudio (modelo de motor)
