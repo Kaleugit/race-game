@@ -164,3 +164,18 @@
 - main.js: playerParams resolved each resetGame; engineSound.update gets engine; #turbobar cells = round(12 x turboCapacity) (8/12/17); #hud dataset engine/turboCapacity/mass for e2e.
 - Garage CSS tiers: >860px tall 1 column; <=860px 2 columns; <=500px compact (per-button labels hidden). Fit e2e at 640x360 and 740x360.
 - npm test = 12 specs (~3.3 min). UX to check: panel covers part of lobby car at 1280x720 (all of it on phones), turbo bar per tank, engine sound variants.
+
+## EP-008-06 (PR #32)
+- Garage = two docks inside #garage-overlay (pointer-events none): #garage-panel left-top (#garage-engines, #garage-gearboxes, #garage-tires, #garage-summary DESEMPENHO) and #garage-side right-bottom (#garage-chassis, #garage-tanks, #garage-colors, #garage-confirm). Width min(420px, 50vw - 34vh - gutters). CSS block "Garage (EP-008-06)" in index.html; mobile rules in max-height:500px. Font clamp(9px,1.7vh,16px), Courier New, gold accent.
+- garage.js exports partStats(kind,item), buildStats(parts) — mirror resolveCarParams products; keep in sync.
+- lobby.js: car rotates only while a canvas press is held; no zoom while garage/map open.
+- tests/e2e/garage-layout.spec.js measures the car from canvas pixels at 4 viewports; re-check it after any lobby camera/car/TELA CHEIA change. npm test = 16 specs.
+
+## EP-008-08 (PR #31)
+- ENGINES e16/e24 swapped sound+timbre: 2.4 = redline 4400, timbre 1.12 (brighter); 1.6 = redline 3700, timbre 0.88. Physics unchanged.
+
+## EP-008-07 (PR #33)
+- Shared UI tokens on :root in index.html (--ui-font, --ui-fs clamp(9px,1.7vh,16px), --ui-gold, --ui-hot, --ui-muted, --ui-panel-bg, --ui-glass-bg, --ui-panel-border...) used by garage + race UI. `.race-ui` class; race layout vars --hud-gut/--hud-w/--act-w.
+- src/ui/race-hud.js: createRaceHud() -> { configure({turboCapacity, maxSpeedTurbo}), update(carState), setBotDist(m) }; owns #speed (SVG text), #dist, #bot-dist, #speed-gauge, #turbo-gauge (data-segments = round(12 x capacity), data-state idle|low|active|lockout, .turbo-seg). #turbobar removed.
+- In-race buttons in #race-actions (.race-btn, blur on click); touch pads FREIO/TURBO/ACEL; keyboard hint hidden in touch mode. Touch mode only via #mobiletoggle / TELA CHEIA.
+- tests/e2e/hud-layout.spec.js: pairwise non-overlap at 4 viewports with touch on. npm test = 20 specs (~3.7 min).
