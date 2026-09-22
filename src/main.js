@@ -509,7 +509,7 @@ function tick(now) {
   const smokeIntensity = (car.turboActive && keys.up) ? 3 : keys.up ? 2 : 1;
   const isTurbulent = car.airborne || Math.abs(car.angVel) > 2.0;
   carBuilt.updateSmoke(dt, smokeIntensity, car.speed, isTurbulent);
-  engineSound.update(car.speed, car.turboActive, BASE_PARAMS.maxSpeedNormal);
+  engineSound.update(dt, { speed: car.speed, throttle: keys.up, airborne: car.airborne, turboActive: car.turboActive, gearboxPreset: DEFAULT_PARTS.gearbox });
   updateCamera(dt);
   updateScrollVisuals(dt);
   updateSky();

@@ -1,6 +1,6 @@
 # API Index — Kaleugit/race-game
 
-> **Coverage**: 12/15 backend files (80%), 0/0 frontend custom elements (0%).
+> **Coverage**: 13/15 backend files (87%), 0/0 frontend custom elements (0%).
 > Auto-generated from JSDoc `@module` / `@summary` / `@element` tags. Transition phase — files without these tags do NOT appear here.
 >
 > **If you don't find what you need:**
@@ -8,7 +8,7 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-22T00:13Z
+Last regenerated: 2026-09-22T00:22Z
 Total candidate files scanned: 15
 
 ## Backend modules
@@ -38,6 +38,10 @@ Total candidate files scanned: 15
 ### `src/physics/params.js` — physics/params
 - Car physics constants (BASE_PARAMS), moved verbatim from the pre-extraction
 - Default car parameters: the prototype's driving feel. Frozen; derive copies to tune.
+
+### `src/sound.js` — sound
+- Web Audio engine sound synthesized from engine orders (EP-007).
+- Build the engine sound: `{ start, update, stop }`.
 
 ### `src/stages/index.js` — stages/index
 - Stage discovery: every src/stages/*.stage.js file becomes a stage (Vite import.meta.glob).

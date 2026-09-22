@@ -1,21 +1,60 @@
+/**
+ * @module sound
+ * @summary Web Audio engine sound synthesized from engine orders (EP-007).
+ * Consumes the pure engine model (src/audio/engine-model.js): oscillators at engine orders 0.5, 1,
+ * 2 and 4 of the crank frequency with light detune, per-order gains driven by load, a lowpass that
+ * tracks RPM and load, a light combustion-noise layer amplitude-modulated at the firing frequency,
+ * turbo hiss/whine while the turbo is on and a blow-off when it is released.
+ */
+import { createEngineModel, ENGINE_DEFAULTS } from './audio/engine-model.js';
+
+// Engine orders relative to the crank frequency (rpm / 60). Order 2 = firing frequency of a
+// 4-cylinder 4-stroke (27-133 Hz). `detune` is in cents; `idle`/`load` are the order gain without
+// and with full load. `hi` scales the load share with RPM (higher orders open up at high RPM).
+const ORDERS = [
+  { order: 0.5, type: 'sine', detune: -6, idle: 0.30, load: 0.10, hi: 0 },
+  { order: 1, type: 'triangle', detune: 4, idle: 0.32, load: 0.18, hi: 0 },
+  { order: 2, type: 'sawtooth', detune: 0, idle: 0.38, load: 0.34, hi: 0.2 },
+  { order: 2, type: 'sawtooth', detune: 7, idle: 0.12, load: 0.14, hi: 0.2 },
+  { order: 4, type: 'sawtooth', detune: -5, idle: 0.03, load: 0.14, hi: 0.8 },
+];
+
+const MASTER_LEVEL = 0.28;
+// Smoothing time constants (s). Pitch follows fast so the ratio drop on a shift is audible as a
+// quick step; gains and filter follow a little slower so the zero-load shift gap sounds like a
+// clutch dip rather than a click.
+const PITCH_TAU = 0.025;
+const GAIN_TAU = 0.04;
+const FILTER_TAU = 0.05;
+
+function makeNoiseBuffer(ctx, seconds) {
+  const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * seconds), ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  return buf;
+}
+
+/**
+ * Creates the engine sound. `start()` opens/resumes the AudioContext, resets the engine model and
+ * fades in; `update(dt, { speed, throttle, airborne, turboActive, gearboxPreset })` advances the
+ * engine model one frame and retunes the synth (no-op until started); `stop()` fades out.
+ * `gearboxPreset` is the EP-003 gearbox id (`curta`/`padrao`/`longa`); changing it rebuilds the
+ * engine model.
+ * @summary Build the engine sound: `{ start, update, stop }`.
+ * @returns {{ start: () => void, update: (dt: number, input: object) => void, stop: () => void }}
+ */
 export function initEngineSound() {
   let ctx = null;
-  let osc1, osc2, oscSub, filter, distortion, turboNoise, turboBp, turboGain, masterGain;
-  let prevTurboActive = false;
+  let masterGain, shaper, filter;
+  let voices = [];
+  let combGain, combMod, combModDepth, combBp;
+  let turboGain, turboBp, turboWhine, turboWhineGain;
   let running = false;
-  let overdriveFreq = 0;
-  let lastUpdateTime = 0;
-  let virtualSf = 0;
-  let prevGearIdx = 0;
-  let shiftDip = 0;
+  let prevTurboActive = false;
+  let preset = ENGINE_DEFAULTS.gearboxPreset;
+  let engine = createEngineModel({ gearboxPreset: preset });
 
-  // fLow[n] = fHigh[n-1] + 5
-  const GEARS = [
-    { min: 0.00, max: 0.25, fLow:  50, fHigh:  90 },
-    { min: 0.25, max: 0.50, fLow:  95, fHigh: 120 },
-    { min: 0.50, max: 0.75, fLow: 125, fHigh: 148 },
-    { min: 0.75, max: 1.00, fLow: 153, fHigh: 175 },
-  ];
+  const rpmSpan = ENGINE_DEFAULTS.redlineRpm - ENGINE_DEFAULTS.idleRpm;
 
   function ensureContext() {
     if (ctx) return;
@@ -25,43 +64,60 @@ export function initEngineSound() {
     masterGain.gain.value = 0;
     masterGain.connect(ctx.destination);
 
-    const shaper = ctx.createWaveShaper();
-    const curve = new Float32Array(256);
-    for (let i = 0; i < 256; i++) {
-      const x = (i * 2) / 256 - 1;
-      curve[i] = (Math.PI + 120) * x / (Math.PI + 120 * Math.abs(x));
+    // Soft saturation: adds the harmonics a diesel's pressure pulses have without a buzzy edge.
+    shaper = ctx.createWaveShaper();
+    const curve = new Float32Array(512);
+    for (let i = 0; i < curve.length; i++) {
+      const x = (i * 2) / curve.length - 1;
+      curve[i] = Math.tanh(2.2 * x) / Math.tanh(2.2);
     }
     shaper.curve = curve;
     shaper.oversample = '2x';
 
-    oscSub = ctx.createOscillator();
-    oscSub.type = 'sawtooth';
-    const subGain = ctx.createGain();
-    subGain.gain.value = 0.45;
-    oscSub.connect(subGain);
-
-    osc1 = ctx.createOscillator();
-    osc1.type = 'sawtooth';
-    osc2 = ctx.createOscillator();
-    osc2.type = 'sawtooth';
-
     filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.value = 300;
-    filter.Q.value = 1.8;
-
-    subGain.connect(shaper);
-    osc1.connect(shaper);
-    osc2.connect(shaper);
+    filter.frequency.value = 250;
+    filter.Q.value = 1.1;
     shaper.connect(filter);
     filter.connect(masterGain);
 
-    // turbo "shhhhh" — looping white noise through wide bandpass
-    const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-    const noiseData = noiseBuf.getChannelData(0);
-    for (let i = 0; i < noiseData.length; i++) noiseData[i] = Math.random() * 2 - 1;
-    turboNoise = ctx.createBufferSource();
-    turboNoise.buffer = noiseBuf;
+    voices = ORDERS.map((o) => {
+      const osc = ctx.createOscillator();
+      osc.type = o.type;
+      osc.detune.value = o.detune;
+      const gain = ctx.createGain();
+      gain.gain.value = o.idle;
+      osc.connect(gain);
+      gain.connect(shaper);
+      osc.start();
+      return { ...o, osc, gain };
+    });
+
+    // Combustion noise: band-limited noise whose amplitude pulses at the firing frequency
+    // (gain = level + level * sin(2*pi*firingHz*t), i.e. 0..2*level).
+    const noise = ctx.createBufferSource();
+    noise.buffer = makeNoiseBuffer(ctx, 2);
+    noise.loop = true;
+    combBp = ctx.createBiquadFilter();
+    combBp.type = 'bandpass';
+    combBp.frequency.value = 500;
+    combBp.Q.value = 0.8;
+    combGain = ctx.createGain();
+    combGain.gain.value = 0.02;
+    combMod = ctx.createOscillator();
+    combMod.type = 'sine';
+    combMod.frequency.value = 27;
+    combModDepth = ctx.createGain();
+    combModDepth.gain.value = 0.02;
+    combMod.connect(combModDepth);
+    combModDepth.connect(combGain.gain);
+    noise.connect(combBp);
+    combBp.connect(combGain);
+    combGain.connect(filter);
+
+    // Turbo: wide-band hiss plus a quiet whine, both only while the turbo is on.
+    const turboNoise = ctx.createBufferSource();
+    turboNoise.buffer = makeNoiseBuffer(ctx, 2);
     turboNoise.loop = true;
     turboBp = ctx.createBiquadFilter();
     turboBp.type = 'bandpass';
@@ -72,66 +128,68 @@ export function initEngineSound() {
     turboNoise.connect(turboBp);
     turboBp.connect(turboGain);
     turboGain.connect(masterGain);
+    turboWhine = ctx.createOscillator();
+    turboWhine.type = 'sine';
+    turboWhine.frequency.value = 2200;
+    turboWhineGain = ctx.createGain();
+    turboWhineGain.gain.value = 0;
+    turboWhine.connect(turboWhineGain);
+    turboWhineGain.connect(masterGain);
 
-    oscSub.start();
-    osc1.start();
-    osc2.start();
+    noise.start();
+    combMod.start();
     turboNoise.start();
+    turboWhine.start();
   }
 
   function start() {
     ensureContext();
     ctx.resume();
+    engine.reset();
+    prevTurboActive = false;
     running = true;
-    masterGain.gain.setTargetAtTime(0.28, ctx.currentTime, 0.9);
+    masterGain.gain.setTargetAtTime(MASTER_LEVEL, ctx.currentTime, 0.9);
   }
 
-  function update(speed, turboActive, maxSpeed) {
+  function update(dt, { speed = 0, throttle = 0, airborne = false, turboActive = false, gearboxPreset } = {}) {
     if (!running || !ctx) return;
-    const t = ctx.currentTime;
-    const dt = lastUpdateTime > 0 ? Math.min(0.05, t - lastUpdateTime) : 0;
-    lastUpdateTime = t;
-    const realSf = Math.max(0, Math.min(1, speed / maxSpeed));
-
-    // virtualSf rises slowly (longer gears), falls fast on deceleration
-    if (realSf > virtualSf) virtualSf = Math.min(realSf, virtualSf + dt * 0.125);
-    else                    virtualSf = Math.max(realSf, virtualSf - dt * 3.0);
-    const sf = virtualSf;
-
-    const gearIdx = sf < 0.25 ? 0 : sf < 0.50 ? 1 : sf < 0.75 ? 2 : 3;
-    const gear = GEARS[gearIdx];
-    const gearSf = (sf - gear.min) / (gear.max - gear.min);
-    const baseFreq = gear.fLow + gearSf * (gear.fHigh - gear.fLow);
-
-    if (gearIdx > prevGearIdx) shiftDip = 45;
-    prevGearIdx = gearIdx;
-    shiftDip = Math.max(0, shiftDip - dt * 420);
-
-    if (gearIdx === 3 && gearSf >= 0.98) {
-      overdriveFreq = Math.min(25, overdriveFreq + dt * 2.5);
-    } else {
-      overdriveFreq = Math.max(0, overdriveFreq - dt * 8.0);
+    if (gearboxPreset && gearboxPreset !== preset) {
+      preset = gearboxPreset;
+      engine = createEngineModel({ gearboxPreset: preset });
     }
-    const freq = baseFreq - shiftDip + (gearIdx === 3 ? overdriveFreq : 0);
+    const { rpm, load, firingHz } = engine.update(dt, { speed, throttle, airborne });
+    const t = ctx.currentTime;
+    const crankHz = rpm / 60;
+    const rpmNorm = Math.min(1, Math.max(0, (rpm - ENGINE_DEFAULTS.idleRpm) / rpmSpan));
 
-    osc1.frequency.setTargetAtTime(freq, t, 0.02);
-    osc2.frequency.setTargetAtTime(freq + 1.5, t, 0.02);
-    oscSub.frequency.setTargetAtTime(freq * 0.5, t, 0.02);
-    filter.frequency.setTargetAtTime(200 + gearIdx * 150 + gearSf * 1000, t, 0.03);
+    for (const v of voices) {
+      v.osc.frequency.setTargetAtTime(crankHz * v.order, t, PITCH_TAU);
+      const g = v.idle + v.load * load * (1 - v.hi + v.hi * rpmNorm);
+      v.gain.gain.setTargetAtTime(g, t, GAIN_TAU);
+    }
+    // Closed and muffled at idle / off-load, opens with RPM and much more with load.
+    filter.frequency.setTargetAtTime(160 + rpmNorm * 700 + load * (250 + rpmNorm * 900), t, FILTER_TAU);
 
-    if (prevTurboActive && !turboActive && sf > 0.2) triggerBlowOff(sf);
+    combMod.frequency.setTargetAtTime(firingHz, t, PITCH_TAU);
+    combBp.frequency.setTargetAtTime(350 + rpmNorm * 700, t, FILTER_TAU);
+    const combLevel = 0.015 + 0.05 * load;
+    combGain.gain.setTargetAtTime(combLevel, t, GAIN_TAU);
+    combModDepth.gain.setTargetAtTime(combLevel, t, GAIN_TAU);
+
+    const boost = turboActive ? 0.4 + 0.6 * rpmNorm : 0;
+    turboGain.gain.setTargetAtTime(0.06 * boost, t, 0.15);
+    turboWhineGain.gain.setTargetAtTime(0.012 * boost, t, 0.15);
+    turboWhine.frequency.setTargetAtTime(1800 + rpmNorm * 2600, t, 0.2);
+    turboBp.frequency.setTargetAtTime(900 + rpmNorm * 800, t, 0.2);
+
+    if (prevTurboActive && !turboActive && rpmNorm > 0.2) triggerBlowOff(rpmNorm);
     prevTurboActive = turboActive;
   }
 
   function triggerBlowOff(intensity) {
     const t = ctx.currentTime;
-    const bufSize = Math.floor(ctx.sampleRate * 0.6);
-    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-
     const src = ctx.createBufferSource();
-    src.buffer = buf;
+    src.buffer = makeNoiseBuffer(ctx, 0.6);
 
     const bp = ctx.createBiquadFilter();
     bp.type = 'bandpass';
@@ -152,11 +210,10 @@ export function initEngineSound() {
   function stop() {
     if (!running || !ctx) return;
     running = false;
-    overdriveFreq = 0;
-    lastUpdateTime = 0;
-    virtualSf = 0;
-    prevGearIdx = 0;
-    shiftDip = 0;
+    prevTurboActive = false;
+    engine.reset();
+    turboGain.gain.setTargetAtTime(0, ctx.currentTime, 0.1);
+    turboWhineGain.gain.setTargetAtTime(0, ctx.currentTime, 0.1);
     masterGain.gain.setTargetAtTime(0, ctx.currentTime, 0.5);
   }
 
