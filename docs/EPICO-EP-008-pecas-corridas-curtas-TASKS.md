@@ -119,7 +119,7 @@
 
 ### Task 04 - Garagem, perfil e fiação das peças novas
 - Task ID: TASK-kaleugit-EP-008-04
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Standard
 - Domain: Interface e fluxo do jogador

@@ -19,11 +19,14 @@ export async function openGarageFromLobby(page) {
   await expect(page.locator('#garage-overlay')).toHaveClass(SHOW);
 }
 
-/** Picks color / tire / gearbox in the open garage (any field may be omitted). */
-export async function pickGarage(page, { color, tire, gearbox } = {}) {
+/** Picks color / tire / gearbox / engine / chassis / tank in the open garage (any field may be omitted). */
+export async function pickGarage(page, { color, tire, gearbox, engine, chassis, tank } = {}) {
   if (color) await page.locator(`#garage-colors [data-color-id="${color}"]`).click();
   if (tire) await page.locator(`#garage-tires [data-tire="${tire}"]`).click();
   if (gearbox) await page.locator(`#garage-gearboxes [data-gearbox="${gearbox}"]`).click();
+  if (engine) await page.locator(`#garage-engines [data-engine="${engine}"]`).click();
+  if (chassis) await page.locator(`#garage-chassis [data-chassis="${chassis}"]`).click();
+  if (tank) await page.locator(`#garage-tanks [data-tank="${tank}"]`).click();
 }
 
 /** Garage CONFIRMAR -> map open. */

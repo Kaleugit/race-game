@@ -23,8 +23,15 @@ function memoryStorage(initial = {}) {
   };
 }
 
-// The profile stores color/tire/gearbox; engine/chassis/tank persistence arrives with EP-008-04.
-const DEFAULT_GARAGE = { color: DEFAULT_COLOR, tire: DEFAULT_PARTS.tire, gearbox: DEFAULT_PARTS.gearbox };
+// The profile stores color + the five parts (tire, gearbox and, since EP-008-04, engine/chassis/tank).
+const DEFAULT_GARAGE = {
+  color: DEFAULT_COLOR,
+  tire: DEFAULT_PARTS.tire,
+  gearbox: DEFAULT_PARTS.gearbox,
+  engine: DEFAULT_PARTS.engine,
+  chassis: DEFAULT_PARTS.chassis,
+  tank: DEFAULT_PARTS.tank,
+};
 
 test('visible stage order is mata-atlantica then cerrado', () => {
   assert.deepEqual(STAGES.map((s) => s.id), ['mata-atlantica', 'cerrado']);
@@ -76,7 +83,7 @@ test('garage choice survives a new profile instance; upgrades slot is kept untou
   const storage = memoryStorage({
     [PROFILE_KEY]: JSON.stringify({ version: 1, garage: { ...DEFAULT_GARAGE, upgrades } }),
   });
-  const choice = { color: 'azul', tire: 'offroad', gearbox: 'longa' };
+  const choice = { color: 'azul', tire: 'offroad', gearbox: 'longa', engine: 'e16', chassis: 'pesado', tank: 'grande' };
   assert.deepEqual(createProfile(storage, STAGES).saveGarage(choice), choice);
   assert.deepEqual(createProfile(storage, STAGES).getGarage(), choice);
   assert.deepEqual(JSON.parse(storage.getItem(PROFILE_KEY)).garage.upgrades, upgrades);
@@ -93,7 +100,7 @@ test('invalid values fall back to defaults without throwing', () => {
   }
   const bad = memoryStorage({
     [PROFILE_KEY]: JSON.stringify({
-      garage: { color: 'rosa-neon', tire: 'slick', gearbox: 7, upgrades: [1] },
+      garage: { color: 'rosa-neon', tire: 'slick', gearbox: 7, engine: 'v8', chassis: null, tank: 3, upgrades: [1] },
       progress: { unlocked: [3, 'cerrado'], best: { 'mata-atlantica': 'fast', cerrado: -1 } },
     }),
   });
@@ -102,9 +109,11 @@ test('invalid values fall back to defaults without throwing', () => {
   assert.deepEqual(p.getUnlocked(), ['mata-atlantica', 'cerrado']);
   assert.equal(p.getBest('mata-atlantica'), null);
   assert.equal(p.getBest('cerrado'), null);
-  assert.deepEqual(p.saveGarage({ color: 'verde', tire: 'nope', gearbox: 'curta' }), {
-    color: 'verde', tire: DEFAULT_PARTS.tire, gearbox: 'curta',
+  assert.deepEqual(p.saveGarage({ color: 'verde', tire: 'nope', gearbox: 'curta', engine: 'e24', chassis: 'x', tank: 'pequeno' }), {
+    ...DEFAULT_GARAGE, color: 'verde', gearbox: 'curta', engine: 'e24', tank: 'pequeno',
   });
+  // Prototype keys are not part ids.
+  assert.deepEqual(p.saveGarage({ engine: 'toString', chassis: '__proto__', tank: 'constructor' }), DEFAULT_GARAGE);
 });
 
 test('throwing or missing storage: memory-only profile, no exception', () => {
@@ -146,5 +155,45 @@ test('the bot never inherits the player garage choice (CA-007)', () => {
     const expected = resolveCarParams(BASE_PARAMS, stage.bot?.parts ?? BOT_DEFAULT_PARTS);
     assert.deepEqual(resolveBotParams(stage), expected, stage.id);
     assert.notDeepEqual(resolveBotParams(stage), resolveCarParams(BASE_PARAMS, createProfile(storage, STAGES).getGarage()));
+  }
+});
+
+test('EP-008-04: old profile without engine/chassis/tank loads the defaults, non-destructively', () => {
+  const old = {
+    version: 1,
+    garage: { color: 'azul', tire: 'offroad', gearbox: 'longa', upgrades: { engine: 2 } },
+    progress: { unlocked: ['mata-atlantica', 'cerrado'], best: { 'mata-atlantica': 44.5 } },
+  };
+  const storage = memoryStorage({ [PROFILE_KEY]: JSON.stringify(old) });
+  const p = createProfile(storage, STAGES);
+  const garage = p.getGarage();
+  assert.deepEqual(garage, { ...DEFAULT_GARAGE, color: 'azul', tire: 'offroad', gearbox: 'longa' });
+  // Loading alone does not rewrite the stored profile.
+  assert.deepEqual(JSON.parse(storage.getItem(PROFILE_KEY)), old);
+  assert.equal(p.isUnlocked('cerrado'), true);
+  assert.equal(p.getBest('mata-atlantica'), 44.5);
+  // The old choice resolves to exactly the pre-EP-008 car (default engine/chassis/tank = identity).
+  assert.deepEqual(
+    resolveCarParams(BASE_PARAMS, garage),
+    resolveCarParams(BASE_PARAMS, { tire: 'offroad', gearbox: 'longa' }),
+  );
+  // Saving new parts keeps progress and the upgrades slot.
+  p.saveGarage({ ...garage, engine: 'e24', chassis: 'leve', tank: 'pequeno' });
+  const stored = JSON.parse(storage.getItem(PROFILE_KEY));
+  assert.deepEqual(stored.progress, old.progress);
+  assert.deepEqual(stored.garage, { ...garage, engine: 'e24', chassis: 'leve', tank: 'pequeno', upgrades: { engine: 2 } });
+});
+
+test('EP-008-04: every stored part combination feeds resolveCarParams without throwing', () => {
+  const storage = memoryStorage();
+  for (const engine of ['e16', 'e20', 'e24']) {
+    for (const chassis of ['leve', 'medio', 'pesado']) {
+      for (const tank of ['pequeno', 'medio', 'grande']) {
+        createProfile(storage, STAGES).saveGarage({ ...DEFAULT_GARAGE, engine, chassis, tank });
+        const garage = createProfile(storage, STAGES).getGarage();
+        assert.deepEqual([garage.engine, garage.chassis, garage.tank], [engine, chassis, tank]);
+        assert.doesNotThrow(() => resolveCarParams(BASE_PARAMS, garage));
+      }
+    }
   }
 });

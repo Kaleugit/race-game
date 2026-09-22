@@ -3,7 +3,7 @@
  * @summary Local player profile (RF-003, RF-007): garage choice and stage progress persisted under
  * the `race_profile_v1` key of an injected Storage. No DOM besides the storage; never throws.
  */
-import { TIRES, GEARBOXES, DEFAULT_PARTS } from '../parts/presets.js';
+import { TIRES, GEARBOXES, ENGINES, CHASSIS, TANKS, DEFAULT_PARTS } from '../parts/presets.js';
 import { DEFAULT_COLOR, getCarColor } from '../parts/colors.js';
 
 /** @summary localStorage key of the versioned profile JSON. */
@@ -56,14 +56,19 @@ function sanitizeGarage(g) {
     color: getCarColor(src.color) ? src.color : DEFAULT_COLOR,
     tire: Object.hasOwn(TIRES, src.tire) ? src.tire : DEFAULT_PARTS.tire,
     gearbox: Object.hasOwn(GEARBOXES, src.gearbox) ? src.gearbox : DEFAULT_PARTS.gearbox,
+    // RF-012 parts (EP-008): profiles saved before them simply load the defaults (no migration).
+    engine: Object.hasOwn(ENGINES, src.engine) ? src.engine : DEFAULT_PARTS.engine,
+    chassis: Object.hasOwn(CHASSIS, src.chassis) ? src.chassis : DEFAULT_PARTS.chassis,
+    tank: Object.hasOwn(TANKS, src.tank) ? src.tank : DEFAULT_PARTS.tank,
   };
 }
 
 /**
  * Creates the profile over `storage`. `stages` is the ordered visible stage list (`listStages()`):
  * the first one is always unlocked and a win unlocks the next one in that order. Corrupted JSON or
- * unknown part/color ids fall back to defaults. `garage.upgrades` is reserved for engine/turbo/
- * chassis upgrades: kept as stored, not exposed by getGarage.
+ * unknown part/color ids fall back to defaults (a profile saved before the engine/chassis/tank parts
+ * loads them as DEFAULT_PARTS, so getGarage() is always safe for resolveCarParams).
+ * `garage.upgrades` is reserved for future upgrades: kept as stored, not exposed by getGarage.
  * @summary Build the profile API `{ getGarage, saveGarage, getUnlocked, isUnlocked, getBest, recordWin }`.
  * @param {Storage | null} [storage] defaults to `localStorage` (null = memory only)
  * @param {Array<{ id: string }>} [stages] ordered stages, as returned by `listStages()`
@@ -114,10 +119,10 @@ export function createProfile(storage = defaultStorage(), stages = []) {
     writeItem(storage, PROFILE_KEY, JSON.stringify(value));
   }
 
-  /** @returns {{ color: string, tire: string, gearbox: string }} */
+  /** @returns {{ color: string, tire: string, gearbox: string, engine: string, chassis: string, tank: string }} */
   function getGarage() {
-    const { color, tire, gearbox } = data.garage;
-    return { color, tire, gearbox };
+    const { color, tire, gearbox, engine, chassis, tank } = data.garage;
+    return { color, tire, gearbox, engine, chassis, tank };
   }
 
   return {
