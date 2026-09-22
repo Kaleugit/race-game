@@ -11,7 +11,8 @@
 - Files changed: src/bot/ghost-car.js (new), src/main.js, src/profile/profile.js, src/ui/stage-map.js, src/lobby.js,
   index.html, tests/sim/profile.test.js, tests/e2e/ghost-bot.spec.js (new), tests/e2e/map-layout.spec.js (new),
   docs/INDEX-API.md, docs/EPICO-EP-008-pecas-corridas-curtas-TASKS.md, memory-system/tasks/TASK-kaleugit-EP-008-11.md,
-  memory-system task-docs (planning, report, this note, 6 screenshots), session-log.d and notes.d fragments
+  memory-system task-docs (planning, report, this note, 6 screenshots), session-log.d and notes.d fragments;
+  plus a merge of origin/main (EP-008-12 hazard signs, EP-008-14 E2E_PORT) with docs/INDEX-API.md regenerated
 - Contract sources reviewed:
   - `AGENTS.md`
   - `docs/PROJECT_SPECS.md`
@@ -22,7 +23,7 @@
 ## Syntax Gate
 - Command: `./scripts/validate-all.sh`
 - Result: N/A locally (TD-001/TD-002); CI runs it
-- Notes: `./scripts/validate-changed.sh` PASS; `npm run test:sim` 115/115; `npm test` 29/29
+- Notes: `./scripts/validate-changed.sh` PASS; `npm run test:sim` 126/126; `npm test` 31/31 (post-merge with origin/main)
 
 ## Semantic Gate
 - Scope/criteria adherence: PASS (bot rendered on the track as a translucent, cold-tinted copy of the same car model, no

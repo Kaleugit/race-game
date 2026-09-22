@@ -34,8 +34,9 @@ glitch; opacity 0.62 with a 60% tint keeps the car's own shading, so the silhoue
 and the ghost reads as a ghost on both the misty jungle and the ochre cerrado backgrounds.
 
 ## Validation
-- `npm run test:sim` 115/115 (112 existing + 3 new profile-settings cases; physics goldens untouched).
-- `npm test` 29/29 (23 existing + `ghost-bot.spec.js` 2 + `map-layout.spec.js` 4).
+- `npm run test:sim` 126/126 (123 existing + 3 new profile-settings cases; physics goldens untouched).
+- `npm test` 31/31 after merging `origin/main` (EP-008-12 hazard signs + EP-008-14 `E2E_PORT`): 25 existing + `ghost-bot.spec.js` 2 + `map-layout.spec.js` 4. The hazard-sign pixel spec passes unchanged (it races with a fresh profile, i.e. ghost off).
+- One flake seen on the first post-merge run (`race-position.spec.js` counted exactly 30 rAF frames against a `> 30` bound, GPU contention with the 1.5 min hazard-sign spec); it passes alone and in a clean full rerun. No test was modified.
 - `./scripts/validate-changed.sh` PASS; `validate-all` N/A locally (TD-001/TD-002), CI runs it.
 - UX gate: pending human (batched at epic end).
 
