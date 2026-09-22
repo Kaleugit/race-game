@@ -1,6 +1,6 @@
 # API Index — Kaleugit/race-game
 
-> **Coverage**: 11/14 backend files (79%), 0/0 frontend custom elements (0%).
+> **Coverage**: 12/15 backend files (80%), 0/0 frontend custom elements (0%).
 > Auto-generated from JSDoc `@module` / `@summary` / `@element` tags. Transition phase — files without these tags do NOT appear here.
 >
 > **If you don't find what you need:**
@@ -8,10 +8,16 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-21T23:54Z
-Total candidate files scanned: 14
+Last regenerated: 2026-09-22T00:13Z
+Total candidate files scanned: 15
 
 ## Backend modules
+
+### `src/audio/engine-model.js` — audio/engine-model
+- Pure engine model for the engine sound (EP-007): RPM from car speed through a 5-speed
+- Default engine/gearbox configuration.
+- Scale gear ratios by the EP-003 gearbox preset (`curta`, `padrao`, `longa`).
+- Build a pure engine model: `{ update(dt, input), reset(), gearRatios }`.
 
 ### `src/car.js` — car
 - Bandeirante car meshes (procedural and GLB), smoke, springs, hitbox debug.
