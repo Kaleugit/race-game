@@ -11,6 +11,9 @@ export default defineConfig({
   testDir: 'tests/e2e',
   timeout: 120_000,
   retries: 0,
+  // Every spec runs a full WebGL game on the same integrated GPU; more than two
+  // in parallel starve each other and the countdown stalls (measured 2026-09-22).
+  workers: 2,
   reporter: 'list',
   use: {
     baseURL: 'http://localhost:4173',
