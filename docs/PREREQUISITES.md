@@ -11,7 +11,7 @@ Revisado em 2026-09-21 pelo `skills/bootstrap`.
 ## Acessos e credenciais
 - [x] GitHub CLI autenticado (`gh auth status`: conta `Kaleugit`); remote `origin` = `Kaleugit/race-game`.
 - [x] Vercel CLI autenticado; projeto `race-game` ligado ao repo, produção em `main`.
-- [x] Vercel ignora builds do branch órfão `telemetry` (Ignored Build Step configurado em 2026-09-21 com autorização do gestor).
+- [x] Vercel constrói só o `main` (Ignored Build Step: `if [ "$VERCEL_GIT_COMMIT_REF" = "main" ]; then exit 1; else exit 0; fi`), aplicado em 2026-09-21 com autorização do gestor (ADR-016); substitui a regra anterior que ignorava só o branch `telemetry`. Previews de branches de task desligados — o e2e local (`npm test`) cobre o build.
 - N/A — Supabase, contas e pagamentos: fora de escopo neste ciclo.
 
 ## Infraestrutura
