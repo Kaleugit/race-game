@@ -8,16 +8,16 @@
 - Branch: TASK-kaleugit-EP-008-07-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-22 13:30
+- Last Updated: 2026-09-22 13:33
 - Started: 2026-09-22 12:20
-- Completed: 2026-09-22 13:30
+- Completed: 2026-09-22 13:33
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-008-07-implement-planning-2026-09-22.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-008-07-implement-report-2026-09-22.md
 - prior-art: garage dock style + type scale (EP-008-06, index.html "Garage (EP-008-06)"), turbo cells = round(12 x turboCapacity) and #hud data-* (EP-008-04), turbo lockout / reignite 25% (EP-008-05), garage-layout.spec.js rect-intersection pattern (EP-008-06)
 - Evidence: PASS — `npm run test:sim` 104/104; `npm test` 20/20 (new hud-layout.spec.js: HUD, race bar, in-race buttons and the 4 touch buttons never intersect and stay in the viewport at 1280x720/1920x1080/640x360/740x360 with touch on and the bot-won notice shown; parts.spec.js now proves 17 drawn turbo segments for Grande); `./scripts/validate-changed.sh` PASS; validate-all N/A locally (TD-001/TD-002), CI runs it
 - UX Gate: pending human (batched at epic end) — HUD gauges look/readability, touch controls; before/after screenshots in memory-system/task-docs/TASK-kaleugit-EP-008-07-*.png
-- Delivery Handoff: DONE (owner: github-actions)
-- Delivery PR: Pending
+- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery PR: #33
 - Delivery Status: PR_OPEN_MANUAL_MERGE
 
 ## Autonomous Decisions
@@ -28,3 +28,4 @@
 - DA-005: Touch controls restyled (square, UI font, FREIO / TURBO / ACEL labels) but kept thumb-sized in px; keyboard hint hidden while touch is on (it overlapped the left pad) — Criteria: manager asked controls standardized; touch targets must stay usable — Rationale: labels at min(--ui-fs, 12px) fit the pedals at every size.
 - DA-006: In-race buttons blur after a click (Space = turbo would otherwise re-press a focused TOUCH/REINICIAR button) and hover styles apply only on hover-capable devices — Criteria: bug found while testing — Rationale: one-line fix, no other behavior change.
 - DA-007: No persona consults — Criteria: runbook (speed over ceremony) — Rationale: contained UI change.
+- Delivery Merged At: Pending
