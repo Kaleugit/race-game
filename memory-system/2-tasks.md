@@ -103,6 +103,7 @@ Policy:
 | TASK-kaleugit-EP-008-05 | Turbo recharge fix + bot recalibration for humans | COMPLETED | 1 | Standard | TASK-kaleugit-EP-008-05-implement | [development] | 2026-09-22 04:03 |
 | TASK-kaleugit-EP-008-06 | Garage parts panel redesign | PENDING | 1 | Standard | TASK-kaleugit-EP-008-06-implement | None | 2026-09-22 12:10 |
 | TASK-kaleugit-EP-008-07 | Race HUD standardization + speed/turbo gauges | PENDING | 1 | Standard | TASK-kaleugit-EP-008-07-implement | None | 2026-09-22 12:15 |
+| TASK-kaleugit-EP-008-08 | Swap 1.6 and 2.4 engine sounds | PENDING | 1 | Quick | TASK-kaleugit-EP-008-08-implement | None | 2026-09-22 12:16 |
 | TASK-kaleugit-EP-002-03 | CA-003 proof: data-only test stage + e2e | COMPLETED | 2 | Quick | TASK-kaleugit-EP-002-03-implement | [development] | 2026-09-21 23:12 |
 | TASK-kaleugit-EP-003-03 | Tire/gearbox presets and surface grip | COMPLETED | 2 | Standard | TASK-kaleugit-EP-003-03-implement | [development] | 2026-09-22 00:01 |
 | TASK-kaleugit-EP-006-02 | Car visual: color and tires | COMPLETED | 2 | Quick | TASK-kaleugit-EP-006-02-implement | [development] | 2026-09-22 02:13 |
