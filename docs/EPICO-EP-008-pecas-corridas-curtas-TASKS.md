@@ -211,6 +211,76 @@
 - Escalation Conditions:
   - None
 
+### Task 09 - Lobby com CORRIDA/GARAGEM + garagem em carrossel
+- Task ID: TASK-kaleugit-EP-008-09
+- Status: PENDING
+- Priority: 1
+- Execution Mode: Standard
+- Domain: Interface e fluxo do jogador
+- Description:
+  - Pedido do gestor (UX, 2026-09-22): no lobby, dois botões: CORRIDA (vai para o mapa de estágios e daí para a corrida, usando a configuração salva) e GARAGEM (vai para as alterações e volta ao lobby).
+  - Garagem: cada alteração (Motor, Câmbio, Pneu, Chassi, Tanque, Cor) num card único estilo carrossel (anterior/próximo, indicador de posição); o jogador mexe numa coisa de cada vez. A tela atual com tudo ao mesmo tempo está poluída demais.
+  - Mantém: cena da garagem, não sobrepor o carro nem o TELA CHEIA, perfil/seletores data-*, resumo DESEMPENHO (compacto), mobile landscape.
+- Depends On: TASK-kaleugit-EP-008-06
+- Canonical File: memory-system/tasks/TASK-kaleugit-EP-008-09.md
+- Suggested Branch: TASK-kaleugit-EP-008-09-implement
+- Input Context (max 5 files):
+  - index.html
+  - src/lobby.js
+  - src/ui/garage.js
+  - tests/e2e/drive.js
+  - tests/e2e/garage-layout.spec.js
+- Done Criteria:
+  - `npm test` e `npm run test:sim` verdes; e2e cobre CORRIDA→mapa→corrida, GARAGEM→carrossel→lobby e o carrossel sem sobreposição nas 4 resoluções; aprovação visual do gestor.
+- Escalation Conditions:
+  - To human: carrossel não caber em mobile landscape.
+
+### Task 10 - HUD: só distância do jogador + posição 1º/2º; contagem de 1 s
+- Task ID: TASK-kaleugit-EP-008-10
+- Status: PENDING
+- Priority: 1
+- Execution Mode: Quick
+- Domain: Interface e fluxo do jogador
+- Description:
+  - Pedido do gestor (UX, 2026-09-22): no HUD, remover a distância do bot; manter só a do jogador e mostrar a posição de cada um (1º / 2º) para jogador e bot.
+  - Contagem pré-corrida passa de 3 s para 1 s.
+- Depends On: TASK-kaleugit-EP-008-07
+- Canonical File: memory-system/tasks/TASK-kaleugit-EP-008-10.md
+- Suggested Branch: TASK-kaleugit-EP-008-10-implement
+- Input Context (max 5 files):
+  - src/ui/race-hud.js
+  - src/main.js
+  - index.html
+  - tests/e2e/hud-layout.spec.js
+  - tests/e2e/drive.js
+- Done Criteria:
+  - `npm test` e `npm run test:sim` verdes; e2e prova posição 1º/2º coerente com as distâncias e contagem de ~1 s; aprovação visual do gestor.
+- Escalation Conditions:
+  - None
+
+### Task 11 - Bot fantasma opcional
+- Task ID: TASK-kaleugit-EP-008-11
+- Status: PENDING
+- Priority: 1
+- Execution Mode: Standard
+- Domain: Interface e fluxo do jogador
+- Description:
+  - Pedido do gestor (UX, 2026-09-22): possibilidade de ver o bot como fantasma: o carro do bot desenhado semitransparente na pista, sem colisão, seguindo a física já existente dele.
+  - Opção liga/desliga escolhida antes da corrida (tela do mapa), persistida no perfil; padrão desligado (comportamento atual: bot só na barra de corrida).
+- Depends On: TASK-kaleugit-EP-008-09, TASK-kaleugit-EP-008-10
+- Canonical File: memory-system/tasks/TASK-kaleugit-EP-008-11.md
+- Suggested Branch: TASK-kaleugit-EP-008-11-implement
+- Input Context (max 5 files):
+  - src/main.js
+  - src/lobby.js
+  - src/profile/profile.js
+  - index.html
+  - src/bot/bot-driver.js
+- Done Criteria:
+  - `npm test` e `npm run test:sim` verdes; e2e prova fantasma visível/oculto conforme a opção e persistência; sem impacto no desempenho do jogador; aprovação visual do gestor.
+- Escalation Conditions:
+  - None
+
 ## Planning Notes
 - Default policy: create `planning/report` on demand as tasks move to execution.
 - Each task must be self-contained: the canonical task file + listed input context must be sufficient for execution without implicit knowledge from prior tasks.
