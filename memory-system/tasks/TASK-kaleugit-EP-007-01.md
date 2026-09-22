@@ -8,17 +8,18 @@
 - Branch: TASK-kaleugit-EP-007-01-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 21:16
+- Last Updated: 2026-09-22 00:18
 - Started: 2026-09-21 21:00
-- Completed: 2026-09-21 21:16
+- Completed: 2026-09-22 00:18
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-007-01-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-007-01-implement-report-2026-09-21.md
 - prior-art: src/sound.js — existing GEARS table / virtualSf pseudo-RPM (replaced in EP-007-02, not reused); src/parts/presets.js GEARBOXES reused for ratio scaling; no existing engine model (src/audio/ is new)
 - Evidence: PASS — `npm run test:sim` 43/43 (6 new in tests/sim/engine-model.test.js: RPM in [800, 4000] and firingHz in [25, 140] on every step for 3 presets x throttle/turbo on Mata Atlântica; every upshift exact ratio step; first upshift speed curta 13.0 < padrao 13.8 < longa 14.4; airborne free-rev; downshift/idle; purity grep)
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 - Delivery PR: #12
-- Delivery Status: PR_OPEN_MANUAL_MERGE
+- Delivery Status: MERGED
 
+- Delivery Merged At: 2026-09-22 00:18
 ## Autonomous Decisions
 - DA-001: finalDrive 4.5 — Criteria: orchestrator calibration note + CDC-005 — Rationale: top gear at BASE_PARAMS.maxSpeedTurbo sits at ~3575 rpm (below upshift and redline) for every preset; 1st gear shifts at ~13-14 m/s.
 - DA-002: gearbox preset scales ratios by 1 / GEARBOXES[preset].topSpeedMult — Criteria: epic "escaladas pelo preset" — Rationale: reuses the EP-003 data (no new field); Curta shorter ratios shift earlier in speed, top-gear RPM at top speed is preset-invariant.
