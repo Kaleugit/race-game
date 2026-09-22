@@ -15,8 +15,8 @@
 - prior-art: src/car.js makeTireSideTexture/makeCar/makeBesouro (materials, 16 lug boxes per wheel); src/parts/colors.js getCarColor; src/parts/presets.js TIRES ids
 - Evidence: PASS — tests/sim/car-look.test.js 6/6 (makeCar() original look; vermelho+misto identity snapshot; all 10 colors; 3 distinct tires; partial/unknown ids; Besouro + GLB no-op); `npm run test:sim` 79/79; `npm run build` PASS; `npm test` 4/4; only src/car.js changed in src/
 - Delivery Handoff: DONE (owner: skills/delivery)
-- Delivery PR: Pending
-- Delivery Status: PR_OPEN
+- Delivery PR: #22
+- Delivery Status: PR_OPEN_MANUAL_MERGE
 
 ## Autonomous Decisions
 - DA-001: Tire look = scale of the existing tread lug boxes + tread shade + sidewall texture variant (no new geometry) — Criteria: CDC-101 / escalation condition (no off-style geometry) — Rationale: distinct looks (near-slick estrada, chunky offroad) while staying low-poly.
@@ -25,3 +25,4 @@
 - DA-004: makeCar(look?) optional parameter; makeCarGLB has no look handle (no-op) — Criteria: task "makeCar() sem argumentos identico" — Rationale: convenience for EP-006-04 without changing the no-arg path; GLB material mapping out of scope.
 - DA-005: No persona consults — Criteria: runbook (Quick) — Rationale: one file, visual only.
 - UX Gate: pending human (batched at epic end).
+- Delivery Merged At: Pending
