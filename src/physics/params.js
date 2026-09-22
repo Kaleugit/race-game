@@ -58,4 +58,10 @@ export const BASE_PARAMS = Object.freeze({
   chassisFriction: 15,
   // Rate (1/s) at which a car resting on its chassis settles onto its wheels or its roof.
   chassisSettleRate: 6,
+  // RF-008 surface grip: multiplier on acceleration by the surface under the car. These are the
+  // Misto tire values (TIRES.misto in src/parts/presets.js must stay equal to them).
+  grip: Object.freeze({ dirt: 1, mud: 0.8, sand: 0.75 }),
+  // Extra drag by surface, on the ground only: coefficient (1/s) on speed, so each tire gets a
+  // terminal speed of (accel * grip - drag) / surfaceDrag on that surface. Dirt adds nothing.
+  surfaceDrag: Object.freeze({ dirt: 0, mud: 0.3, sand: 0.35 }),
 });

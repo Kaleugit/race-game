@@ -1,6 +1,6 @@
 # API Index — Kaleugit/race-game
 
-> **Coverage**: 10/13 backend files (77%), 0/0 frontend custom elements (0%).
+> **Coverage**: 11/14 backend files (79%), 0/0 frontend custom elements (0%).
 > Auto-generated from JSDoc `@module` / `@summary` / `@element` tags. Transition phase — files without these tags do NOT appear here.
 >
 > **If you don't find what you need:**
@@ -8,8 +8,8 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-21T23:33Z
-Total candidate files scanned: 13
+Last regenerated: 2026-09-21T23:54Z
+Total candidate files scanned: 14
 
 ## Backend modules
 
@@ -18,6 +18,12 @@ Total candidate files scanned: 13
 
 ### `src/main.js` — main
 - Game entry point: renderer, car visuals, input, race loop, HUD; stage selected via ?stage=<id>.
+
+### `src/parts/presets.js` — parts/presets
+- Tire and gearbox presets (RF-008, RF-009) and resolveCarParams, which turns a part
+- Tire presets keyed by id (`estrada`, `misto`, `offroad`).
+- Gearbox presets keyed by id (`curta`, `padrao`, `longa`).
+- Build frozen car params from `base` and `{ tire, gearbox, upgrades = [] }`.
 
 ### `src/physics/car-physics.js` — physics/car-physics
 - Per-instance car physics (turbo, speed, vertical/bounce, chassis contact, rotation,
