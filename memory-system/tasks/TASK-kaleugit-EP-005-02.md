@@ -8,17 +8,18 @@
 - Branch: TASK-kaleugit-EP-005-02-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 22:38
+- Last Updated: 2026-09-22 01:41
 - Started: 2026-09-21 22:20
-- Completed: 2026-09-21 22:38
+- Completed: 2026-09-22 01:41
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-005-02-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-005-02-implement-report-2026-09-21.md
 - prior-art: stage contract and the teste-plano sand zone/palette pattern (src/stages/teste-plano.stage.js); CA-008 pattern from tests/sim/parts.test.js; generic CA-004/CA-009 tests from EP-005-01 (tests/sim/bot.test.js, tests/sim/stage-duration.test.js); e2e pattern from tests/e2e/stage-data.spec.js and smoke.spec.js
 - Evidence: PASS — Cerrado reference 80.53 s (CA-009); bot d=0.6 seeds 1..10 median 86.23 s (84.4–88.6), all slower than the reference (CA-004); bot/reference ratio 1.071 < Mata 1.078; Off-road crosses every sand zone faster than Estrada (6.53 vs 9.28 s, 5.77 vs 8.02 s, 4.98 vs 6.88 s); `npm run test:sim` 63/63; `npm test -- --workers=2` 4/4; only src file added: src/stages/cerrado.stage.js
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 - Delivery PR: #19
-- Delivery Status: PR_OPEN_MANUAL_MERGE
+- Delivery Status: MERGED
 
+- Delivery Merged At: 2026-09-22 01:41
 ## Autonomous Decisions
 - DA-001: "Bot a little harder" = bot/reference ratio LOWER than Mata's (1.071 < 1.078), bot.difficulty 0.6 > 0.5 — Criteria: epic DA-003 + Task 02 description ("razão ... < mesma razão na Mata") — Rationale: a harder bot is closer to the reference time; the EP-005-01 note / dispatch phrasing "ratio > 1.078" is inverted relative to the epic, which is the source of truth. Ratio stays > 1 (every seed slower than the reference, CA-004).
 - DA-002: Red earth is the ground color (palette.ground 0x5a2616), not a surface zone — Criteria: epic scope (no new surface types: dirt|mud|sand) — Rationale: red dirt has plain dirt traction; loose sand (palette.zones.sand 0xd9b27a) is the traction-changing surface.
