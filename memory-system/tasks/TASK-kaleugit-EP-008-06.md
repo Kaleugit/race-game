@@ -8,16 +8,16 @@
 - Branch: TASK-kaleugit-EP-008-06-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-22 12:50
+- Last Updated: 2026-09-22 12:35
 - Started: 2026-09-22 12:05
-- Completed: 2026-09-22 12:50
+- Completed: 2026-09-22 12:35
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-008-06-implement-planning-2026-09-22.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-008-06-implement-report-2026-09-22.md
 - prior-art: garage rows/selectors and trade-off labels from EP-008-04 (kept), tests/e2e/drive.js helpers (EP-006-05), lobby camera/pointer code in src/lobby.js (EP-006-04)
 - Evidence: PASS — `npm run test:sim` 104/104; `npm test` 16/16 (new garage-layout.spec.js: no dock intersects the car pixels or TELA CHEIA, no scroll, at 1280x720/1920x1080/640x360/740x360); `./scripts/validate-changed.sh` PASS; validate-all N/A locally (TD-001/TD-002), CI runs it
 - UX Gate: pending human (batched at epic end) — garage docks look/feel; before/after screenshots in memory-system/task-docs/TASK-kaleugit-EP-008-06-*.png
-- Delivery Handoff: DONE (owner: orchestrator merges)
-- Delivery PR: Pending
+- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery PR: #32
 - Delivery Status: PR_OPEN_MANUAL_MERGE
 
 ## Autonomous Decisions
@@ -26,3 +26,4 @@
 - DA-003: Fixed the lobby rotation-on-mouse-move bug and disabled car zoom while garage/map are open (src/lobby.js) — Criteria: goal "panel must not overlap the car" — Rationale: any mouse move spun the car (up to its diagonal) and a click zoomed it 1.7x under the docks; drag-rotate and home-screen zoom still work.
 - DA-004: Build summary (DESEMPENHO) computed in garage.js from the presets it receives (same products as resolveCarParams) — Criteria: garage.js takes data + callbacks only — Rationale: no game-logic import; notes.d records the sync point.
 - DA-005: No persona consults — Criteria: runbook (speed over ceremony) — Rationale: contained UI change; the design-critic agent reviewed taste instead.
+- Delivery Merged At: Pending
