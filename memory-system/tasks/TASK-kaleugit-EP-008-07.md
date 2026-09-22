@@ -8,18 +8,19 @@
 - Branch: TASK-kaleugit-EP-008-07-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-22 13:33
+- Last Updated: 2026-09-22 16:58
 - Started: 2026-09-22 12:20
-- Completed: 2026-09-22 13:33
+- Completed: 2026-09-22 16:58
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-008-07-implement-planning-2026-09-22.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-008-07-implement-report-2026-09-22.md
 - prior-art: garage dock style + type scale (EP-008-06, index.html "Garage (EP-008-06)"), turbo cells = round(12 x turboCapacity) and #hud data-* (EP-008-04), turbo lockout / reignite 25% (EP-008-05), garage-layout.spec.js rect-intersection pattern (EP-008-06)
 - Evidence: PASS — `npm run test:sim` 104/104; `npm test` 20/20 (new hud-layout.spec.js: HUD, race bar, in-race buttons and the 4 touch buttons never intersect and stay in the viewport at 1280x720/1920x1080/640x360/740x360 with touch on and the bot-won notice shown; parts.spec.js now proves 17 drawn turbo segments for Grande); `./scripts/validate-changed.sh` PASS; validate-all N/A locally (TD-001/TD-002), CI runs it
 - UX Gate: pending human (batched at epic end) — HUD gauges look/readability, touch controls; before/after screenshots in memory-system/task-docs/TASK-kaleugit-EP-008-07-*.png
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 - Delivery PR: #33
-- Delivery Status: PR_OPEN_MANUAL_MERGE
+- Delivery Status: MERGED
 
+- Delivery Merged At: 2026-09-22 16:58
 ## Autonomous Decisions
 - DA-001: Shared CSS tokens on :root (--ui-font, --ui-fs, --ui-gold, --ui-muted, --ui-panel-bg, --ui-panel-border, ...) used by the garage docks and the race UI; garage values unchanged — Criteria: DRY + "same font and size as the start screens" — Rationale: one source for the type scale; garage-layout e2e still green.
 - DA-002: Turbo gauge = arc of round(12 x turboCapacity) constant-size segments centred at 12 o'clock (Pequeno 8 / Médio 12 / Grande 17), so a bigger tank is a longer arc — Criteria: keep EP-008-04 capacity semantics visible — Rationale: capacity readable at a glance; parts.spec asserts 17 drawn segments (replaces the 17-cell text check, same proof).
