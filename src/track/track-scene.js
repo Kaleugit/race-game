@@ -1,11 +1,14 @@
 /**
  * @module track/track-scene
  * @summary Three.js scene objects for a stage (road, mud layer, ground, sky background,
- * finish portal, surface-zone overlays), built only from stage data + track query.
+ * finish portal, surface-zone overlays, hazard warning signs), built only from stage data
+ * + track query.
  * Meshes/values moved verbatim from the pre-migration src/main.js.
  */
 import * as THREE from 'three';
 import { makeRoadTexture } from '../textures.js';
+import { signPositions } from '../stages/hazard-signs.js';
+import { createHazardSign } from './hazard-sign.js';
 
 const ROAD_W = 80;
 const ROAD_D = 7;
@@ -18,6 +21,9 @@ const MUD_SEGMENTS = 120;
 const ZONE_SEG_PER_UNIT = 2;
 const ZONE_LIFT = 0.02;
 const ZONE_FALLBACK_COLOR = 0x888888;
+
+/** Warning signs stand just past the far edge of the road, so they never cover the car. */
+const SIGN_Z = -4.2;
 
 function makeMudTexture() {
   const c = document.createElement('canvas');
@@ -215,6 +221,14 @@ export function createTrackScene({ scene, skyScene, stage, track }) {
   // surface-zone overlays
   const zoneMeshes = (surfaces.zones || []).map((z) => add(makeZoneMesh(z, track, palette)));
 
+  // hazard warning signs, derived from the stage data (one per hazard run, 20 m before it)
+  const signMeshes = signPositions(stage).map((s) => {
+    const sign = add(createHazardSign());
+    sign.position.set(s.x, track.heightAt(s.x), SIGN_Z);
+    sign.userData.x = s.x;
+    return sign;
+  });
+
   // finish portal
   const finishPortal = add(makeFinishPortal());
 
@@ -245,6 +259,7 @@ export function createTrackScene({ scene, skyScene, stage, track }) {
     roadTex.offset.x = scroll / 10;
 
     for (const m of zoneMeshes) m.position.x = m.userData.from - scroll;
+    for (const s of signMeshes) s.position.x = s.userData.x - scroll;
   }
 
   function dispose() {

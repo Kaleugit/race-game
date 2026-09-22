@@ -283,7 +283,7 @@
 
 ### Task 12 - Placa de aviso (!) 20 m antes de cada hazard
 - Task ID: TASK-kaleugit-EP-008-12
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Quick
 - Domain: Conteúdo e fluxo do jogador
