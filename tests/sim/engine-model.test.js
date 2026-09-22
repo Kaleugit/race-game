@@ -1,6 +1,7 @@
 // EP-007-01: pure engine model driven by the sim harness on Mata Atlântica. Checks RPM limits,
 // ratio-based drop on every upshift, firing-frequency range, gearbox preset ordering, airborne
-// free-rev and purity (no Web Audio / DOM).
+// free-rev and purity (no Web Audio / DOM). EP-008-02: longer gears (every gear spans >= 1.3x the
+// speed range of the EP-007 gearing, fewer upshifts per race).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -20,12 +21,15 @@ const DRIVERS = {
   turbo: { driver: (s) => ({ up: true, space: true, right: s.airborne }), initialState: { infiniteTurbo: true } },
 };
 
+// EP-007 gearing (before EP-008-02 lengthened every gear), kept as the comparison baseline.
+const LEGACY = Object.freeze({ finalDrive: 4.5 });
+
 // Runs a race with the gearbox preset and feeds every physics step to a fresh engine model.
-function engineRun(gearbox, kind = 'throttle') {
+function engineRun(gearbox, kind = 'throttle', overrides = {}) {
   const { driver, initialState } = DRIVERS[kind];
   const params = resolveCarParams(BASE_PARAMS, { tire: 'misto', gearbox });
   const race = runRace({ stage: mata, params, driver, initialState });
-  const model = createEngineModel({ gearboxPreset: gearbox });
+  const model = createEngineModel({ gearboxPreset: gearbox, ...overrides });
   const out = race.samples.map((s) => ({ ...s, ...model.update(DT, { speed: s.speed, throttle: 1, airborne: s.airborne }) }));
   const upshifts = [];
   for (let i = 1; i < out.length; i++) {
@@ -35,6 +39,7 @@ function engineRun(gearbox, kind = 'throttle') {
 }
 
 const RUNS = ['curta', 'padrao', 'longa'].flatMap((g) => ['throttle', 'turbo'].map((k) => [`${g}/${k}`, engineRun(g, k)]));
+const LEGACY_RUNS = RUNS.map(([name]) => [name, engineRun(...name.split('/'), LEGACY)]);
 
 test('RPM stays in [idle, redline] and firingHz in [25, 140] Hz on every step', () => {
   for (const [name, { out }] of RUNS) {
@@ -57,9 +62,55 @@ test('every upshift drops RPM by ratio[n+1]/ratio[n] (±5%) and opens a zero-loa
       assert.equal(to.load, 0);
     }
   }
-  // With turbo the car reaches top gear, and top gear at top speed stays below the redline.
+  // With turbo the car reaches 4th (the longer gearing tops out there, EP-008-02), and top gear at
+  // each preset's turbo top speed stays inside [idle, redline].
   const turbo = RUNS.find(([n]) => n === 'padrao/turbo')[1];
-  assert.equal(Math.max(...turbo.out.map((o) => o.gear)), ENGINE_DEFAULTS.gearRatios.length);
+  assert.ok(Math.max(...turbo.out.map((o) => o.gear)) >= 4);
+  for (const g of ['curta', 'padrao', 'longa']) {
+    const top = resolveCarParams(BASE_PARAMS, { tire: 'misto', gearbox: g }).maxSpeedTurbo;
+    const rpm = coupledRpmAt(top, scaleGearRatios(ENGINE_DEFAULTS.gearRatios, g).at(-1));
+    assert.ok(rpm > idleRpm && rpm < redlineRpm, `${g}: top gear ${rpm} rpm at ${top}`);
+  }
+});
+
+// Speed at which gear `ratio` turns the engine at `rpm` (inverse of the model's coupled RPM).
+function speedAt(rpm, ratio, finalDrive = ENGINE_DEFAULTS.finalDrive) {
+  return (rpm * 2 * Math.PI * ENGINE_DEFAULTS.wheelRadius) / (60 * ratio * finalDrive);
+}
+function coupledRpmAt(speed, ratio, finalDrive = ENGINE_DEFAULTS.finalDrive) {
+  return (speed * 60 * ratio * finalDrive) / (2 * Math.PI * ENGINE_DEFAULTS.wheelRadius);
+}
+// Per-gear speed range under full-throttle acceleration: from entering the gear (previous gear's
+// upshift speed, 0 for 1st) to leaving it (upshiftRpm; redlineRpm for top gear).
+function gearRanges(ratios, finalDrive) {
+  const { upshiftRpm } = ENGINE_DEFAULTS;
+  const exits = ratios.map((r, i) => speedAt(i === ratios.length - 1 ? redlineRpm : upshiftRpm, r, finalDrive));
+  return exits.map((v, i) => v - (i === 0 ? 0 : exits[i - 1]));
+}
+
+test('EP-008-02: every gear spans >= 1.3x the EP-007 speed range, for every gearbox preset', () => {
+  for (const g of ['curta', 'padrao', 'longa']) {
+    const ratios = scaleGearRatios(ENGINE_DEFAULTS.gearRatios, g);
+    const now = gearRanges(ratios, ENGINE_DEFAULTS.finalDrive);
+    const before = gearRanges(ratios, LEGACY.finalDrive);
+    now.forEach((v, i) => assert.ok(v >= 1.3 * before[i], `${g} gear ${i + 1}: ${v} vs ${before[i]}`));
+  }
+});
+
+// In the race the engine lags the wheels (rpmResponse), so the first upshift lands a bit before the
+// ideal 1.36x of the static ranges; 1.25x still proves the audible gear is clearly longer.
+test('EP-008-02: first upshift comes >= 1.25x later in speed and races have fewer upshifts', () => {
+  let total = 0;
+  let legacyTotal = 0;
+  for (const [name, run] of RUNS) {
+    const legacy = LEGACY_RUNS.find(([n]) => n === name)[1];
+    const [v, v0] = [run, legacy].map(({ upshifts }) => upshifts[0].to.speed);
+    assert.ok(v >= 1.25 * v0, `${name}: first upshift at ${v} vs ${v0}`);
+    assert.ok(run.upshifts.length <= legacy.upshifts.length, `${name}: ${run.upshifts.length} vs ${legacy.upshifts.length}`);
+    total += run.upshifts.length;
+    legacyTotal += legacy.upshifts.length;
+  }
+  assert.ok(total < legacyTotal, `upshifts ${total} vs ${legacyTotal}`);
 });
 
 test('Curta shifts earlier (in speed) than Padrão, and Padrão earlier than Longa', () => {

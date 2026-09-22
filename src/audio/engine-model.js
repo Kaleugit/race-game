@@ -8,15 +8,17 @@ import { GEARBOXES } from '../parts/presets.js';
 
 /**
  * Defaults: 4-cylinder 4-stroke diesel (Toyota Bandeirante), idle 800 / redline 4000 rpm, so the
- * firing frequency spans ~27-133 Hz. `finalDrive` puts top gear at ~3575 rpm at
- * BASE_PARAMS.maxSpeedTurbo (below the upshift point and the redline for every gearbox preset,
- * because the preset scales the ratios by 1 / topSpeedMult). `wheelRadius` mirrors WHEEL_RADIUS
- * in src/car.js (not imported: that module needs three.js).
+ * firing frequency spans ~27-133 Hz. EP-008-02 "longer gears": `finalDrive` 3.3 (was 4.5) makes
+ * every gear span 4.5 / 3.3 ~= 1.36x more speed (first upshift ~17-20 m/s instead of ~13-15), so a
+ * race has fewer upshifts; top gear sits at ~2620 rpm at BASE_PARAMS.maxSpeedTurbo (inside
+ * [idle, redline] for every gearbox preset, because the preset scales the ratios by
+ * 1 / topSpeedMult) and full turbo now tops out in 4th. Sound only: physics is unaffected.
+ * `wheelRadius` mirrors WHEEL_RADIUS in src/car.js (not imported: that module needs three.js).
  * @summary Default engine/gearbox configuration.
  */
 export const ENGINE_DEFAULTS = Object.freeze({
   gearRatios: Object.freeze([3.2, 2.1, 1.5, 1.18, 0.96]),
-  finalDrive: 4.5,
+  finalDrive: 3.3,
   wheelRadius: 0.5,
   idleRpm: 800,
   redlineRpm: 4000,
