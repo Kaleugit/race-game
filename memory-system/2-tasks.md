@@ -101,6 +101,7 @@ Policy:
 | TASK-kaleugit-EP-008-03 | Engines, chassis and turbo tanks (data + physics + sound) | COMPLETED | 1 | Standard | TASK-kaleugit-EP-008-03-implement | [development] | 2026-09-22 14:31 |
 | TASK-kaleugit-EP-008-04 | Garage, profile and wiring for the new parts | COMPLETED | 1 | Standard | TASK-kaleugit-EP-008-04-implement | [development] | 2026-09-22 15:00 |
 | TASK-kaleugit-EP-008-05 | Turbo recharge fix + bot recalibration for humans | COMPLETED | 1 | Standard | TASK-kaleugit-EP-008-05-implement | [development] | 2026-09-22 04:03 |
+| TASK-kaleugit-EP-008-06 | Garage parts panel redesign | PENDING | 1 | Standard | TASK-kaleugit-EP-008-06-implement | None | 2026-09-22 12:10 |
 | TASK-kaleugit-EP-002-03 | CA-003 proof: data-only test stage + e2e | COMPLETED | 2 | Quick | TASK-kaleugit-EP-002-03-implement | [development] | 2026-09-21 23:12 |
 | TASK-kaleugit-EP-003-03 | Tire/gearbox presets and surface grip | COMPLETED | 2 | Standard | TASK-kaleugit-EP-003-03-implement | [development] | 2026-09-22 00:01 |
 | TASK-kaleugit-EP-006-02 | Car visual: color and tires | COMPLETED | 2 | Quick | TASK-kaleugit-EP-006-02-implement | [development] | 2026-09-22 02:13 |
