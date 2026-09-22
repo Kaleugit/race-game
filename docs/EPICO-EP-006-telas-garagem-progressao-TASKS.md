@@ -130,7 +130,7 @@
 
 ### Task 05 - e2e dos critérios de interface (CA-001, CA-002, CA-006, CA-007)
 - Task ID: TASK-kaleugit-EP-006-05
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 2
 - Execution Mode: Standard
 - Domain: Testes (e2e de fluxo)
