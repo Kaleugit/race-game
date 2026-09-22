@@ -179,3 +179,39 @@
 - src/ui/race-hud.js: createRaceHud() -> { configure({turboCapacity, maxSpeedTurbo}), update(carState), setBotDist(m) }; owns #speed (SVG text), #dist, #bot-dist, #speed-gauge, #turbo-gauge (data-segments = round(12 x capacity), data-state idle|low|active|lockout, .turbo-seg). #turbobar removed.
 - In-race buttons in #race-actions (.race-btn, blur on click); touch pads FREIO/TURBO/ACEL; keyboard hint hidden in touch mode. Touch mode only via #mobiletoggle / TELA CHEIA.
 - tests/e2e/hud-layout.spec.js: pairwise non-overlap at 4 viewports with touch on. npm test = 20 specs (~3.7 min).
+
+## EP-008-10 (PR #34)
+- race-hud API { configure, update, setPositions(playerFirst) }; pure playerLeads(prev, playerX, botX, finishX) (further x leads, tie keeps order, first finisher keeps 1º). main.js state.playerFirst reset in resetGame.
+- DOM: #bot-dist removed; #race-pos-you/#race-pos-bot badges (1º/2º, data-leader) on the race bar labels. hud-layout.spec race-bar group includes them.
+- Countdown 1 s: main.js COUNTDOWN_S = 1, COUNTDOWN_GO_AT_S = 0.6; shows "1" then "VAI!".
+- tests/e2e/race-position.spec.js uses ?dev + key T (infinite turbo). npm test = 21 specs.
+
+## EP-008-09 (PR #35)
+- Lobby: #lobby-play = CORRIDA -> #map-overlay -> race with saved garage (?stage= still direct); #lobby-garage = GARAGEM -> garage; #garage-confirm (PRONTO) saves and returns to lobby home from anywhere; #map-back = "← LOBBY".
+- Garage = ONE card #garage-card (top-left) with slides .garage-slide[data-slide] in GARAGE_SLIDES order (engine, gearbox, tire, chassis, tank, color), #garage-cat, #garage-step "n/6", #garage-pips; only the active slide is visible/clickable (same grid cell, constant height). Arrows + ArrowLeft/Right + swipe. showGarage({..., startSlide}).
+- .garage-slides has overflow hidden + padding 4px/margin -4px on purpose (slide-in transform otherwise makes the card scrollable and layout e2e flakes).
+- e2e must drive the garage via drive.js (openGarageFromLobby, goToGarageSlide, pickGarage, confirmGarage, openMapFromLobby). garage-layout.spec repeats non-overlap on all 6 slides at 4 viewports. npm test = 23 specs.
+
+## EP-008-12 (PR #36)
+- src/stages/hazard-signs.js (pure): signPositions(stage) -> [{x,type,hazardFrom}], SIGN_LEAD_M 20, MIN_SIGN_X 0. Hazard = surfaces.zone whose type != surfaces.default (track.features are NOT hazards); zones < 20 m apart merge into one run = one sign; a sign before x=0 is dropped.
+- src/track/hazard-sign.js createHazardSign() + SIGN_TUNING; placed by track-scene.js at z = -4.2, decorative only (no collision, physics untouched, goldens 1e-9).
+- Signs today: Mata 910/1200, Cerrado 250/1010, teste-plano 40/100 (pinned in tests/sim/hazard-signs.test.js).
+- tests/e2e/hazard-sign.spec.js samples rendered pixels in clip {x:690,y:235,w:590,h:140} with a yellow signature — recalibrate if camera/VIEW_H/sign color/HUD layout change. npm test = 22 specs.
+- Free-roam stage (EP-008-13) gets signs for free by declaring surfaces.zones.
+- Tooling: deliver-to-main.sh requires a clean tree including untracked files (scratchpad/ is not gitignored); local preview on port 4180 avoids the 4173 e2e port.
+
+## EP-008-11 (PR #39)
+- src/bot/ghost-car.js: createGhostCar({ scene, look }) -> { setEnabled, update(botState, playerX, dt, halfWidth), dispose() }; GHOST_TUNING (opacity 0.62, cold-blue tint 60%, cullMargin). Mesh built lazily on the first race with the option on; culled past camera.right + 3 m. Screen x of any world object = worldX - playerX (player fixed at world x = 0).
+- profile: settings block next to garage/progress — getSettings()/saveSettings(partial), DEFAULT_SETTINGS = { ghostBot: false }, still version 1, non-destructive. tests/sim/profile.test.js pins the stored JSON shape.
+- Map screen is now where pre-race options live: showStageMap({ ..., ghostBot, onGhostToggle }) -> #map-ghost/#map-ghost-value; tests/e2e/map-layout.spec.js proves no overlap/scroll at 4 viewports in both states.
+- tests/e2e/ghost-bot.spec.js samples cold-blue pixels on teste-plano (on = 2600–10100 px/frame, off = 0); recalibrate on camera/VIEW_H/GHOST_TUNING/background changes. #hud[data-ghost].
+- npm test = 31 specs. race-position.spec.js has a tight `log.frames > 30` bound that flakes under GPU contention with the 1.5-min hazard-sign spec.
+
+## EP-008-13 (PR #40)
+- Stage contract gained optional `mode` ('race' default | 'free'), validated in src/stages/registry.js (STAGE_MODES, stageMode, isFreeRoam). A free stage must be hidden:true and carry no `bot` block (keeps it out of listStages/unlock ladder/CA-004/CA-009); tests/sim/free-roam.test.js enforces it.
+- Free stages: terra-livre (5000 m, 21 mud/sand zones + signs) and livre-teste (180 m, hidden e2e twin).
+- main.js: FREE_STAGE_ID, state.freeRoam set in setStage; botCar/botDriver are null in free roam (guard any new code); #hud data-mode="free|race". Ghost forced off in free roam.
+- #free-end-overlay (src/ui/free-end.js): showFreeEnd({distance,time,onAgain,onBack}); hideFreeEnd() called in resetGame/leaveRace.
+- Map order: title, #map-stages, #map-free, #map-ghost, #map-back — anything added must join map-layout.spec.js's box set.
+- drive.js adds startFreeRoamFromMap, driveFreeRoamToEnd, driveForMs, readProfile (raw race_profile_v1 string, for "nothing persisted" assertions).
+- npm test = 34 specs; test:sim = 137. Browser distance per wall-clock second varies with GPU load — never assert distance from duration in e2e.

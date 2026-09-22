@@ -6,6 +6,7 @@ Resume point for the next session. Read this file first, then `memory-system/han
 
 > **Update 2026-09-22 12:00:** EP-008-03 (#29) and EP-008-04 (#30) merged. All code for EP-001..EP-008 is on main. Next step: the manager's final UX pass (§4).
 > **Update 2026-09-22 13:40:** manager UX feedback round merged: EP-008-06 garage parts panel redesign (#32), EP-008-07 race HUD standardization + speed/turbo gauges (#33), EP-008-08 swap 1.6/2.4 engine sounds (#31). Next step: final UX pass (§4, items 13–15 added).
+> **Update 2026-09-22 19:25:** second manager UX round merged: EP-008-09 lobby CORRIDA/GARAGEM + garage carousel (#35), EP-008-10 HUD 1º/2º + 1 s countdown (#34), EP-008-11 optional ghost bot (#39), EP-008-12 hazard warning signs (#36), EP-008-13 free-roam 5000 m (#40), EP-008-14 configurable E2E_PORT (#37), plus #38 (hazard-sign spec creep fix). All EP-008 code is on main; no open PRs. Next: the final UX pass (§4, items 13–21).
 
 - Bootstrap gate: `READY_FOR_EXECUTION`. Epics EP-001..EP-008 in `docs/EPICOS.md`.
 - main at `bd6e74e` (after PR #28). All work below is merged unless marked otherwise.
@@ -58,6 +59,12 @@ Open `jogar.bat` (dev server at http://localhost:5173). For each item answer OK 
 13. **Garagem nova (EP-008-06):** two docks (left: MOTOR/CÂMBIO/PNEU/DESEMPENHO; right: CHASSI/TANQUE/COR/CONFIRMAR), stat bars with hover preview, no overlap with the car or TELA CHEIA (desktop and phone); car rotates only while dragging.
 14. **HUD da corrida (EP-008-07):** same font/sizes as the garage; semi-transparent speed and turbo gauges (turbo arc length = tank, red RECARGA lockout); FREIO/TURBO/ACEL touch pads; readable at 640x360.
 15. **Som 1.6 ↔ 2.4 (EP-008-08):** the 2.4 now has the brighter, higher-revving sound the manager liked on the 1.6; the 1.6 is deeper.
+16. **Lobby (EP-008-09):** two buttons — CORRIDA (→ map → race with the saved garage) and GARAGEM (→ garage → PRONTO returns to the lobby); ← LOBBY on the map returns to the lobby.
+17. **Garagem em carrossel (EP-008-09):** one part per card (MOTOR, CÂMBIO, PNEU, CHASSI, TANQUE, COR), arrows/←→/swipe, "n/6" + pips, compact DESEMPENHO, PRONTO.
+18. **Posição e largada (EP-008-10):** race bar shows [1º] VOCÊ … BOT [2º], leader in gold, flipping when the bot passes; only the player's DIST in the HUD; countdown is 1 s ("1" → "VAI!").
+19. **Placas de aviso (EP-008-12):** a yellow "!" sign 20 m before every mud/sand strip, on both stages; readable at speed, no collision.
+20. **Bot fantasma (EP-008-11):** toggle BOT FANTASMA on the map (off by default); when on, the bot's car is drawn translucent cold-blue on track, no collision.
+21. **Modo livre (EP-008-13):** MODO LIVRE card on the map → 5000 m terrain, no bot, no win/defeat, nothing written to progress; FIM DO PERCURSO screen with DE NOVO / VOLTAR; garage parts apply.
 
 Tuning knobs if something needs adjusting: `src/sound.js` (ORDERS, levels, time constants), `src/audio/engine-model.js` (ratios, finalDrive, shift RPM), `src/bot/bot-driver.js` (TUNING), `src/stages/*.stage.js` (bot.difficulty, layout), `src/parts/presets.js` (parts), `src/car.js` (TIRE_LOOKS).
 
