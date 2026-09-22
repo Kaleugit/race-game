@@ -1,6 +1,6 @@
 # API Index — Kaleugit/race-game
 
-> **Coverage**: 17/19 backend files (89%), 0/0 frontend custom elements (0%).
+> **Coverage**: 19/21 backend files (90%), 0/0 frontend custom elements (0%).
 > Auto-generated from JSDoc `@module` / `@summary` / `@element` tags. Transition phase — files without these tags do NOT appear here.
 >
 > **If you don't find what you need:**
@@ -8,8 +8,8 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-22T01:34Z
-Total candidate files scanned: 19
+Last regenerated: 2026-09-22T01:54Z
+Total candidate files scanned: 21
 
 ## Backend modules
 
@@ -39,6 +39,11 @@ Total candidate files scanned: 19
 ### `src/main.js` — main
 - Game entry point: renderer, car visuals, input, race loop, HUD; stage selected via ?stage=<id>.
 
+### `src/parts/colors.js` — parts/colors
+- The 10 fixed garage body colors (RF-007, visual only) and the default color id.
+- Frozen list of the 10 garage colors.
+- Color entry by id, or undefined for an unknown id.
+
 ### `src/parts/presets.js` — parts/presets
 - Tire and gearbox presets (RF-008, RF-009) and resolveCarParams, which turns a part
 - Tire presets keyed by id (`estrada`, `misto`, `offroad`).
@@ -52,6 +57,10 @@ Total candidate files scanned: 19
 ### `src/physics/params.js` — physics/params
 - Car physics constants (BASE_PARAMS), moved verbatim from the pre-extraction
 - Default car parameters: the prototype's driving feel. Frozen; derive copies to tune.
+
+### `src/profile/profile.js` — profile/profile
+- Local player profile (RF-003, RF-007): garage choice and stage progress persisted under
+- Build the profile API `{ getGarage, saveGarage, getUnlocked, isUnlocked, getBest, recordWin }`.
 
 ### `src/sound.js` — sound
 - Web Audio engine sound synthesized from engine orders (EP-007).

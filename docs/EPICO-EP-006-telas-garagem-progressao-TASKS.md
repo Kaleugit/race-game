@@ -17,7 +17,7 @@
 
 ### Task 01 - Perfil local: garagem e progresso em `localStorage`
 - Task ID: TASK-kaleugit-EP-006-01
-- Status: PENDING
+- Status: IN_PROGRESS
 - Priority: 1
 - Execution Mode: Standard
 - Domain: Persistência (perfil local)
