@@ -1,12 +1,13 @@
 /**
  * @module car
- * @summary Bandeirante car meshes (procedural and GLB), smoke, springs, hitbox debug.
+ * @summary Bandeirante car meshes (procedural and GLB), smoke, springs, hitbox debug, garage look.
  * Suspension limits and CHASSIS_HITBOX live in src/physics/params.js; re-exported here.
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { SUSP_REST, SUSP_MAX_COMPRESS, SUSP_MAX_EXTEND, CHASSIS_HITBOX } from './physics/params.js';
+import { getCarColor } from './parts/colors.js';
 
 /** @summary Suspension/hitbox constants, re-exported from src/physics/params.js. */
 export { SUSP_REST, SUSP_MAX_COMPRESS, SUSP_MAX_EXTEND, CHASSIS_HITBOX };
@@ -40,9 +41,18 @@ function getSmokeTex() {
   return _smokeTex;
 }
 
-let _tireSideTex = null;
-function makeTireSideTexture() {
-  if (_tireSideTex) return _tireSideTex;
+// Per-tire visual look (RF-008 presets in src/parts/presets.js). Visual only, no physics.
+// Stud (tread lug) scale is [radial depth, width across the tire, tangential length] applied to the
+// 0.035 x 0.35 x 0.035 lug box; `misto` is the identity (the original Bandeirante tire).
+const TIRE_LOOKS = Object.freeze({
+  estrada: Object.freeze({ studScale: Object.freeze([0.35, 0.9, 0.6]), treadColor: 0x18181b, treadRoughness: 0.7 }),
+  misto: Object.freeze({ studScale: Object.freeze([1, 1, 1]), treadColor: 0x121214, treadRoughness: 0.9 }),
+  offroad: Object.freeze({ studScale: Object.freeze([2.2, 1.08, 2.4]), treadColor: 0x0e0e10, treadRoughness: 1.0 }),
+});
+
+const _tireSideTex = {};
+function makeTireSideTexture(variant = 'misto') {
+  if (_tireSideTex[variant]) return _tireSideTex[variant];
   const c = document.createElement('canvas');
   c.width = 256; c.height = 256;
   const ctx = c.getContext('2d');
@@ -77,15 +87,40 @@ function makeTireSideTexture() {
   };
   drawArcText('MANTIQUEIRA', 0, 90);
   drawArcText('MANTIQUEIRA', Math.PI, 90);
+  if (variant === 'estrada') {
+    // road tire: thin light sidewall stripe near the tread
+    ctx.strokeStyle = '#8a8a90';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(128, 128, 118, 0, Math.PI * 2);
+    ctx.stroke();
+  } else if (variant === 'offroad') {
+    // off-road tire: chunky shoulder blocks around the sidewall edge
+    ctx.fillStyle = '#2a2a32';
+    const blocks = 18;
+    for (let i = 0; i < blocks; i++) {
+      ctx.save();
+      ctx.translate(128, 128);
+      ctx.rotate((i / blocks) * Math.PI * 2);
+      ctx.fillRect(-9, -128, 18, 14);
+      ctx.restore();
+    }
+  }
   const tex = new THREE.CanvasTexture(c);
   tex.magFilter = THREE.NearestFilter;
   tex.minFilter = THREE.NearestFilter;
   tex.generateMipmaps = false;
-  _tireSideTex = tex;
+  _tireSideTex[variant] = tex;
   return tex;
 }
 
-export function makeCar() {
+/**
+ * Builds the procedural Bandeirante. With no argument it renders exactly as the original
+ * (red body, `misto` tire); `look` is forwarded to applyCarLook.
+ * @summary Procedural Bandeirante mesh; optional `{ color, tire }` garage look.
+ * @param {{ color?: string|number, tire?: string }} [look]
+ */
+export function makeCar(look) {
   const root = new THREE.Group();
 
   const bodyMat = new THREE.MeshStandardMaterial({ color: 0xb71f1f, flatShading: true, roughness: 0.5, metalness: 0.2 });
@@ -362,6 +397,7 @@ export function makeCar() {
   const lugCount = 5;
   const lugRadius = WHEEL_RADIUS * 0.30;
   const wheels = [];
+  const studs = [];
   for (const [x, z] of wheelXZ) {
     const w = new THREE.Mesh(wheelGeo, wheelMats);
     w.rotation.x = Math.PI / 2;
@@ -379,6 +415,7 @@ export function makeCar() {
       stud.position.set(Math.cos(angle) * studDistance, 0, Math.sin(angle) * studDistance);
       stud.rotation.y = -angle;
       w.add(stud);
+      studs.push(stud);
     }
 
     const rimFaceY = Math.sign(z) * 0.18;
@@ -538,7 +575,12 @@ export function makeCar() {
     }
   }
 
-  return { group: root, wheels, bodyGroup, springs, flame, headlight: carHeadlight, hitboxDebug, updateSmoke };
+  const built = {
+    group: root, wheels, bodyGroup, springs, flame, headlight: carHeadlight, hitboxDebug, updateSmoke,
+    look: makeLookHandle({ bodyMats: [bodyMat], shadeMats: [[creaseMat, creaseCol]], treadMat: wheelMat, tireSideMats: [tireSideMat], studs }),
+  };
+  if (look) applyCarLook(built, look);
+  return built;
 }
 
 export function makeBesouro() {
@@ -673,6 +715,7 @@ export function makeBesouro() {
   const studDist = WHEEL_RADIUS + 0.025;
   const lugR     = WHEEL_RADIUS * 0.30;
   const wheels   = [];
+  const studs    = [];
 
   for (const [x, z] of wheelXZ) {
     const w = new THREE.Mesh(wheelGeo, wheelMats);
@@ -691,6 +734,7 @@ export function makeBesouro() {
       s.position.set(Math.cos(a) * studDist, 0, Math.sin(a) * studDist);
       s.rotation.y = -a;
       w.add(s);
+      studs.push(s);
     }
 
     const rimFY = Math.sign(z) * 0.18;
@@ -751,7 +795,83 @@ export function makeBesouro() {
   hitboxDebug.add(loop2);
   bodyGroup.add(hitboxDebug);
 
-  return { group: root, wheels, bodyGroup, springs, flame, headlight: carHeadlight, hitboxDebug };
+  return {
+    group: root, wheels, bodyGroup, springs, flame, headlight: carHeadlight, hitboxDebug,
+    look: makeLookHandle({ bodyMats: [bodyMat], shadeMats: [[bodyDark, 0xd4b800]], treadMat: wheelMat, tireSideMats: [tireSideM], studs }),
+  };
+}
+
+// ── Garage look (color + tire) ────────────────────────────────────────────────
+// A look handle records the materials/meshes a garage look touches plus their original values,
+// so applying the default look (vermelho/misto on the Bandeirante) restores the exact original.
+function makeLookHandle({ bodyMats, shadeMats, treadMat, tireSideMats, studs }) {
+  const bodyHex = bodyMats[0].color.getHex();
+  return {
+    bodyMats,
+    bodyHex,
+    // [material, originalHex, darken ratio vs body] - trims that follow the body color
+    shadeMats: shadeMats.map(([m, hex]) => [m, hex, shadeRatio(hex, bodyHex)]),
+    treadMat,
+    tireSideMats,
+    studs,
+  };
+}
+
+function shadeRatio(hex, bodyHex) {
+  const a = new THREE.Color(hex).getHSL({ h: 0, s: 0, l: 0 }).l;
+  const b = new THREE.Color(bodyHex).getHSL({ h: 0, s: 0, l: 0 }).l;
+  return b > 0 ? a / b : 1;
+}
+
+// Trim shade for a new body color: same lightness ratio as the original trim; very dark bodies
+// get a lighter trim instead so creases stay visible.
+function shadeFor(bodyHex, ratio) {
+  const c = new THREE.Color(bodyHex);
+  const hsl = c.getHSL({ h: 0, s: 0, l: 0 });
+  const l = hsl.l < 0.15 ? Math.min(1, hsl.l + 0.12) : hsl.l * ratio;
+  return c.setHSL(hsl.h, hsl.s, l).getHex();
+}
+
+function resolveColorHex(color) {
+  if (typeof color === 'number') return color;
+  const entry = getCarColor(color);
+  if (!entry) throw new Error(`unknown car color '${color}'`);
+  return entry.hex;
+}
+
+/**
+ * Applies a garage look to a car built by makeCar/makeBesouro: `color` (a CAR_COLORS id or a hex
+ * number) recolors the body and its trims; `tire` (`estrada`|`misto`|`offroad`) swaps the tread lug
+ * size, tread shade and sidewall texture, keeping the low-poly flat-shaded style. Omitted fields are
+ * left unchanged. Visual only (no physics). Cars without a `look` handle (makeCarGLB) are returned
+ * unchanged. Unknown ids throw.
+ * @summary Recolors the body and swaps the tire look of a built car.
+ * @param {{ look?: object }} carBuilt value returned by makeCar/makeBesouro
+ * @param {{ color?: string|number, tire?: string }} look
+ * @returns {object} carBuilt
+ */
+export function applyCarLook(carBuilt, { color, tire } = {}) {
+  const h = carBuilt && carBuilt.look;
+  if (!h) return carBuilt;
+  if (color !== undefined) {
+    const hex = resolveColorHex(color);
+    for (const m of h.bodyMats) m.color.setHex(hex);
+    for (const [m, origHex, ratio] of h.shadeMats) {
+      m.color.setHex(hex === h.bodyHex ? origHex : shadeFor(hex, ratio));
+    }
+  }
+  if (tire !== undefined) {
+    const t = TIRE_LOOKS[tire];
+    if (!t) throw new Error(`unknown tire '${tire}'`);
+    h.treadMat.color.setHex(t.treadColor);
+    h.treadMat.roughness = t.treadRoughness;
+    const tex = makeTireSideTexture(tire);
+    for (const m of h.tireSideMats) {
+      if (m.map !== tex) { m.map = tex; m.needsUpdate = true; }
+    }
+    for (const s of h.studs) s.scale.set(t.studScale[0], t.studScale[1], t.studScale[2]);
+  }
+  return carBuilt;
 }
 
 // ── GLB car loader ────────────────────────────────────────────────────────────

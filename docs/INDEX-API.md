@@ -8,7 +8,7 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-22T01:54Z
+Last regenerated: 2026-09-22T02:04Z
 Total candidate files scanned: 21
 
 ## Backend modules
@@ -34,7 +34,8 @@ Total candidate files scanned: 21
 - Seeded PRNG: `createPrng(seed)` -> `() => number` in [0, 1).
 
 ### `src/car.js` — car
-- Bandeirante car meshes (procedural and GLB), smoke, springs, hitbox debug.
+- Bandeirante car meshes (procedural and GLB), smoke, springs, hitbox debug, garage look.
+- Procedural Bandeirante mesh; optional `{ color, tire }` garage look.
 
 ### `src/main.js` — main
 - Game entry point: renderer, car visuals, input, race loop, HUD; stage selected via ?stage=<id>.
