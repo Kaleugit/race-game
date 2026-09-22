@@ -1,7 +1,7 @@
 # EPICOS
 
 ## Metadata
-- Last Updated: 2026-09-21
+- Last Updated: 2026-09-22
 - Owner: Architect
 - Status: ACTIVE
 
@@ -15,7 +15,7 @@
 ## Epic List
 
 ### EP-001 - Infraestrutura de testes e2e
-- Status: PLANNED
+- Status: DONE
 - Domain: Testes (ferramental)
 - Objective: Deixar o projeto com um runner e2e de navegador que exercita o jogo real e roda com um único comando.
 - Scope In:
@@ -37,7 +37,7 @@
   - 2026-09-21 - Épico aprovado pelo gestor.
 
 ### EP-002 - Motor de estágios data-driven
-- Status: PLANNED
+- Status: DONE
 - Domain: Estágios (pista, relevo, hazards, cenário)
 - Objective: Carregar pista, relevo, hazards, fundo, paleta e dificuldade do bot a partir de um arquivo de dados por estágio em `src/stages/`, sem código específico por bioma no motor.
 - Scope In:
@@ -59,7 +59,7 @@
   - 2026-09-21 - Épico aprovado pelo gestor.
 
 ### EP-003 - Carro com física configurável
-- Status: PLANNED
+- Status: DONE
 - Domain: Carro (física e peças)
 - Objective: Transformar a física do carro numa instância independente e parametrizável por pneus e câmbio, com interação por superfície e auto-desvira.
 - Scope In:
@@ -82,7 +82,7 @@
   - 2026-09-21 - Épico aprovado pelo gestor.
 
 ### EP-004 - Bot com IA
-- Status: PLANNED
+- Status: DONE
 - Domain: Bot (IA de pilotagem)
 - Objective: Substituir o oponente fantasma de tempo fixo por um bot que dirige uma instância real do carro via inputs simulados.
 - Scope In:
@@ -104,7 +104,7 @@
   - 2026-09-21 - Épico aprovado pelo gestor.
 
 ### EP-005 - Conteúdo de estágios: Mata Atlântica e Cerrado
-- Status: PLANNED
+- Status: DONE
 - Domain: Conteúdo (level design)
 - Objective: Entregar os dois estágios do ciclo com hazards posicionados à mão, corridas de 60–90s e dificuldade do bot calibrada.
 - Scope In:
@@ -125,7 +125,7 @@
   - 2026-09-21 - Épico aprovado pelo gestor.
 
 ### EP-006 - Telas, garagem e progressão
-- Status: PLANNED
+- Status: DONE
 - Domain: Interface e fluxo do jogador
 - Objective: Entregar o fluxo completo Lobby → Garagem → Mapa → Contagem → Corrida → Resultado com garagem, desbloqueio e persistência local.
 - Scope In:
@@ -148,7 +148,7 @@
   - 2026-09-21 - Épico aprovado pelo gestor.
 
 ### EP-007 - Som do motor realista
-- Status: PLANNED
+- Status: DONE
 - Domain: Áudio (som do motor)
 - Objective: Trocar as 4 faixas de frequência fixas de `src/sound.js` por um som derivado de RPM real (marchas com relações, queda de RPM proporcional na troca, ordens do motor) e deixar o timbre mais grave.
 - Scope In:
@@ -171,7 +171,7 @@
   - 2026-09-21 - Épico criado a pedido do gestor (marchas pouco realistas; pitch um pouco mais grave).
 
 ### EP-008 - Corridas curtas, marchas longas e peças de performance
-- Status: PLANNED
+- Status: DONE
 - Domain: Conteúdo + carro (peças)
 - Objective: Encurtar as corridas em 50%, alongar as marchas do som e adicionar 3 motores, 3 chassis e 3 tanques de turbo à garagem como trade-offs.
 - Scope In:
@@ -192,6 +192,7 @@
   - 2026-09-22 - Épico criado a pedido do gestor (corrida 50% mais curta; motores, chassis e tanques; marchas mais longas).
 
 ## Decisoes Autonomas
+- DA-007: EP-001..EP-008 marcados DONE em 2026-09-22 por decisão explícita do gestor ("pode dar todos epicos como completos"), sem rodar o ep-check final nem o teste de UX em lote — Criterio: decisão humana > artefatos de tarefa — Racional: todo o código dos 8 épicos está na main com CI de governança verde e as suítes locais (test:sim 137/137, npm test 34/34) passando; o gate de UX é humano e o gestor optou por validar direto em produção.
 - DA-001: EP-001 (infra e2e) vem antes de qualquer épico de gameplay — Criterio: CDC-001 + AGENTS.md "Non-Escalable: verification of non-UX behavior" — Racional: sem e2e, CA-001/CA-002/CA-007 ficariam FAIL; testar primeiro evita épicos que não conseguem fechar.
 - DA-002: A física por instância fica no EP-003 (carro), não no EP-002 (estágios) — Criterio: um domínio por épico (gen-epics) — Racional: o estágio só expõe altura e superfície; como o carro reage é domínio do carro.
 - DA-003: O conteúdo (EP-005) vem antes das telas (EP-006) — Criterio: CDC-005 + verificabilidade — Racional: CA-002 (desbloquear o Cerrado) é testado com o estágio real, sem estágio fictício.
