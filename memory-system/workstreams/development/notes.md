@@ -159,4 +159,25 @@ Do not edit generated block manually.
 - BASE_PARAMS.turboReigniteFuel 0.25; car state.turboLockout (set when the tank empties while burning, cleared at >= turboReigniteFuel). Tank recharges whenever turboActive is false.
 - Bot TUNING errorRate {1.2, 0.4}, liftDuration [0.4, 0.9]; difficulty Mata 0.5, Cerrado 0.9. Difficulty has a weak/noisy effect now.
 - EP-008-03 tanks: a smaller/larger tank should keep turboReigniteFuel meaningful (fraction of capacity).
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-06
+
+- Garage DOM: `#garage-panel` (left dock: #garage-engines, #garage-gearboxes, #garage-tires, #garage-summary) and `#garage-side` (right dock: #garage-chassis, #garage-tanks, #garage-colors, #garage-confirm). All data-* selectors unchanged; `.opt-trade` is screen-reader text; `.garage-sel-trade` (+ `.garage-stats`) holds `.stat[data-tone]` rows and is visible at every size.
+- Dock width = min(420px, 50vw - 34vh - 2 gutters): the lobby car is ~60vh long side-on (VIEW_H fixed), <= ~67vh when drag-rotated. Changing the lobby camera/VIEW_H or car size means re-checking tests/e2e/garage-layout.spec.js.
+- garage.js exports partStats(kind, item) and buildStats(parts) (mirrors resolveCarParams products); keep in sync if resolveCarParams changes.
+- lobby.js: rotation only while a canvas press is held; enterZoom skipped while #lobby-ui is hidden (garage/map open).
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-07
+
+- UI tokens live on :root in index.html (--ui-font, --ui-fs, --ui-gold, --ui-muted, --ui-panel-bg, --ui-panel-border, --ui-glass-bg, --ui-face, --ui-bot...). Garage docks and race UI both use them; change the type scale there.
+- Race layout: `.race-ui` sets --hud-gut / --hud-w (18.4em) / --act-w (9.6em); #race-bar left/right are computed from them. Resizing the gauges or buttons means updating these and re-running tests/e2e/hud-layout.spec.js.
+- src/ui/race-hud.js owns #speed (SVG text), #dist, #bot-dist and the gauges; #turbobar no longer exists. Tank capacity is visible as `#turbo-gauge[data-segments]` + `.turbo-seg` count; `data-state` = idle|low|active|lockout, `data-filled` = lit segments.
+- Touch controls are enabled by #mobiletoggle / TELA CHEIA (class .show on #touchpad), not auto-detected.
+
+
+# 2026-09-22 — TASK-kaleugit-EP-008-08
+
+- ENGINES sound order is now 2.4 = higher-revving/brighter (redline 4400, timbre 1.12), 1.6 = deeper (redline 3700, timbre 0.88); 2.0 unchanged. tests/sim/parts-rf012.test.js encodes this order.
 <!-- WORKSTREAM_NOTES:END -->
