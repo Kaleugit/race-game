@@ -28,8 +28,8 @@ Revisado em 2026-09-21 pelo `skills/bootstrap`.
 
 ## Conhecimento de domínio
 - [ ] Tempo de referência de um "jogador habilidoso" por estágio (usado em CA-004 para calibrar o bot) — pode ser medido pelo agente com input de referência e validado pelo Kaleu no teste de UX. Não bloqueia o planejamento.
-  - Mata Atlântica (EP-005-01, medido pelo agente com `tests/sim/reference-driver.js` + `DEFAULT_PARTS`, dt 1/60): **73,7 s** (pista de 2600 m). Bot `difficulty` 0,5: mediana 79,4 s (76,9–81,6 s, seeds 1..10); só `ArrowUp`: 94,9 s. **Pendente de validação do Kaleu** no teste de UX do EP-005.
-  - Cerrado (EP-005-02, mesmo método): **80,5 s** (pista de 2800 m). Bot `difficulty` 0,6: mediana 86,2 s (84,4–88,6 s, seeds 1..10; razão bot/referência 1,071 < 1,078 da Mata); só `ArrowUp`: 104,1 s. **Pendente de validação do Kaleu** no teste de UX do EP-005.
+  - Mata Atlântica (EP-008-01, pista encurtada para 1400 m; medido pelo agente com `tests/sim/reference-driver.js` + `DEFAULT_PARTS`, dt 1/60): **39,7 s**. Bot `difficulty` 0,5: mediana 42,8 s (41,0–44,7 s, seeds 1..10; razão bot/referência 1,078); só `ArrowUp`: 51,7 s. (Antes, EP-005-01: 73,7 s em 2600 m.) **Pendente de validação do Kaleu** no teste de UX do EP-008.
+  - Cerrado (EP-008-01, pista encurtada para 1360 m, mesmo método): **40,1 s**. Bot `difficulty` 0,6: mediana 42,8 s (42,2–44,8 s, seeds 1..10; razão bot/referência 1,069 < 1,078 da Mata); só `ArrowUp`: 51,8 s. (Antes, EP-005-02: 80,5 s em 2800 m.) **Pendente de validação do Kaleu** no teste de UX do EP-008.
 - [ ] Dispositivo Android de entrada de referência para RNF-002 (ver DA-004). Não bloqueia o planejamento.
 
 ## Ferramentas de governança

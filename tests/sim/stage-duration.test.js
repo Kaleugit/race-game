@@ -1,4 +1,4 @@
-// CA-009: a race on every listed stage takes 60–90 s for the skilled-player reference driver
+// CA-009: a race on every listed stage takes 30–45 s for the skilled-player reference driver
 // ("acelerar + turbo, correções mínimas") with the default parts. Generic over listStages()
 // (epic EP-005 DA-001): a new stage is covered without a new test; hidden stages are excluded.
 import { test } from 'node:test';
@@ -10,8 +10,8 @@ import { loadStages } from './load-stages.js';
 import { runRace } from './harness.js';
 import { createReferenceDriver } from './reference-driver.js';
 
-const MIN_S = 60;
-const MAX_S = 90;
+const MIN_S = 30;
+const MAX_S = 45;
 const registry = await loadStages();
 const params = resolveCarParams(BASE_PARAMS, DEFAULT_PARTS);
 
