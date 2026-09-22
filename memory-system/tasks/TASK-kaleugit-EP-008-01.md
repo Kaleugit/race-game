@@ -8,18 +8,19 @@
 - Branch: TASK-kaleugit-EP-008-01-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-22 00:32
+- Last Updated: 2026-09-22 03:39
 - Started: 2026-09-22 00:28
-- Completed: 2026-09-22 00:32
+- Completed: 2026-09-22 03:39
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-008-01-implement-planning-2026-09-22.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-008-01-implement-report-2026-09-22.md
 - prior-art: src/stages/mata-atlantica.stage.js (EP-005-01 layout, verbatim 0–885 m opening kept) and src/stages/cerrado.stage.js (EP-005-02 layout) truncated/re-spliced; scratchpad tune.mjs (EP-005) reused for measurement
 - Evidence: PASS — Mata 1400 m ref 39.68 s, bot median 42.77 s (ratio 1.078); Cerrado 1360 m ref 40.07 s, bot median 42.82 s (ratio 1.069); `npm run test:sim` 86/86; `./scripts/validate-changed.sh` PASS; `npm test` 4/4
 - UX Gate: pending human (batched at epic end) — shorter stages keep each biome's feel and difficulty
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 - Delivery PR: #27
-- Delivery Status: PR_OPEN_MANUAL_MERGE
+- Delivery Status: MERGED
 
+- Delivery Merged At: 2026-09-22 03:39
 ## Autonomous Decisions
 - DA-001: Mata keeps the full opening + riverbank + second serra and a shortened mud bog (finish 1400 m); kicker run, waterfall and river crossing removed — Criteria: task (keep abertura, serra, atoleiro) — Rationale: keeps the x<885 verbatim check and the x=213 stall scenario valid.
 - DA-002: Cerrado keeps the first chapada and pulls the vereda sand stretch forward ([1030,1180)); second chapada and sand pan removed (finish 1360 m) — Criteria: task (uma chapada grande, areia) — Rationale: two sand zones >= 50 m keep CA-008 per-sand-zone checks meaningful.
