@@ -45,7 +45,7 @@
 
 ### Task 02 - Visual do carro: cor e pneus
 - Task ID: TASK-kaleugit-EP-006-02
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 2
 - Execution Mode: Quick
 - Domain: Carro (visual)
