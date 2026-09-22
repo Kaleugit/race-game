@@ -1,6 +1,6 @@
 # API Index — Kaleugit/race-game
 
-> **Coverage**: 26/27 backend files (96%), 0/0 frontend custom elements (0%).
+> **Coverage**: 28/29 backend files (97%), 0/0 frontend custom elements (0%).
 > Auto-generated from JSDoc `@module` / `@summary` / `@element` tags. Transition phase — files without these tags do NOT appear here.
 >
 > **If you don't find what you need:**
@@ -8,8 +8,8 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-22T18:06Z
-Total candidate files scanned: 27
+Last regenerated: 2026-09-22T19:33Z
+Total candidate files scanned: 29
 
 ## Backend modules
 
@@ -77,6 +77,12 @@ Total candidate files scanned: 27
 ### `src/stages/cerrado.stage.js` — stages/cerrado
 - Cerrado stage data (EP-005-02, shortened in EP-008-01): open savanna on red earth — fast
 
+### `src/stages/hazard-signs.js` — stages/hazard-signs
+- Pure derivation of roadside warning-sign positions from stage data: one "!" sign
+- Surface zones that count as a hazard: every zone whose surface differs from the
+- Hazard zones merged into runs: consecutive hazards separated by less than SIGN_LEAD_M
+- One warning sign per hazard run, SIGN_LEAD_M metres before the run starts.
+
 ### `src/stages/index.js` — stages/index
 - Stage discovery: every src/stages/*.stage.js file becomes a stage (Vite import.meta.glob).
 
@@ -88,6 +94,10 @@ Total candidate files scanned: 27
 
 ### `src/stages/teste-plano.stage.js` — stages/teste-plano
 - Hidden near-flat test stage (CA-003 proof): data only, one sand and one mud zone.
+
+### `src/track/hazard-sign.js` — track/hazard-sign
+- Low-poly roadside warning sign ("!" on a yellow triangle) used to announce a hazard
+- Builds one warning sign. Its origin sits on the ground at the sign's track position,
 
 ### `src/track/track-scene.js` — track/track-scene
 - Three.js scene objects for a stage (road, mud layer, ground, sky background,
