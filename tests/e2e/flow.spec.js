@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test';
 import {
-  trackErrors, openGarageFromLobby, pickGarage, confirmGarage, startStageFromMap, waitCountdown, driveToFinish, resultSeconds,
+  trackErrors, openGarageFromLobby, openMapFromLobby, pickGarage, confirmGarage, startStageFromMap, waitCountdown, driveToFinish,
+  resultSeconds,
 } from './drive.js';
 
 // CA-001: full flow without reloads and without page/console errors.
-// Every exit of the result screen (MAPA, GARAGEM, REVANCHE) leads back into a new race.
+// Every exit of the result screen (MAPA, GARAGEM, REVANCHE) leads back into a new race. GARAGEM ->
+// PRONTO returns to the lobby (EP-008-09), from where CORRIDA -> map starts the next race.
 // Mata Atlântica races take ~71 s with Estrada + Longa and the reference turbo policy (drive.js);
 // REVANCHE is exercised on the short hidden test stage to keep the suite runtime down (same
 // onRematch -> startCountdown path for every stage).
@@ -15,7 +17,7 @@ async function expectResult(page) {
   for (const id of ['#end-play-again', '#end-map', '#end-garage']) await expect(page.locator(id)).toBeVisible();
 }
 
-test('CA-001: lobby -> garagem -> mapa -> corrida -> resultado -> mapa -> corrida -> resultado -> garagem -> corrida', async ({ page }) => {
+test('CA-001: lobby -> garagem -> lobby -> mapa -> corrida -> resultado -> mapa -> corrida -> resultado -> garagem -> lobby -> corrida', async ({ page }) => {
   test.setTimeout(330_000);
   const errors = trackErrors(page);
 
@@ -23,6 +25,7 @@ test('CA-001: lobby -> garagem -> mapa -> corrida -> resultado -> mapa -> corrid
   await openGarageFromLobby(page);
   await pickGarage(page, { tire: 'estrada', gearbox: 'longa' });
   await confirmGarage(page);
+  await openMapFromLobby(page);
   await startStageFromMap(page, 'mata-atlantica');
   await expect(page.locator('#race-bar-stage')).toHaveText('MATA ATLÂNTICA');
   await driveToFinish(page);
@@ -36,13 +39,14 @@ test('CA-001: lobby -> garagem -> mapa -> corrida -> resultado -> mapa -> corrid
   await driveToFinish(page);
   await expectResult(page);
 
-  // Result -> GARAGEM (reopens with the saved choice) -> map -> race running.
+  // Result -> GARAGEM (reopens with the saved choice) -> PRONTO -> lobby -> CORRIDA -> map -> race running.
   await page.locator('#end-garage').click();
   await expect(page.locator('#end-overlay')).not.toHaveClass(SHOW);
   await expect(page.locator('#garage-overlay')).toHaveClass(SHOW);
   await expect(page.locator('#garage-tires [data-tire="estrada"]')).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#garage-gearboxes [data-gearbox="longa"]')).toHaveAttribute('aria-pressed', 'true');
   await confirmGarage(page);
+  await openMapFromLobby(page);
   await startStageFromMap(page, 'mata-atlantica');
   await page.keyboard.down('ArrowUp');
   await expect.poll(async () => Number(await page.locator('#dist').textContent()), { timeout: 15_000 }).toBeGreaterThan(20);

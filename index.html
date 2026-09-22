@@ -256,19 +256,22 @@
         color: #ffd86b; text-shadow: 3px 3px 0 #000, 0 0 24px #ff7a4a;
         user-select: none;
       }
-      #lobby-play {
-        font-family: 'Courier New', monospace;
+      /* Lobby (EP-008-09): CORRIDA (primary, gold) goes to the stage map; GARAGEM opens the carousel. */
+      #lobby-actions { display: flex; gap: 14px; }
+      .lobby-btn {
+        font-family: var(--ui-font); font-weight: 700;
         font-size: 22px; letter-spacing: 6px;
-        color: #fffbe0; background: rgba(0,0,0,0.55);
-        border: 2px solid #ffd86b;
-        padding: 14px 52px; cursor: pointer;
+        min-width: 11em; padding: 14px 20px 14px 26px; cursor: pointer;
+        color: var(--ui-ink); background: rgba(0,0,0,0.55);
+        border: 2px solid var(--ui-gold);
         text-shadow: 2px 2px 0 #000;
-        transition: background 0.15s, color 0.15s, border-color 0.15s;
+        transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
       }
-      #lobby-play:hover {
-        background: rgba(255,216,107,0.18);
-        border-color: #ff8a3a; color: #ffd86b;
-      }
+      .lobby-btn:hover { background: rgba(255,216,107,0.18); border-color: var(--ui-hot); color: var(--ui-gold); }
+      .lobby-btn-primary { color: #1a1206; background: var(--ui-gold); text-shadow: none; box-shadow: 0 3px 0 #b8892a; }
+      .lobby-btn-primary:hover { color: #1a1206; background: #ffe38f; border-color: #ffe38f; }
+      .lobby-btn:active { transform: translateY(2px); }
+      .lobby-btn:focus-visible { outline: 2px solid var(--ui-ink); outline-offset: 3px; }
       #lobby-fullscreen-wrap {
         position: absolute; top: 16px; right: 16px; z-index: 2;
         display: flex; flex-direction: column; align-items: center; gap: 4px;
@@ -460,21 +463,22 @@
         transition: background 0.15s, color 0.15s, border-color 0.15s;
       }
       .screen-primary:hover { background: rgba(255,216,107,0.18); border-color: #ff8a3a; color: #ffd86b; }
-      /* Garage (EP-008-06): two docks beside the lobby car, which stays visible for the live preview.
-         The car renders centred, ~60vh long side-on and at most ~67vh
-         across when the player drag-rotates it (orthographic camera, fixed VIEW_H), so each dock
-         gets 50vw - 34vh minus the gutters. Left dock: engine / gearbox / tire / build summary (top-left, clear
-         of the mute button). Right dock: chassis / tank / color / confirm (bottom-right, below TELA
-         CHEIA). tests/e2e/garage-layout.spec.js measures both docks against the car's pixels. */
+      /* Garage (EP-008-09): ONE carousel card beside the lobby car (which stays visible for the live
+         preview). One part per slide: MOTOR, CAMBIO, PNEU, CHASSI, TANQUE DE TURBO, COR, with arrows,
+         pips (clickable, one per part), keyboard left/right and swipe. The car renders centred, ~60vh
+         long side-on and at most ~67vh across when drag-rotated (orthographic camera, fixed VIEW_H), so
+         the card gets 50vw - 34vh minus the gutters, top-left (clear of the mute button and TELA
+         CHEIA). All slides share one grid cell, so the card keeps the height of the tallest slide and
+         PRONTO never jumps. tests/e2e/garage-layout.spec.js measures the card against the car pixels. */
       #garage-overlay {
         --gut: 16px;
-        --dock-w: min(420px, calc(50vw - 34vh - 2 * var(--gut)));
+        --dock-w: min(400px, calc(50vw - 34vh - 2 * var(--gut)));
         pointer-events: none; text-shadow: 1px 1px 0 #000;
       }
       .garage-dock {
         position: absolute; pointer-events: auto;
         width: var(--dock-w);
-        display: flex; flex-direction: column; gap: 1.1em;
+        display: flex; flex-direction: column; gap: 1em;
         padding: 1.1em 1.2em 1.2em;
         font-size: var(--ui-fs);
         background: var(--ui-panel-bg);
@@ -482,56 +486,94 @@
         border-top: 2px solid var(--ui-gold);
         box-shadow: 0 14px 36px rgba(5,2,8,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
         -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-        overflow: auto;
+        overflow: auto; touch-action: pan-y;
       }
-      #garage-panel {
+      #garage-card {
         top: var(--gut); left: calc(var(--gut) + env(safe-area-inset-left, 0px));
-        max-height: calc(100% - var(--gut) - 68px);
+        max-height: calc(100% - var(--gut) - 68px);        font-size: calc(var(--ui-fs) * 1.15); /* one part at a time leaves room: read it bigger */
       }
-      #garage-side {
-        right: calc(var(--gut) + env(safe-area-inset-right, 0px)); bottom: var(--gut);
-        max-height: calc(100% - 104px - var(--gut));
-      }
+      .garage-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1em; }
       .garage-title {
-        font-size: 1.9em; font-weight: 700; letter-spacing: 0.32em; line-height: 1;
-        color: #ffd86b; text-shadow: 2px 2px 0 #000;
+        font-size: 1.5em; font-weight: 700; letter-spacing: 0.32em; line-height: 1;
+        color: var(--ui-gold); text-shadow: 2px 2px 0 #000;
       }
-      #garage-parts, #garage-side-parts { display: flex; flex-direction: column; gap: 1.1em; }
-      .garage-section { display: flex; flex-direction: column; gap: 0.5em; }
+      .garage-step {
+        font-weight: 700; letter-spacing: 0.12em; color: var(--ui-muted);
+        font-variant-numeric: tabular-nums;
+      }
+      /* Part switcher: arrow | part name | arrow. */
+      .garage-nav { display: grid; grid-template-columns: 2.6em 1fr 2.6em; align-items: stretch; }
+      .garage-arrow {
+        font-family: var(--ui-font); font-size: 1.9em; font-weight: 700; line-height: 1;
+        color: var(--ui-gold); background: rgba(0,0,0,0.35);
+        border: 1px solid var(--ui-line); padding: 0.1em 0 0.2em; cursor: pointer;
+        text-shadow: 1px 1px 0 #000;
+        transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      }
+      .garage-arrow:hover { background: rgba(255,216,107,0.17); border-color: var(--ui-gold); }
+      .garage-arrow:active { transform: translateY(1px); }
+      .garage-cat {
+        display: flex; align-items: center; justify-content: center; text-align: center;
+        font-size: 1.25em; font-weight: 700; letter-spacing: 0.1em; line-height: 1.1;
+        color: var(--ui-ink); padding: 0 0.3em; white-space: nowrap; overflow: hidden;
+      }
+      /* Position pips: one per part, the current one gold (clickable to jump). */
+      .garage-pips { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.35em; }
+      .garage-pip {
+        position: relative; height: 1.1em; padding: 0; border: 0; cursor: pointer; background: transparent;
+      }
+      .garage-pip::after {
+        content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 0.3em; transform: translateY(-50%);
+        background: var(--ui-line); transition: background 0.15s;
+      }
+      .garage-pip:hover::after { background: var(--ui-muted); }
+      .garage-pip[aria-current="step"]::after { background: var(--ui-gold); height: 0.42em; }
+      .garage-pip:focus-visible { outline: 2px solid var(--ui-ink); outline-offset: 1px; }
+      /* Clipped: the slide-in transform must never make the card scroll (4px keeps focus rings visible). */
+      .garage-slides { display: grid; overflow: hidden; padding: 4px; margin: -4px; }
+      .garage-slide { grid-area: 1 / 1; visibility: hidden; }
+      .garage-slide.active { visibility: visible; }
+      @media (prefers-reduced-motion: no-preference) {
+        .garage-slide.active.from-next { animation: garage-in-next 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
+        .garage-slide.active.from-prev { animation: garage-in-prev 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
+      }
+      @keyframes garage-in-next { from { transform: translateX(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+      @keyframes garage-in-prev { from { transform: translateX(-14px); opacity: 0; } to { transform: none; opacity: 1; } }
+      .garage-section { display: flex; flex-direction: column; gap: 0.6em; }
       .garage-label {
         font-size: 0.9em; font-weight: 700; letter-spacing: 0.18em; line-height: 1.2;
         color: var(--ui-muted); white-space: nowrap;
       }
-      #garage-color-name { color: #ffd86b; margin-left: 0.6em; }
+      .garage-color-name { font-weight: 700; letter-spacing: 0.18em; color: var(--ui-gold); text-align: center; }
       /* Segmented control: the three options of one part, selected = gold. */
       .garage-opts {
         display: grid; grid-template-columns: repeat(3, 1fr);
-        border: 1px solid #4a5070; background: rgba(0,0,0,0.35);
+        border: 1px solid var(--ui-line); background: rgba(0,0,0,0.35);
       }
       .garage-opt {
         position: relative;
         font-family: var(--ui-font); font-size: 1.05em; font-weight: 700;
         letter-spacing: 0.06em; line-height: 1.1; white-space: nowrap;
-        color: #e9e4c8; background: transparent;
+        color: var(--ui-ink-2); background: transparent;
         border: 0; border-left: 1px solid #3a3f5a;
-        padding: 0.62em 0.2em; cursor: pointer; text-align: center;
+        padding: 0.75em 0.2em; cursor: pointer; text-align: center;
         text-shadow: 1px 1px 0 #000;
         transition: background 0.15s, color 0.15s, box-shadow 0.15s;
       }
       .garage-opt:first-child { border-left: 0; }
       .garage-opt:hover:not(.selected) {
-        background: rgba(255,255,255,0.05); color: #fffbe0;
+        background: rgba(255,255,255,0.05); color: var(--ui-ink);
         outline: 1px dashed rgba(255,216,107,0.6); outline-offset: -4px;
       }
       .garage-opt:active { transform: translateY(1px); }
       .garage-opt.selected {
-        color: #ffd86b; background: rgba(255,216,107,0.17);
-        box-shadow: inset 0 0 0 1px #ffd86b, inset 0 -3px 0 #ffd86b;
+        color: var(--ui-gold); background: rgba(255,216,107,0.17);
+        box-shadow: inset 0 0 0 1px var(--ui-gold), inset 0 -3px 0 var(--ui-gold);
       }
-      .garage-opt:focus-visible, #garage-colors .swatch:focus-visible, #garage-confirm:focus-visible {
-        outline: 2px solid #fffbe0; outline-offset: 2px;
+      .garage-opt:focus-visible, #garage-colors .swatch:focus-visible, #garage-confirm:focus-visible, .garage-arrow:focus-visible {
+        outline: 2px solid var(--ui-ink); outline-offset: 2px;
       }
-      /* Full trade-off sentence per option, for screen readers (the rows show it as stat bars). */
+      /* Full trade-off sentence per option, for screen readers (the slide shows it as stat bars). */
       .garage-opt .opt-trade {
         position: absolute; width: 1px; height: 1px; overflow: hidden;
         clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
@@ -539,12 +581,12 @@
       /* Stat bars: deltas diverge from the centre tick, grip fills from the left. */
       .garage-stats {
         display: grid; grid-template-columns: 1fr; gap: 0.3em;
-        font-size: 0.86em; line-height: 1.25;
+        font-size: 0.9em; line-height: 1.25;
       }
       .stat { display: grid; grid-template-columns: 5.4em 1fr 4em; align-items: center; gap: 0.8em; }
       .stat-k { color: var(--ui-muted); letter-spacing: 0.08em; white-space: nowrap; }
       .stat[data-tone="zero"] { opacity: 0.45; }
-      .stat-v { text-align: right; font-weight: 700; color: #e9e4c8; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .stat-v { text-align: right; font-weight: 700; color: var(--ui-ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
       .stat-bar { position: relative; height: 0.42em; }
       .stat-bar::after {
         content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
@@ -560,31 +602,32 @@
       .stat[data-tone="bad"] i { background: #ff8a5a; }
       .stat[data-tone="bad"] .stat-v { color: #ffa47a; }
       .stat[data-tone="abs"] i { background: rgba(207,214,255,0.5); top: 0.08em; bottom: 0.08em; }
-      .garage-sel-trade.preview .stat-k { color: #ffd86b; }
-      .garage-summary { padding-top: 1em; border-top: 1px solid rgba(255,216,107,0.18); }
-      .garage-summary .garage-label { color: #ffd86b; }
-      .garage-summary .garage-stats { font-size: 0.95em; }
-      .garage-summary .stat-bar { height: 0.6em; }
-      .garage-summary .stat-v { color: #fffbe0; }
-      #garage-colors { display: grid; grid-template-columns: repeat(10, 1fr); gap: 0.45em; }
+      .garage-sel-trade.preview .stat-k { color: var(--ui-gold); }
+      /* Whole-car summary: compact two-column key + value, no bars. */
+      .garage-summary { gap: 0.4em; padding-top: 0.8em; border-top: 1px solid rgba(255,216,107,0.18); }
+      .garage-summary .garage-label { color: var(--ui-gold); font-size: 0.8em; }
+      .garage-summary .garage-stats { grid-template-columns: 1fr 1fr; gap: 0.2em 1.2em; font-size: 0.85em; }
+      .garage-summary .stat { grid-template-columns: auto auto; justify-content: space-between; gap: 0.45em; }
+      .garage-summary .stat-bar { display: none; }
+      #garage-colors { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5em; }
       #garage-colors .swatch {
-        aspect-ratio: 1; border: 0; cursor: pointer;
+        aspect-ratio: 2 / 1; border: 0; cursor: pointer;
         box-shadow: inset 0 0 0 1px rgba(255,255,255,0.28), 1px 1px 0 #000;
         transition: transform 0.12s, box-shadow 0.12s;
       }
       #garage-colors .swatch:hover { transform: translateY(-1px); }
-      #garage-colors .swatch.selected { box-shadow: 0 0 0 2px #0b0710, 0 0 0 4px #ffd86b; }
+      #garage-colors .swatch.selected { box-shadow: 0 0 0 2px #0b0710, 0 0 0 4px var(--ui-gold); }
       #garage-confirm {
-        width: 100%; margin-top: 0.2em;
+        width: 100%;
         font-size: 1.3em; font-weight: 700; letter-spacing: 0.4em; line-height: 1;
         padding: 0.85em 0.5em 0.85em 0.9em;
-        color: #1a1206; background: #ffd86b; border: 0;
+        color: #1a1206; background: var(--ui-gold); border: 0;
         text-shadow: none; box-shadow: 0 3px 0 #b8892a;
       }
       #garage-confirm:hover { background: #ffe38f; color: #1a1206; }
       #garage-confirm:active { transform: translateY(2px); box-shadow: 0 1px 0 #b8892a; }
       @media (prefers-reduced-motion: reduce) {
-        .garage-opt, #garage-colors .swatch { transition: none; }
+        .garage-opt, #garage-colors .swatch, .garage-arrow, .garage-pip::after { transition: none; }
       }
       #map-overlay { align-items: center; justify-content: center; background: rgba(5,2,8,0.72); }
       #map-panel { width: min(560px, calc(100vw - 24px)); align-items: stretch; }
@@ -609,20 +652,26 @@
       @media (max-height: 500px) {
         .screen-panel { gap: 8px; padding: 10px 14px; }
         .screen-title { font-size: 20px; letter-spacing: 6px; }
-        /* Garage docks: tighter gutters, no title, stats as key + value (bars hidden). */
+        /* Lobby buttons and garage card: tighter gutters, stats as key + value (bars hidden). */
+        #lobby-ui { gap: 10px; }
+        .lobby-btn { font-size: 16px; letter-spacing: 4px; padding: 9px 12px 9px 16px; min-width: 9.5em; }
         #garage-overlay { --gut: 8px; }
-        .garage-dock { padding: 0.7em 0.8em 0.8em; gap: 0.7em; }
-        .garage-title { display: none; }
-        #garage-parts, #garage-side-parts { gap: 0.7em; }
-        .garage-section { gap: 0.35em; }
-        .garage-opt { padding: 0.5em 0.1em; letter-spacing: 0; min-height: 26px; }
+        .garage-dock { padding: 0.7em 0.8em 0.8em; gap: 0.6em; }
+        #garage-card { font-size: var(--ui-fs); }
+        .garage-title { font-size: 1.2em; letter-spacing: 0.24em; }
+        .garage-arrow { font-size: 1.6em; min-height: 26px; }
+        .garage-cat { font-size: 1.15em; letter-spacing: 0.08em; }
+        .garage-pip { height: 0.9em; }
+        .garage-section { gap: 0.4em; }
+        .garage-opt { padding: 0.5em 0.1em; letter-spacing: 0; min-height: 28px; }
         .garage-stats { grid-template-columns: 1fr 1fr; gap: 0.15em 0.8em; font-size: 1em; }
         .stat { grid-template-columns: auto auto; justify-content: start; gap: 0.45em; }
         .stat-bar { display: none; }
-        .garage-summary { padding-top: 0.6em; }
-        #garage-colors { gap: 3px; }
+        .garage-summary { padding-top: 0.5em; }
+        .garage-summary .garage-stats { font-size: 1em; }
+        #garage-colors { gap: 4px; }
         #garage-colors .swatch { aspect-ratio: auto; min-height: 22px; }
-        #garage-colors .swatch.selected { box-shadow: 0 0 0 1px #0b0710, 0 0 0 2px #ffd86b; }
+        #garage-colors .swatch.selected { box-shadow: 0 0 0 1px #0b0710, 0 0 0 2px var(--ui-gold); }
         #garage-confirm { font-size: 1.2em; padding: 0.7em 0.5em 0.7em 0.9em; }
         .screen-primary { font-size: 15px; padding: 8px 20px; }
         .map-stage { padding: 8px 12px; }
@@ -641,7 +690,10 @@
       <canvas id="lobby-canvas"></canvas>
       <div id="lobby-ui">
         <div id="lobby-title">RACE GAME</div>
-        <button id="lobby-play">JOGAR</button>
+        <div id="lobby-actions">
+          <button id="lobby-play" class="lobby-btn lobby-btn-primary" type="button">CORRIDA</button>
+          <button id="lobby-garage" class="lobby-btn" type="button">GARAGEM</button>
+        </div>
       </div>
       <div id="lobby-car-selector">
         <span id="lobby-car-name">BANDEIRANTE</span>
@@ -687,56 +739,56 @@
       <!-- Legacy: src/main.js still binds this id until EP-006-04 rewires the result flow. -->
     </div>
     <div id="garage-overlay" class="screen-overlay" aria-hidden="true">
-      <!-- Two docks beside the lobby car (EP-008-06); the power path on the left, body + finish on the right. -->
-      <section id="garage-panel" class="garage-dock" aria-labelledby="garage-title">
-        <h2 id="garage-title" class="garage-title">GARAGEM</h2>
-        <div id="garage-parts">
-          <div class="garage-section" role="group" aria-label="Motor">
-            <div class="garage-label">MOTOR</div>
+      <!-- One carousel card beside the lobby car (EP-008-09): one part per slide, the car stays visible. -->
+      <section id="garage-card" class="garage-dock" aria-labelledby="garage-title" aria-roledescription="carrossel">
+        <div class="garage-head">
+          <h2 id="garage-title" class="garage-title">GARAGEM</h2>
+          <span id="garage-step" class="garage-step" aria-hidden="true">1/6</span>
+        </div>
+        <div class="garage-nav">
+          <button id="garage-prev" class="garage-arrow" type="button" aria-label="Pe&ccedil;a anterior">&#8249;</button>
+          <div id="garage-cat" class="garage-cat" aria-live="polite">MOTOR</div>
+          <button id="garage-next" class="garage-arrow" type="button" aria-label="Pr&oacute;xima pe&ccedil;a">&#8250;</button>
+        </div>
+        <div id="garage-pips" class="garage-pips"></div>
+        <div id="garage-slides" class="garage-slides">
+          <div class="garage-section garage-slide" data-slide="engine" data-name="MOTOR" role="group" aria-label="Motor">
             <div id="garage-engines" class="garage-opts"></div>
             <div class="garage-sel-trade garage-stats"></div>
           </div>
-          <div class="garage-section" role="group" aria-label="C&acirc;mbio">
-            <div class="garage-label">C&Acirc;MBIO</div>
+          <div class="garage-section garage-slide" data-slide="gearbox" data-name="C&Acirc;MBIO" role="group" aria-label="C&acirc;mbio">
             <div id="garage-gearboxes" class="garage-opts"></div>
             <div class="garage-sel-trade garage-stats"></div>
           </div>
-          <div class="garage-section" role="group" aria-label="Pneu">
-            <div class="garage-label">PNEU</div>
+          <div class="garage-section garage-slide" data-slide="tire" data-name="PNEU" role="group" aria-label="Pneu">
             <div id="garage-tires" class="garage-opts"></div>
             <div class="garage-sel-trade garage-stats"></div>
+          </div>
+          <div class="garage-section garage-slide" data-slide="chassis" data-name="CHASSI" role="group" aria-label="Chassi">
+            <div id="garage-chassis" class="garage-opts"></div>
+            <div class="garage-sel-trade garage-stats"></div>
+          </div>
+          <div class="garage-section garage-slide" data-slide="tank" data-name="TANQUE DE TURBO" role="group" aria-label="Tanque de turbo">
+            <div id="garage-tanks" class="garage-opts"></div>
+            <div class="garage-sel-trade garage-stats"></div>
+          </div>
+          <div class="garage-section garage-slide" data-slide="color" data-name="COR" role="group" aria-label="Cor">
+            <div id="garage-colors"></div>
+            <div id="garage-color-name" class="garage-color-name"></div>
           </div>
         </div>
         <div class="garage-section garage-summary">
           <div class="garage-label">DESEMPENHO</div>
           <div id="garage-summary" class="garage-stats"></div>
         </div>
-      </section>
-      <section id="garage-side" class="garage-dock" aria-label="Carroceria e cor">
-        <div id="garage-side-parts">
-          <div class="garage-section" role="group" aria-label="Chassi">
-            <div class="garage-label">CHASSI</div>
-            <div id="garage-chassis" class="garage-opts"></div>
-            <div class="garage-sel-trade garage-stats"></div>
-          </div>
-          <div class="garage-section" role="group" aria-label="Tanque de turbo">
-            <div class="garage-label">TANQUE DE TURBO</div>
-            <div id="garage-tanks" class="garage-opts"></div>
-            <div class="garage-sel-trade garage-stats"></div>
-          </div>
-          <div class="garage-section">
-            <div class="garage-label">COR <span id="garage-color-name"></span></div>
-            <div id="garage-colors"></div>
-          </div>
-        </div>
-        <button id="garage-confirm" class="screen-primary" type="button">CONFIRMAR</button>
+        <button id="garage-confirm" class="screen-primary" type="button">PRONTO</button>
       </section>
     </div>
     <div id="map-overlay" class="screen-overlay" aria-hidden="true">
       <div id="map-panel" class="screen-panel">
         <div class="screen-title">MAPA</div>
         <div id="map-stages"></div>
-        <button id="map-back" class="end-secondary" type="button" hidden>&#8592; GARAGEM</button>
+        <button id="map-back" class="end-secondary" type="button" hidden>&#8592; LOBBY</button>
       </div>
     </div>
     <!-- Race HUD (EP-008-07): gauges built by src/ui/race-hud.js; same type scale as the garage. -->

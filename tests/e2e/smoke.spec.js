@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
-// Smoke (EP-006-04 full flow): Lobby -> Garagem -> Mapa -> countdown -> race -> result, no page errors.
-// Without ?stage=, JOGAR opens the garage; confirming opens the map; the first stage starts the race.
+// Smoke (full flow, EP-008-09 lobby): Lobby -> GARAGEM -> PRONTO -> Lobby -> CORRIDA -> Mapa -> countdown
+// -> race -> result, no page errors. Without ?stage=, CORRIDA opens the map; the first stage starts the race.
 // Mata Atlântica races take 60–90 s; the result opens only when the PLAYER crosses the line (the bot
 // crossing first only shows a HUD notice), so the player holds ArrowUp+Space (~93 s of game time in
 // the headless harness). 150 s for the result leaves margin for frame-rate jitter without hiding a hang.
@@ -12,12 +12,13 @@ test('fluxo completo: lobby -> garagem -> mapa -> corrida -> resultado', async (
   page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
 
   await page.goto('/');
-  await page.locator('#lobby-play').click();
-
+  await page.locator('#lobby-garage').click();
   await expect(page.locator('#garage-overlay')).toHaveClass(/\bshow\b/);
   await page.locator('#garage-confirm').click();
   await expect(page.locator('#garage-overlay')).not.toHaveClass(/\bshow\b/);
+  await expect(page.locator('#map-overlay')).not.toHaveClass(/\bshow\b/);
 
+  await page.locator('#lobby-play').click();
   await expect(page.locator('#map-overlay')).toHaveClass(/\bshow\b/);
   await page.locator('#map-stages [data-stage-id="mata-atlantica"]').click();
   await expect(page.locator('#map-overlay')).not.toHaveClass(/\bshow\b/);

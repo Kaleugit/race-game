@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { BASE_PARAMS } from '../../src/physics/params.js';
 import { DEFAULT_PARTS, resolveCarParams } from '../../src/parts/presets.js';
-import { trackErrors, openGarageFromLobby, pickGarage, confirmGarage, startStageFromMap } from './drive.js';
+import {
+  trackErrors, openGarageFromLobby, openMapFromLobby, goToGarageSlide, pickGarage, confirmGarage, startStageFromMap,
+} from './drive.js';
+import { GARAGE_SLIDES } from '../../src/ui/garage.js';
 
 // EP-008-04: engine / chassis / turbo tank are chosen in the garage, survive a reload and reach the
 // race (resolved physics params exposed on #hud, turbo gauge sized by the tank capacity).
@@ -36,6 +39,7 @@ test('RF-012: motor/chassi/tanque sobrevivem ao reload e chegam à corrida', asy
   await openGarageFromLobby(page);
   await expectParts(page, PARTS);
   await confirmGarage(page);
+  await openMapFromLobby(page);
   await startStageFromMap(page, 'mata-atlantica');
 
   const expected = resolveCarParams(BASE_PARAMS, { ...DEFAULT_PARTS, ...PARTS });
@@ -59,18 +63,24 @@ for (const viewport of [{ width: 640, height: 360 }, { width: 740, height: 360 }
     await page.setViewportSize(viewport);
     await page.goto('/');
     await openGarageFromLobby(page);
-    const panel = page.locator('#garage-panel');
-    const fits = await panel.evaluate((el) => el.scrollHeight <= el.clientHeight + 1 && el.scrollWidth <= el.clientWidth + 1);
-    expect(fits).toBe(true);
-    for (const sel of ['#garage-confirm', '#garage-tanks .garage-opt', '#garage-colors .swatch']) {
-      for (const box of await page.locator(sel).evaluateAll((els) => els.map((e) => e.getBoundingClientRect().toJSON()))) {
+    const card = page.locator('#garage-card');
+    // Every slide of the carousel: card without scrolling, its controls (+ PRONTO) inside the viewport.
+    for (const slide of GARAGE_SLIDES) {
+      await goToGarageSlide(page, slide);
+      const fits = await card.evaluate((el) => el.scrollHeight <= el.clientHeight + 1 && el.scrollWidth <= el.clientWidth + 1);
+      expect(fits, `${slide}: card needs scrolling`).toBe(true);
+      const controls = `.garage-slide[data-slide="${slide}"] button, #garage-confirm, #garage-prev, #garage-next`;
+      for (const box of await page.locator(controls).evaluateAll((els) => els.map((e) => e.getBoundingClientRect().toJSON()))) {
+        expect(box.width * box.height).toBeGreaterThan(0);
         expect(box.top).toBeGreaterThanOrEqual(0);
         expect(box.left).toBeGreaterThanOrEqual(0);
         expect(box.bottom).toBeLessThanOrEqual(viewport.height);
         expect(box.right).toBeLessThanOrEqual(viewport.width);
       }
     }
+    await expect(page.locator('#garage-colors .swatch')).toHaveCount(10);
     // The selected option's trade-off is still readable on short screens.
+    await goToGarageSlide(page, 'tank');
     await expect(page.locator('#garage-tanks + .garage-sel-trade')).toBeVisible();
     await expect(page.locator('#garage-tanks + .garage-sel-trade')).toContainText('TURBO');
   });
