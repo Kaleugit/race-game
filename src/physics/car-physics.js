@@ -1,7 +1,7 @@
 /**
  * @module physics/car-physics
  * @summary Per-instance car physics (turbo, speed, vertical/bounce, chassis contact, rotation,
- * suspension, auto-righting, surface grip/drag). No DOM, no three.js, no randomness. Driving math moved verbatim
+ * suspension, auto-righting, surface grip/drag, RF-012 mass and turbo tank size). No DOM, no three.js, no randomness. Driving math moved verbatim
  * from the pre-extraction src/main.js update* functions, in the same order.
  * Chassis contact does not end the run: the car rests on CHASSIS_HITBOX, and after
  * params.autoRightDelay seconds upside down on the ground it is set back on its wheels (RF-005).
@@ -73,11 +73,11 @@ export function createCarPhysics({ track, params }) {
     if (state.turboLockout && state.fuel >= p.turboReigniteFuel) state.turboLockout = false;
     if (input.space && state.fuel > 0 && !state.turboLockout) {
       state.turboActive = true;
-      state.fuel = Math.max(0, state.fuel - p.TURBO_DEPLETE * dt);
+      state.fuel = Math.max(0, state.fuel - (p.TURBO_DEPLETE / p.turboCapacity) * dt);
       if (state.fuel <= 0) state.turboLockout = true;
     } else {
       state.turboActive = false;
-      state.fuel = Math.min(1, state.fuel + p.TURBO_RECHARGE * dt);
+      state.fuel = Math.min(1, state.fuel + (p.TURBO_RECHARGE / p.turboCapacity) * dt);
     }
   }
 
@@ -101,6 +101,8 @@ export function createCarPhysics({ track, params }) {
     // RF-008: traction depends on the surface under the car (grip 1 on dirt = original math).
     const surface = track.surfaceAt(state.x);
     accel *= p.grip[surface];
+    // RF-012: a heavier car accelerates less (mass 1 = original math, x / 1 is exact).
+    accel /= p.mass;
     if (accel > 0 && state.speed < maxSpeed) state.speed += accel * dt;
     if (!inputLocked && input.down) {
       if (state.speed > 0) state.speed -= p.brake * dt;
@@ -167,7 +169,7 @@ export function createCarPhysics({ track, params }) {
         state.suspVy -= (3 + impactSpeed * 0.4) * intensity;
         if (airTime >= p.BOUNCE_MIN_AIRTIME && intensity > 0.05) {
           const t = Math.min(airTime, p.BOUNCE_AIRTIME_CAP);
-          const bounceFactor = (0.2 + t * 0.3) * intensity * p.BOUNCE_CHASSIS_SCALE;
+          const bounceFactor = ((0.2 + t * 0.3) * intensity * p.BOUNCE_CHASSIS_SCALE) / p.mass;
           state.vy = groundVy + impactSpeed * bounceFactor;
           state.airborne = true;
           state.bounceLevel *= p.BOUNCE_DECAY;
@@ -253,8 +255,8 @@ export function createCarPhysics({ track, params }) {
 
   function updateRotation(dt, input, inputLocked) {
     if (state.airborne) {
-      if (!inputLocked && input.left) state.angVel += p.AIR_TORQUE * dt;
-      if (!inputLocked && input.right) state.angVel -= p.AIR_TORQUE * dt;
+      if (!inputLocked && input.left) state.angVel += (p.AIR_TORQUE / p.mass) * dt;
+      if (!inputLocked && input.right) state.angVel -= (p.AIR_TORQUE / p.mass) * dt;
       state.angVel *= 0.992;
       state.rot += state.angVel * dt;
     } else if (inputLocked) {

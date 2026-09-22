@@ -23,7 +23,8 @@ function memoryStorage(initial = {}) {
   };
 }
 
-const DEFAULT_GARAGE = { color: DEFAULT_COLOR, ...DEFAULT_PARTS };
+// The profile stores color/tire/gearbox; engine/chassis/tank persistence arrives with EP-008-04.
+const DEFAULT_GARAGE = { color: DEFAULT_COLOR, tire: DEFAULT_PARTS.tire, gearbox: DEFAULT_PARTS.gearbox };
 
 test('visible stage order is mata-atlantica then cerrado', () => {
   assert.deepEqual(STAGES.map((s) => s.id), ['mata-atlantica', 'cerrado']);
