@@ -8,15 +8,15 @@
 - Branch: TASK-kaleugit-EP-004-02-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 21:50
+- Last Updated: 2026-09-21 21:47
 - Started: 2026-09-21 21:40
-- Completed: 2026-09-21 21:50
+- Completed: 2026-09-21 21:47
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-004-02-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-004-02-implement-report-2026-09-21.md
 - prior-art: src/bot/bot-driver.js (createBotDriver, runBotToFinish) and src/bot/bot-preset.js (resolveBotParams) from EP-004-01 reused as-is; src/physics/car-physics.js createCarPhysics reused for the second car; existing #race-bar-bot / #bot-dist HUD and showDefeatScreen/showEndScreen flow kept
 - Evidence: PASS — `grep -nE "BOT_FINISH_TIME|BOT_BASE_SPEED|BOT_CYCLE|function updateBot" src/main.js` empty; `grep -n "botCar.step" src/main.js` -> line 482 inside tick; no scene.add for the bot; `npm test` 3/3 (smoke, stage-data, bot: idle player -> DERROTA with numeric bot time); `npm run test:sim` 53/53
 - Delivery Handoff: DONE (owner: skills/delivery)
-- Delivery PR: Pending
+- Delivery PR: #17
 - Delivery Status: PR_OPEN_MANUAL_MERGE
 
 ## Autonomous Decisions
