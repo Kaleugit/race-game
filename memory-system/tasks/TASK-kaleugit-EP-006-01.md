@@ -8,17 +8,18 @@
 - Branch: TASK-kaleugit-EP-006-01-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 22:58
+- Last Updated: 2026-09-22 02:01
 - Started: 2026-09-21 22:52
-- Completed: 2026-09-21 22:58
+- Completed: 2026-09-22 02:00
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-006-01-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-006-01-implement-report-2026-09-21.md
 - prior-art: src/parts/presets.js (TIRES/GEARBOXES/DEFAULT_PARTS ids and frozen-preset pattern); src/bot/bot-preset.js (resolveBotParams, bot preset independent of the player); src/main.js:326-348 (current race_best_time read/write, left intact); tests/sim/load-stages.js (Node stage registry)
 - Evidence: PASS — tests/sim/profile.test.js 10/10 (empty storage -> only mata-atlantica + DEFAULT_COLOR/DEFAULT_PARTS; recordWin('mata-atlantica') -> isUnlocked('cerrado') on a new profile over the same storage; corrupted JSON / unknown ids / throwing storage -> defaults, no throw; race_best_time preserved byte for byte; CAR_COLORS.length === 10; bot params independent of the saved garage); `npm run test:sim` 73/73; `npm run build` PASS; `npm test` 4/4; src/main.js untouched
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 - Delivery PR: #21
-- Delivery Status: PR_OPEN_MANUAL_MERGE
+- Delivery Status: MERGED
 
+- Delivery Merged At: 2026-09-22 02:00
 ## Autonomous Decisions
 - DA-001: Garage `color` stores a CAR_COLORS id (`DEFAULT_COLOR = 'vermelho'`, hex 0xb71f1f = original bodyMat), not a hex; `getCarColor(id)` maps it — Criteria: CDC-006 + CDC-104 — Rationale: ids survive palette tweaks and validate trivially; EP-006-02/04 pass `getCarColor(id).hex` to applyCarLook.
 - DA-002: `getGarage()` returns `{ color, tire, gearbox }` only; `garage.upgrades` stays in the stored JSON untouched (reserved) — Criteria: epic Task 04 (`resolveCarParams(BASE_PARAMS, profile.getGarage())`) — Rationale: resolveCarParams expects `upgrades` as an array; exposing the `{}` slot would make that call throw. Future upgrades map the slot to the array without migration.
