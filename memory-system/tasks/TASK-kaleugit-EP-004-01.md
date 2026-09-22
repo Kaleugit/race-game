@@ -8,17 +8,18 @@
 - Branch: TASK-kaleugit-EP-004-01-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 21:39
+- Last Updated: 2026-09-22 00:42
 - Started: 2026-09-21 21:05
-- Completed: 2026-09-21 21:39
+- Completed: 2026-09-22 00:41
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-004-01-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-004-01-implement-report-2026-09-21.md
 - prior-art: tests/sim/harness.js — runRace reused for all bot/reference races; src/parts/presets.js resolveCarParams reused by resolveBotParams; no existing PRNG or AI driver in src/
 - Evidence: PASS — `npm run test:sim` 53/53 (tests/sim/bot.test.js 10/10: CA-004 Mata seeds 1..10 all finish, median 18.81 s, spread -4.2%/+9.5%, all slower than reference 17.30 s; CA-005 bot righted in [1.3,1.7] s; same seed same run; stall recovery on the climb; runBotToFinish; resolveBotParams); `grep -n "Math.random" src/bot/*.js` empty; `npm test` green; src/main.js untouched
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 - Delivery PR: #16
-- Delivery Status: PR_OPEN_MANUAL_MERGE
+- Delivery Status: MERGED
 
+- Delivery Merged At: 2026-09-22 00:41
 ## Autonomous Decisions
 - DA-001: A bot throttle lift keeps the turbo button on its policy (lift with fuel = turbo without throttle, low top speed) — Criteria: CA-004 "slower than the reference" + CDC-103 — Rationale: measured: a lift that also released turbo recharged the tank and shortened jumps, so "errors" made seeds faster than the reference (16.3-16.7 s vs 17.30 s). With the kept turbo button every error costs time.
 - DA-002: Reference driver implemented literally as the epic defines it (up always, space while fuel > 0, air correction beyond 0.6 rad from the slope under the car) — Criteria: task file + epic Task 01 (precedence 2) — Rationale: EP-005 reuses it for CA-009; the error-free bot (17.42 s) is no faster than it, so it is the skilled-human benchmark.
