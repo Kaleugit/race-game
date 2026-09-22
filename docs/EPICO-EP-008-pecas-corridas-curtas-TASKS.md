@@ -192,6 +192,25 @@
 - Escalation Conditions:
   - To human: não caber sem sobreposição em mobile landscape.
 
+### Task 08 - Trocar o som dos motores 1.6 e 2.4
+- Task ID: TASK-kaleugit-EP-008-08
+- Status: PENDING
+- Priority: 1
+- Execution Mode: Quick
+- Domain: Som
+- Description:
+  - Pedido do gestor (teste de UX, 2026-09-22): o som do motor 1.6 ficou muito bom; trocar o som do 1.6 com o do 2.4 (o 2.4 passa a soar como o 1.6 atual e vice-versa). Só som (`sound` + `timbre`); física das peças inalterada.
+- Depends On: TASK-kaleugit-EP-008-03
+- Canonical File: memory-system/tasks/TASK-kaleugit-EP-008-08.md
+- Suggested Branch: TASK-kaleugit-EP-008-08-implement
+- Input Context (max 5 files):
+  - src/parts/presets.js
+  - tests/sim/parts-rf012.test.js
+- Done Criteria:
+  - `npm run test:sim` e `npm test` verdes; aprovação auditiva do gestor.
+- Escalation Conditions:
+  - None
+
 ## Planning Notes
 - Default policy: create `planning/report` on demand as tasks move to execution.
 - Each task must be self-contained: the canonical task file + listed input context must be sufficient for execution without implicit knowledge from prior tasks.
