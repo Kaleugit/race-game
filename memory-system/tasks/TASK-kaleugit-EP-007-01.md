@@ -8,16 +8,16 @@
 - Branch: TASK-kaleugit-EP-007-01-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 21:30
+- Last Updated: 2026-09-21 21:16
 - Started: 2026-09-21 21:00
-- Completed: 2026-09-21 21:30
+- Completed: 2026-09-21 21:16
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-007-01-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-007-01-implement-report-2026-09-21.md
 - prior-art: src/sound.js — existing GEARS table / virtualSf pseudo-RPM (replaced in EP-007-02, not reused); src/parts/presets.js GEARBOXES reused for ratio scaling; no existing engine model (src/audio/ is new)
 - Evidence: PASS — `npm run test:sim` 43/43 (6 new in tests/sim/engine-model.test.js: RPM in [800, 4000] and firingHz in [25, 140] on every step for 3 presets x throttle/turbo on Mata Atlântica; every upshift exact ratio step; first upshift speed curta 13.0 < padrao 13.8 < longa 14.4; airborne free-rev; downshift/idle; purity grep)
-- Delivery Handoff: DONE (owner: gohorse/subagent)
-- Delivery PR: Pending
-- Delivery Status: Pending
+- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery PR: #12
+- Delivery Status: PR_OPEN_MANUAL_MERGE
 
 ## Autonomous Decisions
 - DA-001: finalDrive 4.5 — Criteria: orchestrator calibration note + CDC-005 — Rationale: top gear at BASE_PARAMS.maxSpeedTurbo sits at ~3575 rpm (below upshift and redline) for every preset; 1st gear shifts at ~13-14 m/s.
@@ -27,3 +27,4 @@
 - DA-005: launch clutch slip (launchRpm 1800 at full throttle) and first-order RPM response — Criteria: KISS — Rationale: continuous RPM at standstill/launch and on landing without extra state.
 - DA-006: No persona consults — Criteria: runbook (at most 2 lightweight consults; human prefers speed) — Rationale: API and criteria fully specified by the epic Task 01.
 - UX Gate: pending human (batched at epic end) — covered by EP-007-02 synthesis.
+- Delivery Merged At: Pending
