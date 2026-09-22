@@ -328,6 +328,25 @@
 - Escalation Conditions:
   - None
 
+### Task 14 - Porta do e2e configurável (E2E_PORT)
+- Task ID: TASK-kaleugit-EP-008-14
+- Status: PENDING
+- Priority: 1
+- Execution Mode: Quick
+- Domain: Ferramental de teste
+- Description:
+  - Pedido do gestor (2026-09-22): acelerar o ciclo das tarefas restantes sem abrir mão de evidência.
+  - `playwright.config.js` passa a ler `E2E_PORT` (padrão 4173) em baseURL, webServer.command e webServer.url, para dois worktrees rodarem e2e em paralelo em vez de disputar a porta 4173 `strictPort`.
+- Depends On: None
+- Canonical File: memory-system/tasks/TASK-kaleugit-EP-008-14.md
+- Suggested Branch: TASK-kaleugit-EP-008-14-implement
+- Input Context (max 5 files):
+  - playwright.config.js
+- Done Criteria:
+  - `E2E_PORT=4183 npm test -- <spec>` sobe na 4183 e passa; sem `E2E_PORT` o padrão 4173 continua valendo.
+- Escalation Conditions:
+  - None
+
 ## Planning Notes
 - Default policy: create `planning/report` on demand as tasks move to execution.
 - Each task must be self-contained: the canonical task file + listed input context must be sufficient for execution without implicit knowledge from prior tasks.
