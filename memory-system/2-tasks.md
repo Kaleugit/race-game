@@ -104,6 +104,9 @@ Policy:
 | TASK-kaleugit-EP-008-06 | Garage parts panel redesign | COMPLETED | 1 | Standard | TASK-kaleugit-EP-008-06-implement | [development] | 2026-09-22 16:06 |
 | TASK-kaleugit-EP-008-07 | Race HUD standardization + speed/turbo gauges | COMPLETED | 1 | Standard | TASK-kaleugit-EP-008-07-implement | [development] | 2026-09-22 16:58 |
 | TASK-kaleugit-EP-008-08 | Swap 1.6 and 2.4 engine sounds | COMPLETED | 1 | Quick | TASK-kaleugit-EP-008-08-implement | [development] | 2026-09-22 16:04 |
+| TASK-kaleugit-EP-008-09 | Lobby com CORRIDA/GARAGEM + garagem em carrossel | PENDING | 1 | Standard | TASK-kaleugit-EP-008-09-implement | None | 2026-09-22 14:10 |
+| TASK-kaleugit-EP-008-10 | HUD: só distância do jogador + posição 1º/2º; contagem de 1 s | PENDING | 1 | Quick | TASK-kaleugit-EP-008-10-implement | None | 2026-09-22 14:10 |
+| TASK-kaleugit-EP-008-11 | Bot fantasma opcional | PENDING | 1 | Standard | TASK-kaleugit-EP-008-11-implement | None | 2026-09-22 14:10 |
 | TASK-kaleugit-EP-002-03 | CA-003 proof: data-only test stage + e2e | COMPLETED | 2 | Quick | TASK-kaleugit-EP-002-03-implement | [development] | 2026-09-21 23:12 |
 | TASK-kaleugit-EP-003-03 | Tire/gearbox presets and surface grip | COMPLETED | 2 | Standard | TASK-kaleugit-EP-003-03-implement | [development] | 2026-09-22 00:01 |
 | TASK-kaleugit-EP-006-02 | Car visual: color and tires | COMPLETED | 2 | Quick | TASK-kaleugit-EP-006-02-implement | [development] | 2026-09-22 02:13 |
