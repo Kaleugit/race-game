@@ -45,7 +45,7 @@
         --hud-w: 18.4em;
         --act-w: 9.6em;
       }
-      /* Race HUD (EP-008-07): speed + turbo gauges and the DIST / BOT readouts, top-left. */
+      /* Race HUD (EP-008-07): speed + turbo gauges and the DIST readout, top-left. */
       #hud {
         position: fixed;
         top: calc(var(--hud-gut) + env(safe-area-inset-top, 0px));
@@ -86,8 +86,10 @@
       .gauge .turbo-label { font-size: 12px; letter-spacing: 0.08em; }
       .gauge-turbo[data-state="lockout"] .turbo-pct,
       .gauge-turbo[data-state="lockout"] .turbo-label { fill: var(--ui-bot-text); }
+      /* EP-008-10: only the player's DIST (+ debug rows); positions live on the race bar. */
       .hud-readouts {
-        display: grid; grid-template-columns: 1fr 1fr; gap: 0.2em 1em;
+        align-self: flex-start;
+        display: grid; grid-template-columns: auto; gap: 0.2em 1em;
         padding: 0.45em 0.8em 0.5em;
         background: var(--ui-glass-bg);
         border: 1px solid var(--ui-panel-border); border-top: 2px solid var(--ui-gold);
@@ -97,7 +99,6 @@
       .hud-k { font-size: 0.9em; font-weight: 700; letter-spacing: 0.18em; color: var(--ui-muted); }
       .hud-v { font-size: 1.3em; font-weight: 700; color: var(--ui-ink); font-variant-numeric: tabular-nums; }
       .hud-u { font-size: 0.9em; color: var(--ui-muted); }
-      .hud-row-bot .hud-k, .hud-row-bot .hud-v { color: var(--ui-bot-text); }
       #hud-bot-won {
         font-weight: 700; letter-spacing: 0.14em; white-space: nowrap;
         color: var(--ui-bot-text); background: rgba(255,68,68,0.16);
@@ -136,10 +137,22 @@
       }
       #race-bar.show { display: flex; }
       #race-bar-label-you, #race-bar-label-bot {
+        display: flex; align-items: center; gap: 0.5em;
         font-weight: 700; letter-spacing: 0.18em; white-space: nowrap;
       }
       #race-bar-label-you { color: var(--ui-gold); }
       #race-bar-label-bot { color: var(--ui-bot-text); }
+      /* Position badges (EP-008-10): 1º / 2º per racer, the leader's badge filled gold. */
+      .race-pos {
+        min-width: 2.4em; padding: 0.2em 0.35em 0.15em; text-align: center;
+        font-size: 1.15em; font-weight: 700; letter-spacing: 0.04em; line-height: 1;
+        color: var(--ui-muted); background: var(--ui-glass-bg);
+        border: 1px solid var(--ui-panel-border);
+      }
+      .race-pos[data-leader="true"] {
+        color: #140c04; background: var(--ui-gold); border-color: var(--ui-gold);
+        text-shadow: none; box-shadow: 0 0 8px rgba(255,216,107,0.55);
+      }
       #race-bar-track {
         position: relative; flex: 1; height: 3px;
         background: rgba(255,255,255,0.25); box-shadow: 0 1px 0 rgba(0,0,0,0.6);
@@ -698,17 +711,17 @@
       <b>Adicionar &agrave; Tela de In&iacute;cio</b>. Abra o jogo pelo &iacute;cone criado.
     </div>
     <div id="race-bar" class="race-ui">
-      <span id="race-bar-label-you">VOCÊ</span>
+      <span id="race-bar-label-you"><span class="race-pos" id="race-pos-you" data-leader="true">1º</span>VOCÊ</span>
       <div id="race-bar-track">
         <div id="race-bar-bot"></div>
         <div id="race-bar-player"></div>
         <div id="race-bar-finish"></div>
       </div>
-      <span id="race-bar-label-bot">BOT</span>
+      <span id="race-bar-label-bot">BOT<span class="race-pos" id="race-pos-bot" data-leader="false">2º</span></span>
     </div>
     <div id="countdown-overlay" class="race-ui">
       <div id="countdown-vs">vs. BOT</div>
-      <div id="countdown-num">3</div>
+      <div id="countdown-num">1</div>
     </div>
     <div id="end-overlay">
       <div id="end-result">VITÓRIA</div>
@@ -786,7 +799,6 @@
       </div>
       <div class="hud-readouts">
         <div class="hud-row"><span class="hud-k">DIST</span><span class="hud-v" id="dist">0</span><span class="hud-u">m</span></div>
-        <div class="hud-row hud-row-bot"><span class="hud-k">BOT</span><span class="hud-v" id="bot-dist">0</span><span class="hud-u">m</span></div>
         <div id="hud-debug" class="hud-row" style="display:none"><span class="hud-k">SUSP</span><span class="hud-v" id="suspstate">ON</span><span class="hud-k">INF</span><span class="hud-v" id="infturbo">OFF</span></div>
         <div id="hud-pos" class="hud-row" style="display:none"><span class="hud-k">POS</span><span class="hud-v" id="pos">0</span></div>
       </div>

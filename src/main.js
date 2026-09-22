@@ -4,7 +4,7 @@
  * Stage chosen on the map (src/lobby.js) or via the ?stage=<id> test shortcut; the player car uses the
  * garage saved in the profile (src/profile/profile.js): all five parts (tire, gearbox, engine, chassis,
  * turbo tank) feed resolveCarParams, the engine picks the sound variant and the tank sizes the turbo gauge.
- * HUD gauges (speed, turbo, DIST / BOT) are drawn by src/ui/race-hud.js.
+ * HUD gauges (speed, turbo, DIST) and the race-bar 1º/2º badges are drawn by src/ui/race-hud.js.
  * Car physics lives in src/physics/car-physics.js (playerCar); this file only renders its state.
  * The opponent is a second physics instance (botCar) driven by src/bot/bot-driver.js; it has no mesh,
  * only its position feeds the race bar (mini-map with the stage name).
@@ -22,7 +22,7 @@ import { BASE_PARAMS } from './physics/params.js';
 import { resolveCarParams } from './parts/presets.js';
 import { createProfile } from './profile/profile.js';
 import { showResult, hideResult } from './ui/result.js';
-import { createRaceHud } from './ui/race-hud.js';
+import { createRaceHud, playerLeads } from './ui/race-hud.js';
 import { initEngineSound } from './sound.js';
 import { createBotDriver, runBotToFinish } from './bot/bot-driver.js';
 import { resolveBotParams } from './bot/bot-preset.js';
@@ -250,6 +250,7 @@ const state = {
   botScroll: 0,
   botFinishTime: null,
   botWon: false,
+  playerFirst: true,
 };
 
 const engineSound = initEngineSound();
@@ -302,6 +303,8 @@ function resetGame() {
   botDriver = createBotDriver({ track, difficulty: currentStage.bot.difficulty, seed: raceIndex });
   state.botScroll = 0;
   state.botFinishTime = null;
+  state.playerFirst = true; // grid order until someone is ahead (EP-008-10)
+  raceHud.setPositions(true);
   renderBotBar();
   state.botWon = false;
   botWonNoticeEl.style.display = 'none';
@@ -337,30 +340,26 @@ function leaveRace(open) {
   open(lobby);
 }
 
+// Pre-race countdown (EP-008-10): 1 s in total — "1", then a short "VAI!" beat, then control.
+const COUNTDOWN_S = 1;
+const COUNTDOWN_GO_AT_S = 0.6;
 let countdownTimer = 0;
-let countdownStep = 3;
 
 function startCountdown() {
   resetGame();
   engineSound.start();
-  countdownStep = 3;
   countdownTimer = 0;
-  countdownNumEl.textContent = '3';
+  countdownNumEl.textContent = '1';
   countdownOverlayEl.classList.add('show');
 }
 
 function updateCountdown(dt) {
   if (!countdownOverlayEl.classList.contains('show')) return;
   countdownTimer += dt;
-  if (countdownStep > 0 && countdownTimer >= (4 - countdownStep)) {
-    countdownStep--;
-    if (countdownStep > 0) {
-      countdownNumEl.textContent = String(countdownStep);
-    } else {
-      countdownNumEl.textContent = 'GO!';
-    }
+  if (countdownTimer >= COUNTDOWN_GO_AT_S && countdownNumEl.textContent !== 'VAI!') {
+    countdownNumEl.textContent = 'VAI!';
   }
-  if (countdownTimer >= 4) {
+  if (countdownTimer >= COUNTDOWN_S) {
     countdownOverlayEl.classList.remove('show');
     state.inputFrozen = false;
     state.raceStarted = true;
@@ -483,7 +482,8 @@ function updateHUD() {
   if (state.gridVisible && posValEl) posValEl.textContent = Math.round(car.x);
 
   if (state.raceStarted && !state.raceFinished) {
-    raceHud.setBotDist(state.botScroll);
+    state.playerFirst = playerLeads(state.playerFirst, car.x, state.botScroll, track.finishX);
+    raceHud.setPositions(state.playerFirst);
     const playerProgress = Math.min(car.x / track.finishX, 1);
     raceBarPlayerEl.style.left = (playerProgress * 100).toFixed(1) + '%';
   }

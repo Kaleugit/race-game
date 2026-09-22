@@ -8,7 +8,7 @@
 > 2. If grep surfaces a candidate -> consume it (DRY).
 > 3. **Add the missing JSDoc tags to the file you touched** before closing the task. Boy-scout rule — your PR expands this index.
 
-Last regenerated: 2026-09-22T17:19Z
+Last regenerated: 2026-09-22T18:06Z
 Total candidate files scanned: 27
 
 ## Backend modules
@@ -120,9 +120,10 @@ Total candidate files scanned: 27
 - Open the garage carousel with the current selection and the available options.
 
 ### `src/ui/race-hud.js` — ui/race-hud
-- In-race HUD: semi-transparent speed and turbo gauges plus DIST / BOT readouts.
+- In-race HUD: semi-transparent speed and turbo gauges, the player's DIST readout and 1º/2º positions.
 - Segment count of the turbo gauge for a tank capacity (12 for the default tank).
 - Speed-gauge full scale in km/h for a car: its turbo top speed rounded up to 50 km/h.
+- Race order after a frame: true when the player is 1º. Further along the track (x) leads;
 - Builds the race HUD gauges inside #hud and returns its per-race / per-frame API.
 
 ### `src/ui/result.js` — ui/result

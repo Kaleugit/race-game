@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { trackErrors, waitCountdown } from './drive.js';
 
-// EP-008-07: during a race the HUD (speed + turbo gauges, DIST / BOT readouts, bot-won notice), the race
-// bar (with the stage name), the in-race buttons and the touch controls never overlap each other and
-// stay inside the viewport, on desktop and phone landscape, with the touch controls switched on.
+// EP-008-07: during a race the HUD (speed + turbo gauges, DIST readout, bot-won notice), the race
+// bar (with the stage name and the 1º/2º badges, EP-008-10), the in-race buttons and the touch controls
+// never overlap each other and stay inside the viewport, on desktop and phone landscape, with the touch
+// controls switched on.
 const VIEWPORTS = [
   { width: 1280, height: 720 },
   { width: 1920, height: 1080 },
@@ -41,7 +42,7 @@ for (const viewport of VIEWPORTS) {
       const hudParts = ['#speed-gauge', '#turbo-gauge', '.hud-readouts', '#hud-bot-won'].map((s) => document.querySelector(s));
       const groups = {
         hud: union(hudParts.map(rect)),
-        raceBar: union(['#race-bar', '#race-bar-stage', '#race-bar-player', '#race-bar-bot'].map((s) => rect(document.querySelector(s)))),
+        raceBar: union(['#race-bar', '#race-bar-stage', '#race-bar-player', '#race-bar-bot', '#race-pos-you', '#race-pos-bot'].map((s) => rect(document.querySelector(s)))),
         actions: union([...document.querySelectorAll('#race-actions .race-btn')].filter((b) => b.offsetParent).map(rect)),
       };
       document.querySelectorAll('#touchpad .tbtn').forEach((b, i) => { groups[`touch${i}`] = rect(b); });
