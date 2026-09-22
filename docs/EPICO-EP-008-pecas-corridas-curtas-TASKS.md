@@ -145,7 +145,7 @@
 
 ### Task 06 - Redesign do painel de peças da garagem
 - Task ID: TASK-kaleugit-EP-008-06
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Standard
 - Domain: Interface e fluxo do jogador
