@@ -1,9 +1,9 @@
 /**
  * @module stages/mata-atlantica
- * @summary Mata Atlântica stage data (EP-005-01): the prototype opening (0–830 m, verbatim from the
- * pre-migration src/main.js, including the big serra jump) extended by hand-placed forest sections —
- * riverbank mud, a serra climb with a second big jump, a mud bog, a kicker run, a waterfall drop and
- * a final river crossing — sized for a 60–90 s race with the reference driver (CA-009).
+ * @summary Mata Atlântica stage data (EP-005-01, shortened in EP-008-01): the prototype opening
+ * (0–830 m, verbatim from the pre-migration src/main.js, including the big serra jump) followed by
+ * the signature forest sections — riverbank mud, a second serra climb with a big jump and a mud
+ * bog — sized for a 30–45 s race with the reference driver (CA-009).
  */
 export default {
   id: 'mata-atlantica',
@@ -11,7 +11,7 @@ export default {
   order: 1,
   hidden: false,
   track: {
-    finishX: 2600,
+    finishX: 1400,
     noise: [
       { amp: 0.18, freq: 0.06, phase: 0 },
       { amp: 0.10, freq: 0.13, phase: 1.7 },
@@ -34,16 +34,8 @@ export default {
       // Second serra: a long, drivable climb, a crest kicker and a big jump into the valley.
       { x: 1080, w: 90, dh: 10 },
       { x: 1165, w: 30, dh: -11 },
-      // Mud bog floor, then a short rise out of it.
-      { x: 1400, w: 20, dh: 1.5 },
-      // Kicker run on a gentle hillside.
-      { x: 1560, w: 60, dh: 3.0 },
-      // Waterfall: climb to the lookout and a big drop.
-      { x: 1820, w: 70, dh: 8 },
-      { x: 1895, w: 26, dh: -10 },
-      // Rolling descent to the river crossing and the finish.
-      { x: 2150, w: 40, dh: -1.5 },
-      { x: 2420, w: 30, dh: 1.0 },
+      // Short rise out of the mud bog to the finish.
+      { x: 1330, w: 20, dh: 1.5 },
     ],
     features: [
       // Prototype opening (verbatim).
@@ -74,41 +66,18 @@ export default {
       { x: 1110, type: 'wave',   w: 8,  h: 0.3, count: 3 },
       { x: 1140, type: 'asym',   w: 5,  h: 1.2, leftFactor: 0.5 },
       // Mud bog: dips and a buried log.
-      { x: 1250, type: 'valley', w: 10, h: 0.8 },
-      { x: 1290, type: 'bell',   w: 3,  h: 0.5 },
-      { x: 1330, type: 'valley', w: 8,  h: 0.6 },
-      { x: 1365, type: 'wave',   w: 10, h: 0.3, count: 4 },
-      // Kicker run: three ramps, then a table-top.
-      { x: 1480, type: 'asym',    w: 6,  h: 1.3, leftFactor: 0.4 },
-      { x: 1530, type: 'asym',    w: 6,  h: 1.5, leftFactor: 0.4 },
-      { x: 1590, type: 'asym',    w: 7,  h: 1.7, leftFactor: 0.4 },
-      { x: 1660, type: 'plateau', w: 12, h: 1.2 },
-      { x: 1700, type: 'valley',  w: 6,  h: 0.9 },
-      // Waterfall climb: bumps, lookout kicker.
-      { x: 1795, type: 'bell',   w: 4,  h: 0.7 },
-      { x: 1850, type: 'asym',   w: 5,  h: 1.2, leftFactor: 0.5 },
-      // Waterfall pool dip and forest track.
-      { x: 1960, type: 'valley',  w: 8,  h: 1.0 },
-      { x: 2010, type: 'wave',    w: 10, h: 0.35, count: 3 },
-      { x: 2060, type: 'bell',    w: 4,  h: 1.1 },
-      { x: 2100, type: 'plateau', w: 10, h: 0.9 },
-      // River crossing: muddy ford with ruts.
-      { x: 2240, type: 'valley', w: 12, h: 0.9 },
-      { x: 2275, type: 'wave',   w: 10, h: 0.25, count: 4 },
-      // Final run: a last kicker and rollers to the line.
-      { x: 2350, type: 'bell',   w: 3,  h: 0.8 },
-      { x: 2400, type: 'asym',   w: 6,  h: 1.4, leftFactor: 0.4 },
-      { x: 2480, type: 'wave',   w: 10, h: 0.35, count: 3 },
-      { x: 2540, type: 'bell',   w: 4,  h: 1.0 },
+      { x: 1245, type: 'valley', w: 10, h: 0.8 },
+      { x: 1275, type: 'bell',   w: 3,  h: 0.5 },
+      { x: 1300, type: 'valley', w: 8,  h: 0.6 },
+      // Final run: a last bump before the line.
+      { x: 1360, type: 'bell',   w: 3,  h: 0.8 },
     ],
   },
   surfaces: {
     default: 'dirt',
     zones: [
       { from: 930,  to: 1000, type: 'mud' }, // riverbank
-      { from: 1220, to: 1390, type: 'mud' }, // mud bog below the second jump
-      { from: 1940, to: 1985, type: 'mud' }, // waterfall pool
-      { from: 2220, to: 2300, type: 'mud' }, // river crossing
+      { from: 1220, to: 1320, type: 'mud' }, // mud bog below the second jump
     ],
   },
   visuals: {
