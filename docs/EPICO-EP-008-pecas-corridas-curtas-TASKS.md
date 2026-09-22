@@ -213,7 +213,7 @@
 
 ### Task 09 - Lobby com CORRIDA/GARAGEM + garagem em carrossel
 - Task ID: TASK-kaleugit-EP-008-09
-- Status: PENDING
+- Status: COMPLETED
 - Priority: 1
 - Execution Mode: Standard
 - Domain: Interface e fluxo do jogador

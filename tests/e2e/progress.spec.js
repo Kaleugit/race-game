@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { trackErrors, openGarageFromLobby, pickGarage, confirmGarage, startStageFromMap, driveToFinish, resultSeconds } from './drive.js';
+import {
+  trackErrors, openGarageFromLobby, openMapFromLobby, pickGarage, confirmGarage, startStageFromMap, driveToFinish, resultSeconds,
+} from './drive.js';
 
 // CA-002: beating Mata Atlântica unlocks Cerrado on the map, and it survives a reload.
 // A fresh Playwright context has an empty localStorage (clean profile). The win is a real race
@@ -15,6 +17,7 @@ test('CA-002: vencer a Mata Atlântica desbloqueia o Cerrado e persiste após re
   await openGarageFromLobby(page);
   await pickGarage(page, { tire: 'estrada', gearbox: 'longa' });
   await confirmGarage(page);
+  await openMapFromLobby(page);
 
   // Clean storage: only Mata Atlântica is available.
   await expect(page.locator('#map-stages [data-stage-id]')).toHaveCount(2);
@@ -33,8 +36,7 @@ test('CA-002: vencer a Mata Atlântica desbloqueia o Cerrado e persiste após re
   expect(saved.progress.unlocked).toContain('cerrado');
 
   await page.reload();
-  await openGarageFromLobby(page);
-  await confirmGarage(page);
+  await openMapFromLobby(page);
   await expect(page.locator('#map-stages [data-stage-id="mata-atlantica"]')).toHaveAttribute('data-locked', 'false');
   await expect(page.locator('#map-stages [data-stage-id="cerrado"]')).toHaveAttribute('data-locked', 'false');
   await expect(page.locator('#map-stages [data-stage-id="cerrado"]')).toBeEnabled();
