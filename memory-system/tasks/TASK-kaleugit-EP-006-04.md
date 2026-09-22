@@ -8,18 +8,19 @@
 - Branch: TASK-kaleugit-EP-006-04-implement
 - Workstreams: [development]
 - Execution Mode: Standard
-- Last Updated: 2026-09-21 23:54
+- Last Updated: 2026-09-22 02:57
 - Started: 2026-09-21 23:10
-- Completed: 2026-09-21 23:54
+- Completed: 2026-09-22 02:57
 - Planning: memory-system/task-docs/TASK-kaleugit-EP-006-04-implement-planning-2026-09-21.md
 - Report: memory-system/task-docs/TASK-kaleugit-EP-006-04-implement-report-2026-09-21.md
 - prior-art: src/main.js (EP-002-02 setStage(id) + dispose, EP-004-02 bot/race-bar wiring, showEndScreen being replaced); src/lobby.js (lobby render loop/music, reused and made reopenable); src/ui/{garage,stage-map,result}.js + src/profile/profile.js + applyCarLook in src/car.js (EP-006-01/02/03 APIs consumed as-is)
 - Evidence: PASS — `grep -nE "showGarage|showStageMap" src/lobby.js` and `grep -nE "showResult|recordWin|getGarage" src/main.js` show the flow calls; `grep -n "location.reload\|race_best_time" src/main.js` empty; `npm run test:sim` green; `npm run build` PASS; `npm test` 4/4; scratch Playwright run over rematch / result -> garage -> map -> back -> race / in-race LOBBY with no console errors
 - UX Gate: pending human (batched at epic end) — full flow on desktop and mobile landscape
-- Delivery Handoff: DONE (owner: skills/delivery)
+- Delivery Handoff: DONE (owner: github-actions)
 - Delivery PR: #24
-- Delivery Status: PR_OPEN_MANUAL_MERGE
+- Delivery Status: MERGED
 
+- Delivery Merged At: 2026-09-22 02:57
 ## Autonomous Decisions
 - DA-001: HUD defeat notice (`#hud-bot-won`) and stage label (`#race-bar-stage`) are created from src/main.js instead of index.html markup — Criteria: epic ownership (index.html belongs to EP-006-03; editing it is an escalation) + orchestrator scope (index.html only to remove #end-lobby-btn) — Rationale: no new screen/text beyond RF-001, no index.html ownership conflict.
 - DA-002: In-race `#btn-back-lobby` keeps its inline `onclick="location.reload()"` in index.html but main.js overrides it with `.onclick = leaveRace(openHome)` — Criteria: task (no location.reload in the flow) + DA-001 scope — Rationale: same effect as removing the attribute without widening the index.html edit.
